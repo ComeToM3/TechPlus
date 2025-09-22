@@ -1,0 +1,69 @@
+{
+  "name": "techplus",
+  "version": "1.0.0",
+  "description": "TechPlus - Système de réservation restaurant",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && flutter test",
+    "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
+    "test:coverage:backend": "cd backend && npm run test:coverage",
+    "test:coverage:frontend": "cd frontend && flutter test --coverage",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && flutter analyze",
+    "format": "npm run format:backend && npm run format:frontend",
+    "format:backend": "cd backend && npm run format",
+    "format:frontend": "cd frontend && dart format .",
+    "format:check": "npm run format:check:backend && npm run format:check:frontend",
+    "format:check:backend": "cd backend && npm run format:check",
+    "format:check:frontend": "cd frontend && dart format --output=none --set-exit-if-changed .",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && flutter build web --release",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && flutter run -d web-server --web-port 3001",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && flutter pub get",
+    "clean": "npm run clean:backend && npm run clean:frontend",
+    "clean:backend": "cd backend && npm run clean",
+    "clean:frontend": "cd frontend && flutter clean"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "backend/src/**/*.{ts,js}": [
+      "cd backend && npm run lint:fix",
+      "cd backend && npm run format"
+    ],
+    "backend/src/**/*.{json,md}": [
+      "cd backend && npm run format"
+    ],
+    "frontend/lib/**/*.dart": [
+      "cd frontend && dart format ."
+    ]
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/techplus.git"
+  },
+  "keywords": [
+    "restaurant",
+    "reservation",
+    "flutter",
+    "nodejs",
+    "typescript",
+    "postgresql"
+  ],
+  "author": "TechPlus Team",
+  "license": "MIT"
+}

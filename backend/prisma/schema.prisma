@@ -1,0 +1,275 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?  // Optionnel pour OAuth2
+  name      String?
+  phone     String?
+  avatar    String?
+  role      UserRole @default(CLIENT)
+  isActive  Boolean  @default(true)
+  lastLoginAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  reservations Reservation[]
+  oauthAccounts OAuthAccount[]
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model OAuthAccount {
+  id         String   @id @default(cuid())
+  provider   String
+  providerId String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+  @@map("oauth_accounts")
+}
+
+model Restaurant {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  address     String
+  phone       String
+  email       String
+  website     String?
+  logo        String?
+  images      String[]
+  settings    Json?
+  
+  // Configuration paiements
+  averagePricePerPerson Decimal @default(25.00)
+  minimumDepositAmount  Decimal @default(10.00)
+  paymentThreshold      Int     @default(6)
+  cancellationPolicy    String? // Politique d'annulation (24h)
+  
+  // Configuration horaires
+  openingHours Json? // Horaires d'ouverture par jour
+  
+  // Statut
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  tables      Table[]
+  menuItems   MenuItem[]
+  reservations Reservation[]
+  analytics   Analytics[]
+
+  @@index([name])
+  @@index([email])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("restaurants")
+}
+
+model Table {
+  id           String @id @default(cuid())
+  number       Int
+  capacity     Int
+  position     String?
+  isActive     Boolean @default(true)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  reservations Reservation[]
+
+  @@unique([restaurantId, number])
+  @@index([restaurantId])
+  @@index([capacity])
+  @@index([isActive])
+  @@map("tables")
+}
+
+model Reservation {
+  id           String @id @default(cuid())
+  date         DateTime
+  time         String
+  duration     Int // en minutes
+  partySize    Int
+  status       ReservationStatus @default(PENDING)
+  notes        String?
+  specialRequests String?
+  
+  // Client info (pour les réservations sans compte)
+  clientName   String?
+  clientEmail  String?
+  clientPhone  String?
+  
+  // Token de gestion pour les guests
+  managementToken String? @unique
+  tokenExpiresAt  DateTime?
+  
+  // Notes internes admin
+  adminNotes   String?
+  cancellationReason String?
+  
+  // Paiement
+  requiresPayment Boolean @default(false)
+  estimatedAmount Decimal?
+  depositAmount   Decimal?
+  paymentStatus   PaymentStatus @default(NONE)
+  stripePaymentId String?
+  
+  // Relations
+  userId       String?
+  user         User? @relation(fields: [userId], references: [id])
+  tableId      String?
+  table        Table? @relation(fields: [tableId], references: [id])
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([restaurantId])
+  @@index([userId])
+  @@index([tableId])
+  @@index([managementToken])
+  @@index([clientEmail])
+  @@index([createdAt])
+  @@map("reservations")
+}
+
+model MenuItem {
+  id           String @id @default(cuid())
+  name         String
+  description  String?
+  price        Decimal
+  category     String
+  image        String?
+  isAvailable  Boolean @default(true)
+  allergens    String[]
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([category])
+  @@index([isAvailable])
+  @@index([price])
+  @@map("menu_items")
+}
+
+model Analytics {
+  id           String @id @default(cuid())
+  date         DateTime
+  metric       String
+  value        Decimal
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([restaurantId, date, metric])
+  @@index([restaurantId])
+  @@index([date])
+  @@index([metric])
+  @@index([createdAt])
+  @@map("analytics")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  NONE
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Notification {
+  id           String             @id @default(cuid())
+  type         NotificationType
+  recipientEmail String
+  subject      String
+  status       NotificationStatus @default(PENDING)
+  data         String?            // JSON data
+  reservationId String?
+  reservation  Reservation?       @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@map("notifications")
+}
+
+model NotificationQueue {
+  id           String             @id @default(cuid())
+  type         NotificationType
+  recipientEmail String
+  data         String             // JSON data
+  priority     Int                @default(1)
+  scheduledAt  DateTime           @default(now())
+  status       NotificationStatus @default(PENDING)
+  attempts     Int                @default(0)
+  maxAttempts  Int                @default(3)
+  sentAt       DateTime?
+  failedAt     DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([type])
+  @@index([priority])
+  @@map("notification_queue")
+}
+
+enum NotificationType {
+  RESERVATION_CONFIRMATION
+  RESERVATION_REMINDER
+  RESERVATION_CANCELLATION
+  RESERVATION_MODIFICATION
+  PAYMENT_CONFIRMATION
+  PAYMENT_FAILED
+  ADMIN_NOTIFICATION
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  RETRYING
+}

@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🧪 Running pre-push tests..."
+
+# Backend tests
+echo "📦 Running backend tests..."
+cd backend
+npm run test:coverage
+cd ..
+
+# Frontend tests
+echo "📱 Running frontend tests..."
+cd frontend
+flutter test --coverage
+cd ..
+
+echo "✅ Pre-push tests passed!"

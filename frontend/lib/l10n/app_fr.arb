@@ -1,0 +1,201 @@
+{
+  "@@locale": "fr",
+  "appTitle": "TechPlus",
+  "@appTitle": {
+    "description": "Le titre de l'application"
+  },
+  "welcome": "Bienvenue",
+  "@welcome": {
+    "description": "Message de bienvenue"
+  },
+  "welcomeUser": "Bienvenue {userName}",
+  "@welcomeUser": {
+    "description": "Message de bienvenue avec nom d'utilisateur",
+    "placeholders": {
+      "userName": {
+        "type": "String",
+        "description": "Le nom de l'utilisateur"
+      }
+    }
+  },
+  "login": "Connexion",
+  "@login": {
+    "description": "Bouton de connexion"
+  },
+  "register": "S'inscrire",
+  "@register": {
+    "description": "Bouton d'inscription"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Champ email"
+  },
+  "password": "Mot de passe",
+  "@password": {
+    "description": "Champ mot de passe"
+  },
+  "name": "Nom",
+  "@name": {
+    "description": "Champ nom"
+  },
+  "logout": "Déconnexion",
+  "@logout": {
+    "description": "Bouton de déconnexion"
+  },
+  "myReservations": "Mes Réservations",
+  "@myReservations": {
+    "description": "Titre de la page des réservations"
+  },
+  "newReservation": "Nouvelle Réservation",
+  "@newReservation": {
+    "description": "Bouton pour créer une nouvelle réservation"
+  },
+  "reservations": "Réservations",
+  "@reservations": {
+    "description": "Titre des réservations"
+  },
+  "restaurantName": "Nom du restaurant",
+  "@restaurantName": {
+    "description": "Champ nom du restaurant"
+  },
+  "date": "Date",
+  "@date": {
+    "description": "Champ date"
+  },
+  "time": "Heure",
+  "@time": {
+    "description": "Champ heure"
+  },
+  "partySize": "Nombre de personnes",
+  "@partySize": {
+    "description": "Nombre de personnes pour la réservation"
+  },
+  "createReservation": "Créer la réservation",
+  "@createReservation": {
+    "description": "Bouton pour créer une réservation"
+  },
+  "reservationDetails": "Détails Réservation",
+  "@reservationDetails": {
+    "description": "Titre de la page de détails"
+  },
+  "status": "Statut",
+  "@status": {
+    "description": "Statut de la réservation"
+  },
+  "pending": "En attente",
+  "@pending": {
+    "description": "Statut en attente"
+  },
+  "confirmed": "Confirmé",
+  "@confirmed": {
+    "description": "Statut confirmé"
+  },
+  "cancelled": "Annulé",
+  "@cancelled": {
+    "description": "Statut annulé"
+  },
+  "systemOperational": "Système opérationnel",
+  "@systemOperational": {
+    "description": "Message de statut du système"
+  },
+  "backendFrontendConfigured": "Backend et Frontend configurés",
+  "@backendFrontendConfigured": {
+    "description": "Message de configuration"
+  },
+  "toggleTheme": "Basculer le thème",
+  "@toggleTheme": {
+    "description": "Tooltip pour basculer le thème"
+  },
+  "selectDate": "Sélectionner une date",
+  "@selectDate": {
+    "description": "Placeholder pour sélectionner une date"
+  },
+  "selectTime": "Sélectionner une heure",
+  "@selectTime": {
+    "description": "Placeholder pour sélectionner une heure"
+  },
+  "noReservationsFound": "Aucune réservation trouvée.",
+  "@noReservationsFound": {
+    "description": "Message quand aucune réservation n'est trouvée"
+  },
+  "reservationCreatedSuccessfully": "Réservation créée avec succès !",
+  "@reservationCreatedSuccessfully": {
+    "description": "Message de succès lors de la création d'une réservation"
+  },
+  "error": "Erreur",
+  "@error": {
+    "description": "Titre d'erreur"
+  },
+  "invalidCredentials": "Identifiants invalides",
+  "@invalidCredentials": {
+    "description": "Message d'erreur pour identifiants invalides"
+  },
+  "pleaseEnterEmail": "Veuillez entrer votre email",
+  "@pleaseEnterEmail": {
+    "description": "Message de validation pour l'email"
+  },
+  "pleaseEnterPassword": "Veuillez entrer votre mot de passe",
+  "@pleaseEnterPassword": {
+    "description": "Message de validation pour le mot de passe"
+  },
+  "pleaseEnterName": "Veuillez entrer votre nom",
+  "@pleaseEnterName": {
+    "description": "Message de validation pour le nom"
+  },
+  "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
+  "@passwordMinLength": {
+    "description": "Message de validation pour la longueur du mot de passe"
+  },
+  "pleaseEnterRestaurantName": "Veuillez entrer le nom du restaurant",
+  "@pleaseEnterRestaurantName": {
+    "description": "Message de validation pour le nom du restaurant"
+  },
+  "pleaseSelectDateAndTime": "Veuillez sélectionner une date et une heure",
+  "@pleaseSelectDateAndTime": {
+    "description": "Message de validation pour la date et l'heure"
+  },
+  "noAccountYet": "Pas encore de compte ? S'inscrire",
+  "@noAccountYet": {
+    "description": "Lien vers l'inscription"
+  },
+  "alreadyHaveAccount": "Déjà un compte ? Se connecter",
+  "@alreadyHaveAccount": {
+    "description": "Lien vers la connexion"
+  },
+  "createAccount": "Créer un compte",
+  "@createAccount": {
+    "description": "Titre de la page d'inscription"
+  },
+  "seeAndManage": "Voir et gérer",
+  "@seeAndManage": {
+    "description": "Description pour les réservations"
+  },
+  "createReservationDesc": "Créer une réservation",
+  "@createReservationDesc": {
+    "description": "Description pour créer une réservation"
+  },
+  "modifyReservation": "Modifier la réservation",
+  "@modifyReservation": {
+    "description": "Bouton pour modifier une réservation"
+  },
+  "cancelReservation": "Annuler la réservation",
+  "@cancelReservation": {
+    "description": "Bouton pour annuler une réservation"
+  },
+  "modifyFeatureComing": "Fonctionnalité de modification à venir",
+  "@modifyFeatureComing": {
+    "description": "Message pour fonctionnalité à venir"
+  },
+  "cancelFeatureComing": "Fonctionnalité d'annulation à venir",
+  "@cancelFeatureComing": {
+    "description": "Message pour fonctionnalité d'annulation à venir"
+  },
+  "loading": "Chargement...",
+  "@loading": {
+    "description": "Message de chargement"
+  },
+  "restaurantReservationSystem": "Système de réservation pour restaurants",
+  "@restaurantReservationSystem": {
+    "description": "Description de l'application"
+  }
+}

@@ -1,0 +1,194 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Scan de sécurité quotidien à 2h du matin UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '24'
+  FLUTTER_VERSION: '3.35.4'
+
+jobs:
+  # Scan de vulnérabilités avec Trivy
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Audit des dépendances Node.js
+  npm-audit:
+    name: NPM Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run npm audit
+        working-directory: ./backend
+        run: npm audit --audit-level=moderate
+
+      - name: Check for vulnerabilities
+        working-directory: ./backend
+        run: |
+          if npm audit --audit-level=high --json | jq -e '.vulnerabilities | length > 0' > /dev/null; then
+            echo "❌ High severity vulnerabilities found!"
+            npm audit --audit-level=high
+            exit 1
+          else
+            echo "✅ No high severity vulnerabilities found"
+          fi
+
+  # Audit des dépendances Flutter
+  flutter-audit:
+    name: Flutter Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: flutter pub get
+
+      - name: Run Flutter pub audit
+        working-directory: ./frontend
+        run: flutter pub deps
+
+      - name: Check for known vulnerabilities
+        working-directory: ./frontend
+        run: |
+          # Vérifier les versions des dépendances critiques
+          echo "Checking critical dependencies..."
+          flutter pub deps --json | jq -r '.packages[] | select(.name | test("http|network|storage|auth")) | "\(.name): \(.version)"'
+
+  # Scan de secrets avec GitLeaks
+  gitleaks-scan:
+    name: GitLeaks Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Scan de configuration avec Checkov
+  checkov-scan:
+    name: Checkov Infrastructure Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile,github_actions
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov-results.sarif
+
+  # Scan de licences
+  license-scan:
+    name: License Compliance Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Check licenses
+        working-directory: ./backend
+        run: |
+          echo "Checking for problematic licenses..."
+          npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;Unlicense' --excludePrivatePackages
+
+  # Rapport de sécurité
+  security-report:
+    name: Security Report
+    runs-on: ubuntu-latest
+    needs: [trivy-scan, npm-audit, flutter-audit, gitleaks-scan, checkov-scan, license-scan]
+    if: always()
+
+    steps:
+      - name: Generate security report
+        run: |
+          echo "# 🔒 Security Scan Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Vulnerability Scan | ${{ needs.trivy-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| NPM Audit | ${{ needs.npm-audit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Flutter Audit | ${{ needs.flutter-audit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| GitLeaks Secret Scan | ${{ needs.gitleaks-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Checkov Infrastructure | ${{ needs.checkov-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| License Compliance | ${{ needs.license-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.trivy-scan.result }}" == "success" && "${{ needs.npm-audit.result }}" == "success" && "${{ needs.flutter-audit.result }}" == "success" && "${{ needs.gitleaks-scan.result }}" == "success" && "${{ needs.checkov-scan.result }}" == "success" && "${{ needs.license-scan.result }}" == "success" ]]; then
+            echo "🎉 **All security scans passed!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Some security scans failed. Please review the logs.**" >> $GITHUB_STEP_SUMMARY
+          fi

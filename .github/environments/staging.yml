@@ -1,0 +1,56 @@
+# Configuration de l'environnement staging
+# Ce fichier définit les règles de protection pour l'environnement staging
+
+name: staging
+url: https://staging.techplus.com
+
+# Règles de protection
+protection_rules:
+  # Exiger une approbation avant déploiement
+  required_reviewers:
+    count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: false
+
+  # Attendre que les checks CI passent
+  wait_timer: 0
+
+  # Empêcher les déploiements depuis des branches non protégées
+  prevent_self_review: true
+
+  # Restrictions de branche
+  deployment_branch_policy:
+    protected_branches: true
+    custom_branch_policies: false
+
+# Variables d'environnement (à configurer dans GitHub)
+# Ces variables doivent être ajoutées dans les paramètres du repository
+environment_variables:
+  - name: NODE_ENV
+    value: staging
+  - name: DATABASE_URL
+    value: postgresql://user:password@staging-db:5432/techplus_staging
+  - name: REDIS_URL
+    value: redis://staging-redis:6379
+  - name: JWT_SECRET
+    value: staging-jwt-secret-key
+  - name: STRIPE_SECRET_KEY
+    value: sk_test_staging_key
+  - name: SMTP_HOST
+    value: smtp.staging.com
+  - name: SMTP_USER
+    value: staging@techplus.com
+
+# Secrets requis (à configurer dans GitHub)
+required_secrets:
+  - DOCKER_USERNAME
+  - DOCKER_PASSWORD
+  - STAGING_HOST
+  - STAGING_USERNAME
+  - STAGING_SSH_KEY
+  - STAGING_BACKEND_URL
+  - STAGING_FRONTEND_URL
+  - DATABASE_PASSWORD
+  - JWT_SECRET
+  - STRIPE_SECRET_KEY
+  - SMTP_PASSWORD
