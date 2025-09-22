@@ -18,23 +18,38 @@ import {
   enumerationProtectionMiddleware,
   sessionSecurityConfig
 } from '@/config/security';
-import { 
-  httpLoggingMiddleware, 
-  errorLoggingMiddleware, 
-  slowRequestLoggingMiddleware,
-  authLoggingMiddleware,
-  sensitiveOperationLoggingMiddleware 
-} from '@/middleware/logging';
-import {
-  sanitizeInput,
-  sqlInjectionProtection,
-  xssProtection,
-  enumerationProtection,
-  dosProtection,
-  securityHeadersValidation,
-  timingAttackProtection,
-  resourceEnumerationProtection
-} from '@/middleware/security';
+// import { 
+//   httpLoggingMiddleware, 
+//   errorLoggingMiddleware, 
+//   slowRequestLoggingMiddleware,
+//   authLoggingMiddleware,
+//   sensitiveOperationLoggingMiddleware 
+// } from '@/middleware/logging';
+// import { 
+//   sanitizeInput as securitySanitizeInput,
+//   sqlInjectionProtection,
+//   xssProtection,
+//   enumerationProtection,
+//   dosProtection,
+//   securityHeadersValidation,
+//   timingAttackProtection,
+//   resourceEnumerationProtection
+// } from '@/middleware/security';
+// import { 
+//   csrfProtectionMiddleware,
+//   provideCsrfToken,
+//   requireCsrfToken
+// } from '@/middleware/csrf';
+// import { 
+//   sanitizeInput, 
+//   validateContentType, 
+//   validateRequestSize, 
+//   validateHeaders, 
+//   validateUrlParams, 
+//   validateJsonData, 
+//   validateFileUpload,
+//   setupSanitizer
+// } from '@/middleware/sanitization';
 import { 
   uptimeMonitoringMiddleware,
   healthCheckMonitoringMiddleware,
@@ -46,7 +61,7 @@ import {
   databaseConnectionMonitoring,
   periodicDatabaseLogging
 } from '@/middleware/database-monitoring';
-import { performanceMetricsMiddleware, memoryUsageMiddleware } from '@/utils/performance';
+// import { performanceMetricsMiddleware, memoryUsageMiddleware } from '@/utils/performance';
 import logger from '@/utils/logger';
 
 const app = express();
@@ -59,12 +74,12 @@ app.use(sentryRequestHandler);
 app.use(sentryTracingHandler);
 
 // Logging middleware
-app.use(httpLoggingMiddleware);
-app.use(performanceMetricsMiddleware);
-app.use(memoryUsageMiddleware);
-app.use(slowRequestLoggingMiddleware(1000)); // Alerte si > 1s
-app.use(authLoggingMiddleware);
-app.use(sensitiveOperationLoggingMiddleware);
+// app.use(httpLoggingMiddleware);
+// app.use(performanceMetricsMiddleware);
+// app.use(memoryUsageMiddleware);
+// app.use(slowRequestLoggingMiddleware(1000)); // Alerte si > 1s
+// app.use(authLoggingMiddleware);
+// app.use(sensitiveOperationLoggingMiddleware);
 
 // Uptime monitoring middleware
 app.use(uptimeMonitoringMiddleware);
@@ -73,11 +88,11 @@ app.use(availabilityMonitoringMiddleware);
 // Security middleware (ordre important)
 app.use(helmetConfig);
 app.use(cors(corsConfig));
-app.use(securityHeadersValidation);
-app.use(dosProtection);
-app.use(enumerationProtection);
-app.use(timingAttackProtection);
-app.use(resourceEnumerationProtection);
+// app.use(securityHeadersValidation);
+// app.use(dosProtection);
+// app.use(enumerationProtection);
+// app.use(timingAttackProtection);
+// app.use(resourceEnumerationProtection);
 
 // Rate limiting (différents niveaux selon les routes)
 app.use(generalRateLimit);
@@ -90,9 +105,21 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Input validation and sanitization middleware
-app.use(sanitizeInput);
-app.use(sqlInjectionProtection);
-app.use(xssProtection);
+// app.use(setupSanitizer);
+// app.use(validateContentType);
+// app.use(validateRequestSize());
+// app.use(validateHeaders);
+// app.use(validateUrlParams);
+// app.use(sanitizeInput);
+// app.use(validateJsonData);
+// app.use(validateFileUpload);
+// app.use(securitySanitizeInput);
+// app.use(sqlInjectionProtection);
+// app.use(xssProtection);
+
+// CSRF protection middleware
+// app.use(csrfProtectionMiddleware);
+// app.use(provideCsrfToken);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -261,7 +288,7 @@ app.get('/api/test-jwt', async (req, res) => {
 import { errorHandler, notFoundHandler } from '@/middleware/error';
 
 // Error logging middleware (doit être avant errorHandler)
-app.use(errorLoggingMiddleware);
+// app.use(errorLoggingMiddleware);
 
 // Sentry error handler (doit être avant les autres error handlers)
 app.use(sentryErrorHandler);

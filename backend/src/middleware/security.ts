@@ -88,11 +88,11 @@ const sanitizeObject = (obj: any): any => {
   if (typeof obj === 'string') {
     return sanitizeString(obj);
   }
-  
+
   if (Array.isArray(obj)) {
     return obj.map(item => sanitizeObject(item));
   }
-  
+
   if (obj && typeof obj === 'object') {
     const sanitized: any = {};
     for (const key in obj) {
@@ -100,7 +100,7 @@ const sanitizeObject = (obj: any): any => {
     }
     return sanitized;
   }
-  
+
   return obj;
 };
 
@@ -298,7 +298,7 @@ export const enumerationProtection = (req: Request, res: Response, next: NextFun
   // Masquer les erreurs d'authentification pour éviter l'énumération d'utilisateurs
   if (req.path.includes('/auth/login') || req.path.includes('/auth/register')) {
     const originalJson = res.json;
-    res.json = function(body: any) {
+    res.json = function (body: any) {
       // Si c'est une erreur d'authentification, masquer les détails
       if (res.statusCode >= 400 && body?.error) {
         const maskedBody = {
@@ -361,7 +361,11 @@ export const dosProtection = (req: Request, res: Response, next: NextFunction): 
 /**
  * Middleware de validation des headers de sécurité
  */
-export const securityHeadersValidation = (req: Request, res: Response, next: NextFunction): void => {
+export const securityHeadersValidation = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Vérifier la présence de headers suspects
   const suspiciousHeaders = [
     'x-forwarded-for',
@@ -372,9 +376,11 @@ export const securityHeadersValidation = (req: Request, res: Response, next: Nex
     'forwarded',
   ];
 
-  const hasSuspiciousHeaders = suspiciousHeaders.some(header => 
-    req.headers[header] && typeof req.headers[header] === 'string' && 
-    (req.headers[header] as string).includes('..')
+  const hasSuspiciousHeaders = suspiciousHeaders.some(
+    header =>
+      req.headers[header] &&
+      typeof req.headers[header] === 'string' &&
+      (req.headers[header] as string).includes('..')
   );
 
   if (hasSuspiciousHeaders) {
@@ -393,7 +399,8 @@ export const securityHeadersValidation = (req: Request, res: Response, next: Nex
 
   // Vérifier la taille des headers
   const headerSize = JSON.stringify(req.headers).length;
-  if (headerSize > 8192) { // 8KB max
+  if (headerSize > 8192) {
+    // 8KB max
     logSecurityEvent('Headers too large', {
       ip: req.ip,
       headerSize,
@@ -428,11 +435,15 @@ export const timingAttackProtection = (req: Request, res: Response, next: NextFu
 /**
  * Middleware de protection contre les attaques par énumération de ressources
  */
-export const resourceEnumerationProtection = (req: Request, res: Response, next: NextFunction): void => {
+export const resourceEnumerationProtection = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Masquer les erreurs 404 pour éviter l'énumération de ressources
   if (req.path.includes('/api/')) {
     const originalJson = res.json;
-    res.json = function(body: any) {
+    res.json = function (body: any) {
       if (res.statusCode === 404) {
         const maskedBody = {
           error: 'Resource not found',

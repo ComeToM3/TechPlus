@@ -1,7 +1,11 @@
 import nodemailer from 'nodemailer';
 import { PrismaClient } from '@prisma/client';
 import logger from '@/utils/logger';
-import { NotificationTemplate, NotificationType, NotificationStatus } from '@/types/notification.types';
+import {
+  NotificationTemplate,
+  NotificationType,
+  NotificationStatus,
+} from '@/types/notification.types';
 
 const prisma = new PrismaClient();
 
@@ -128,7 +132,7 @@ export class NotificationService {
 
       // Générer le template
       const template = this.generateReservationTemplate(type, reservation, data);
-      
+
       // Envoyer l'email
       const success = await this.sendEmail(
         recipientEmail,
@@ -150,7 +154,7 @@ export class NotificationService {
       return success;
     } catch (error: any) {
       logger.error(`Failed to send reservation notification:`, error);
-      
+
       // Enregistrer l'échec
       await this.logNotification({
         type,
@@ -214,7 +218,12 @@ export class NotificationService {
   /**
    * Génère le HTML de confirmation
    */
-  private generateConfirmationHTML(reservation: any, restaurant: any, date: string, time: string): string {
+  private generateConfirmationHTML(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string
+  ): string {
     const managementToken = reservation.managementToken;
     const managementUrl = `${process.env.FRONTEND_URL}/manage-reservation?token=${managementToken}`;
 
@@ -262,24 +271,36 @@ export class NotificationService {
                 <span class="detail-label">Nombre de personnes :</span>
                 <span>${reservation.partySize}</span>
               </div>
-              ${reservation.table ? `
+              ${
+                reservation.table
+                  ? `
               <div class="detail-row">
                 <span class="detail-label">Table :</span>
                 <span>Table ${reservation.table.number}</span>
               </div>
-              ` : ''}
-              ${reservation.specialRequests ? `
+              `
+                  : ''
+              }
+              ${
+                reservation.specialRequests
+                  ? `
               <div class="detail-row">
                 <span class="detail-label">Demandes spéciales :</span>
                 <span>${reservation.specialRequests}</span>
               </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
 
-            ${managementToken ? `
+            ${
+              managementToken
+                ? `
             <p>Vous pouvez gérer votre réservation en cliquant sur le lien ci-dessous :</p>
             <a href="${managementUrl}" class="management-link">Gérer ma réservation</a>
-            ` : ''}
+            `
+                : ''
+            }
 
             <p>Nous avons hâte de vous accueillir !</p>
             
@@ -299,7 +320,12 @@ export class NotificationService {
   /**
    * Génère le texte de confirmation
    */
-  private generateConfirmationText(reservation: any, restaurant: any, date: string, time: string): string {
+  private generateConfirmationText(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string
+  ): string {
     const managementToken = reservation.managementToken;
     const managementUrl = `${process.env.FRONTEND_URL}/manage-reservation?token=${managementToken}`;
 
@@ -329,7 +355,12 @@ ${restaurant.address} | ${restaurant.phone}
   /**
    * Génère le HTML de rappel
    */
-  private generateReminderHTML(reservation: any, restaurant: any, date: string, time: string): string {
+  private generateReminderHTML(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string
+  ): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -380,7 +411,12 @@ ${restaurant.address} | ${restaurant.phone}
   /**
    * Génère le texte de rappel
    */
-  private generateReminderText(reservation: any, restaurant: any, date: string, time: string): string {
+  private generateReminderText(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string
+  ): string {
     return `
 Rappel de Réservation - ${restaurant.name}
 
@@ -403,7 +439,13 @@ ${restaurant.address} | ${restaurant.phone}
   /**
    * Génère le HTML d'annulation
    */
-  private generateCancellationHTML(reservation: any, restaurant: any, date: string, time: string, reason?: string): string {
+  private generateCancellationHTML(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string,
+    reason?: string
+  ): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -455,7 +497,13 @@ ${restaurant.address} | ${restaurant.phone}
   /**
    * Génère le texte d'annulation
    */
-  private generateCancellationText(reservation: any, restaurant: any, date: string, time: string, reason?: string): string {
+  private generateCancellationText(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string,
+    reason?: string
+  ): string {
     return `
 Annulation de Réservation - ${restaurant.name}
 
@@ -479,7 +527,13 @@ ${restaurant.address} | ${restaurant.phone}
   /**
    * Génère le HTML de modification
    */
-  private generateModificationHTML(reservation: any, restaurant: any, date: string, time: string, changes: any): string {
+  private generateModificationHTML(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string,
+    changes: any
+  ): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -530,7 +584,13 @@ ${restaurant.address} | ${restaurant.phone}
   /**
    * Génère le texte de modification
    */
-  private generateModificationText(reservation: any, restaurant: any, date: string, time: string, changes: any): string {
+  private generateModificationText(
+    reservation: any,
+    restaurant: any,
+    date: string,
+    time: string,
+    changes: any
+  ): string {
     return `
 Modification de Réservation - ${restaurant.name}
 
@@ -600,7 +660,7 @@ ${restaurant.address} | ${restaurant.phone}
   ): Promise<any[]> {
     try {
       const where: any = {};
-      
+
       if (filters?.type) where.type = filters.type;
       if (filters?.status) where.status = filters.status;
       if (filters?.recipientEmail) where.recipientEmail = filters.recipientEmail;

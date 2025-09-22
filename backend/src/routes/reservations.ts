@@ -17,41 +17,74 @@ import {
   validateObjectId,
   validateReservation,
   validateReservationFilters,
+  validateWithJoi,
+  schemas,
 } from '@/middleware/validation';
 
 const router = Router();
 
-// Routes pour utilisateurs authentifiés
-router.post('/', authenticateToken, reservationLimiter, validateReservation, createReservation);
-router.get('/', authenticateToken, validateReservationFilters, getUserReservations);
-router.get('/:id', authenticateToken, validateObjectId, getReservationById);
-router.put('/:id', authenticateToken, validateObjectId, updateReservation);
-router.delete('/:id', authenticateToken, validateObjectId, cancelReservation);
+// Routes pour utilisateurs authentifiés avec validation Joi
+router.post(
+  '/',
+  authenticateToken,
+  reservationLimiter,
+  validateWithJoi({ body: schemas.reservation.create }),
+  createReservation
+);
+router.get(
+  '/',
+  authenticateToken,
+  validateWithJoi({ query: schemas.reservation.list }),
+  getUserReservations
+);
+router.get(
+  '/:id',
+  authenticateToken,
+  validateWithJoi({ params: schemas.reservation.params }),
+  getReservationById
+);
+router.put(
+  '/:id',
+  authenticateToken,
+  validateWithJoi({ params: schemas.reservation.params, body: schemas.reservation.update }),
+  updateReservation
+);
+router.delete(
+  '/:id',
+  authenticateToken,
+  validateWithJoi({ params: schemas.reservation.params }),
+  cancelReservation
+);
 
-// Routes pour les réservations guest (avec token de gestion)
+// Routes pour les réservations guest (avec token de gestion) avec validation Joi
 router.get(
   '/manage/:token',
   managementTokenLimiter,
-  validateManagementToken,
+  validateWithJoi({ params: schemas.reservation.tokenParams }),
   authenticateManagementToken,
   getReservationByToken
 );
 router.put(
   '/manage/:token',
   managementTokenLimiter,
-  validateManagementToken,
+  validateWithJoi({ params: schemas.reservation.tokenParams, body: schemas.reservation.update }),
   authenticateManagementToken,
   updateReservationByToken
 );
 router.delete(
   '/manage/:token',
   managementTokenLimiter,
-  validateManagementToken,
+  validateWithJoi({ params: schemas.reservation.tokenParams }),
   authenticateManagementToken,
   cancelReservationByToken
 );
 
-// Route pour créer une réservation guest (sans authentification)
-router.post('/guest', reservationLimiter, validateGuestReservation, createReservation);
+// Route pour créer une réservation guest (sans authentification) avec validation Joi
+router.post(
+  '/guest',
+  reservationLimiter,
+  validateWithJoi({ body: schemas.reservation.create }),
+  createReservation
+);
 
 export default router;

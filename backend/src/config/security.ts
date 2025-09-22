@@ -13,9 +13,9 @@ export const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
       scriptSrc: ["'self'"],
       connectSrc: ["'self'"],
       frameSrc: ["'none'"],
@@ -30,34 +30,34 @@ export const helmetConfig = helmet({
       upgradeInsecureRequests: [],
     },
   },
-  
+
   // X-Frame-Options
   frameguard: { action: 'deny' },
-  
+
   // X-Content-Type-Options
   noSniff: true,
-  
+
   // X-XSS-Protection
   xssFilter: true,
-  
+
   // Strict-Transport-Security
   hsts: {
     maxAge: 31536000, // 1 an
     includeSubDomains: true,
     preload: true,
   },
-  
+
   // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  
+
   // Permissions Policy (removed as it's not supported in current helmet version)
-  
+
   // Cross-Origin Embedder Policy
   crossOriginEmbedderPolicy: false, // Désactivé pour compatibilité
-  
+
   // Cross-Origin Opener Policy
   crossOriginOpenerPolicy: { policy: 'same-origin' },
-  
+
   // Cross-Origin Resource Policy
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 });
@@ -74,15 +74,19 @@ export const corsConfig = {
       'https://www.techplus.com',
       'https://staging.techplus.com',
     ];
-    
+
     // En développement, autoriser localhost
     if (process.env.NODE_ENV === 'development') {
-      allowedOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080');
+      allowedOrigins.push(
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:8080'
+      );
     }
-    
+
     // Autoriser les requêtes sans origine (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -122,7 +126,7 @@ export const generalRateLimit = rateLimit({
       url: req.url,
       method: req.method,
     });
-    
+
     res.status(429).json({
       error: 'Too many requests from this IP, please try again later.',
       retryAfter: '15 minutes',
@@ -148,7 +152,7 @@ export const authRateLimit = rateLimit({
       url: req.url,
       method: req.method,
     });
-    
+
     res.status(429).json({
       error: 'Too many authentication attempts, please try again later.',
       retryAfter: '15 minutes',
@@ -173,7 +177,7 @@ export const passwordResetRateLimit = rateLimit({
       url: req.url,
       method: req.method,
     });
-    
+
     res.status(429).json({
       error: 'Too many password reset attempts, please try again later.',
       retryAfter: '1 hour',
@@ -198,7 +202,7 @@ export const publicApiRateLimit = rateLimit({
       url: req.url,
       method: req.method,
     });
-    
+
     res.status(429).json({
       error: 'Too many requests to public API, please try again later.',
       retryAfter: '15 minutes',
@@ -207,7 +211,11 @@ export const publicApiRateLimit = rateLimit({
 });
 
 // Middleware de validation des headers de sécurité
-export const securityHeadersMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const securityHeadersMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Vérifier la présence de headers suspects
   const suspiciousHeaders = [
     'x-forwarded-for',
@@ -217,12 +225,14 @@ export const securityHeadersMiddleware = (req: Request, res: Response, next: Nex
     'forwarded-for',
     'forwarded',
   ];
-  
-  const hasSuspiciousHeaders = suspiciousHeaders.some(header => 
-    req.headers[header] && typeof req.headers[header] === 'string' && 
-    (req.headers[header] as string).includes('..')
+
+  const hasSuspiciousHeaders = suspiciousHeaders.some(
+    header =>
+      req.headers[header] &&
+      typeof req.headers[header] === 'string' &&
+      (req.headers[header] as string).includes('..')
   );
-  
+
   if (hasSuspiciousHeaders) {
     logger.warn('Suspicious headers detected', {
       ip: req.ip,
@@ -230,7 +240,7 @@ export const securityHeadersMiddleware = (req: Request, res: Response, next: Nex
       url: req.url,
       method: req.method,
     });
-    
+
     res.status(400).json({
       error: 'Invalid request headers',
     });
@@ -239,7 +249,8 @@ export const securityHeadersMiddleware = (req: Request, res: Response, next: Nex
 
   // Vérifier la taille des headers
   const headerSize = JSON.stringify(req.headers).length;
-  if (headerSize > 8192) { // 8KB max
+  if (headerSize > 8192) {
+    // 8KB max
     logger.warn('Headers too large', {
       ip: req.ip,
       headerSize,
@@ -261,7 +272,7 @@ export const dosProtectionMiddleware = (req: Request, res: Response, next: NextF
   // Vérifier la taille du body
   const contentLength = parseInt(req.get('Content-Length') || '0');
   const maxBodySize = 10 * 1024 * 1024; // 10MB
-  
+
   if (contentLength > maxBodySize) {
     logger.warn('Request body too large', {
       ip: req.ip,
@@ -270,7 +281,7 @@ export const dosProtectionMiddleware = (req: Request, res: Response, next: NextF
       url: req.url,
       method: req.method,
     });
-    
+
     res.status(413).json({
       error: 'Request body too large',
       maxSize: '10MB',
@@ -299,11 +310,15 @@ export const dosProtectionMiddleware = (req: Request, res: Response, next: NextF
 };
 
 // Middleware de protection contre les attaques par énumération
-export const enumerationProtectionMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const enumerationProtectionMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Masquer les erreurs d'authentification pour éviter l'énumération d'utilisateurs
   if (req.path.includes('/auth/login') || req.path.includes('/auth/register')) {
     const originalJson = res.json;
-    res.json = function(body: any) {
+    res.json = function (body: any) {
       // Si c'est une erreur d'authentification, masquer les détails
       if (res.statusCode >= 400 && body?.error) {
         const maskedBody = {
@@ -315,7 +330,7 @@ export const enumerationProtectionMiddleware = (req: Request, res: Response, nex
       return originalJson.call(this, body);
     };
   }
-  
+
   next();
 };
 
@@ -335,6 +350,24 @@ export const sessionSecurityConfig = {
   },
 };
 
+// Configuration CSRF
+export const csrfConfig = {
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+    maxAge: 24 * 60 * 60 * 1000, // 24 heures
+  },
+  // Routes exclues de la protection CSRF
+  excludedPaths: [
+    '/api/health',
+    '/api/ready',
+    '/api/live',
+    '/api/metrics',
+    '/api/webhooks/stripe', // Webhooks externes
+  ],
+};
+
 // Fonction utilitaire pour valider les origines
 export const validateOrigin = (origin: string): boolean => {
   const allowedOrigins = [
@@ -345,11 +378,11 @@ export const validateOrigin = (origin: string): boolean => {
     'https://www.techplus.com',
     'https://staging.techplus.com',
   ];
-  
+
   if (process.env.NODE_ENV === 'development') {
     allowedOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080');
   }
-  
+
   return allowedOrigins.includes(origin);
 };
 

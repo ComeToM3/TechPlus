@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { NotificationType, NotificationStatus, NotificationQueueItem } from '@/types/notification.types';
+import {
+  NotificationType,
+  NotificationStatus,
+  NotificationQueueItem,
+} from '@/types/notification.types';
 import { notificationService } from './notificationService';
 import logger from '@/utils/logger';
 
@@ -76,7 +80,9 @@ export class NotificationQueueService {
         },
       });
 
-      logger.info(`Reservation notification queued: ${queueItem.id} (${type}) for reservation ${reservationId}`);
+      logger.info(
+        `Reservation notification queued: ${queueItem.id} (${type}) for reservation ${reservationId}`
+      );
       return queueItem.id;
     } catch (error) {
       logger.error('Failed to enqueue reservation notification:', error);
@@ -130,10 +136,7 @@ export class NotificationQueueService {
             lte: new Date(),
           },
         },
-        orderBy: [
-          { priority: 'desc' },
-          { createdAt: 'asc' },
-        ],
+        orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
         take: 10, // Traiter par lots de 10
       });
 
@@ -162,7 +165,7 @@ export class NotificationQueueService {
       // Marquer comme en cours de traitement
       await prisma.notificationQueue.update({
         where: { id: notification.id },
-        data: { 
+        data: {
           status: NotificationStatus.RETRYING,
           attempts: notification.attempts + 1,
         },
@@ -193,7 +196,7 @@ export class NotificationQueueService {
         // Marquer comme envoyée
         await prisma.notificationQueue.update({
           where: { id: notification.id },
-          data: { 
+          data: {
             status: NotificationStatus.SENT,
             sentAt: new Date(),
           },
@@ -220,26 +223,30 @@ export class NotificationQueueService {
       // Marquer comme définitivement échouée
       await prisma.notificationQueue.update({
         where: { id: notification.id },
-        data: { 
+        data: {
           status: NotificationStatus.FAILED,
           failedAt: new Date(),
         },
       });
 
-      logger.error(`Notification failed permanently: ${notification.id} after ${newAttempts} attempts`);
+      logger.error(
+        `Notification failed permanently: ${notification.id} after ${newAttempts} attempts`
+      );
     } else {
       // Programmer un nouvel essai
       const retryAt = new Date(Date.now() + this.RETRY_DELAY * newAttempts);
-      
+
       await prisma.notificationQueue.update({
         where: { id: notification.id },
-        data: { 
+        data: {
           status: NotificationStatus.PENDING,
           scheduledAt: retryAt,
         },
       });
 
-      logger.warn(`Notification scheduled for retry: ${notification.id} (attempt ${newAttempts}/${notification.maxAttempts}) at ${retryAt.toISOString()}`);
+      logger.warn(
+        `Notification scheduled for retry: ${notification.id} (attempt ${newAttempts}/${notification.maxAttempts}) at ${retryAt.toISOString()}`
+      );
     }
   }
 
@@ -248,15 +255,7 @@ export class NotificationQueueService {
    */
   async getQueueStats(): Promise<any> {
     try {
-      const [
-        total,
-        pending,
-        processing,
-        sent,
-        failed,
-        byType,
-        byStatus,
-      ] = await Promise.all([
+      const [total, pending, processing, sent, failed, byType, byStatus] = await Promise.all([
         prisma.notificationQueue.count(),
         prisma.notificationQueue.count({
           where: { status: NotificationStatus.PENDING },
@@ -286,14 +285,20 @@ export class NotificationQueueService {
         processing,
         sent,
         failed,
-        byType: byType.reduce((acc, item) => {
-          acc[item.type] = item._count.type;
-          return acc;
-        }, {} as Record<string, number>),
-        byStatus: byStatus.reduce((acc, item) => {
-          acc[item.status] = item._count.status;
-          return acc;
-        }, {} as Record<string, number>),
+        byType: byType.reduce(
+          (acc, item) => {
+            acc[item.type] = item._count.type;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
+        byStatus: byStatus.reduce(
+          (acc, item) => {
+            acc[item.status] = item._count.status;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
         processingInterval: this.PROCESSING_INTERVAL,
         maxRetryAttempts: this.MAX_RETRY_ATTEMPTS,
         retryDelay: this.RETRY_DELAY,

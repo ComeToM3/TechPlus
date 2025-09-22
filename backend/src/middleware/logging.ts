@@ -10,9 +10,9 @@ export const httpLoggingMiddleware = (req: Request, res: Response, next: NextFun
 
   // Intercepter la méthode end de la réponse pour calculer le temps de réponse
   const originalEnd = res.end;
-  res.end = function(chunk?: any, encoding?: any): Response {
+  res.end = function (chunk?: any, encoding?: any): Response {
     const responseTime = Date.now() - startTime;
-    
+
     // Log de la requête HTTP
     httpLogger.http('HTTP Request', {
       method: req.method,
@@ -37,7 +37,12 @@ export const httpLoggingMiddleware = (req: Request, res: Response, next: NextFun
  * Middleware de logging des erreurs
  * Capture et enregistre toutes les erreurs non gérées
  */
-export const errorLoggingMiddleware = (err: Error, req: Request, res: Response, next: NextFunction) => {
+export const errorLoggingMiddleware = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   httpLogger.error('Unhandled Error', {
     error: err.message,
     stack: err.stack,
@@ -60,9 +65,9 @@ export const slowRequestLoggingMiddleware = (thresholdMs: number = 1000) => {
     const startTime = Date.now();
 
     const originalEnd = res.end;
-    res.end = function(chunk?: any, encoding?: any): Response {
+    res.end = function (chunk?: any, encoding?: any): Response {
       const responseTime = Date.now() - startTime;
-      
+
       if (responseTime > thresholdMs) {
         httpLogger.warn('Slow Request Detected', {
           method: req.method,
@@ -87,12 +92,12 @@ export const slowRequestLoggingMiddleware = (thresholdMs: number = 1000) => {
  */
 export const authLoggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const originalJson = res.json;
-  
-  res.json = function(body: any) {
+
+  res.json = function (body: any) {
     // Log des tentatives d'authentification
     if (req.path.includes('/auth/login') || req.path.includes('/auth/register')) {
       const isSuccess = res.statusCode >= 200 && res.statusCode < 300;
-      
+
       httpLogger.info('Authentication Attempt', {
         method: req.method,
         path: req.path,
@@ -115,17 +120,16 @@ export const authLoggingMiddleware = (req: Request, res: Response, next: NextFun
  * Middleware de logging des opérations sensibles
  * Enregistre les opérations qui modifient des données importantes
  */
-export const sensitiveOperationLoggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const sensitiveOperationLoggingMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const originalJson = res.json;
-  
-  res.json = function(body: any) {
+
+  res.json = function (body: any) {
     // Log des opérations sensibles
-    const sensitivePaths = [
-      '/api/reservations',
-      '/api/admin',
-      '/api/payments',
-      '/api/users',
-    ];
+    const sensitivePaths = ['/api/reservations', '/api/admin', '/api/payments', '/api/users'];
 
     const isSensitiveOperation = sensitivePaths.some(path => req.path.includes(path));
     const isModifyingOperation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method);

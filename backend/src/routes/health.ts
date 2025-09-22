@@ -3,7 +3,11 @@ import { PrismaClient } from '@prisma/client';
 import { createClient } from 'redis';
 import { getPerformanceMetrics, getMemoryUsage, getUptime } from '../utils/performance';
 import { getUptimeMetrics, getSystemHealth, generateUptimeReport } from '../middleware/uptime';
-import { getDatabaseMetrics, generateDatabaseReport, monitorDatabaseConnections } from '../middleware/database-monitoring';
+import {
+  getDatabaseMetrics,
+  generateDatabaseReport,
+  monitorDatabaseConnections,
+} from '../middleware/database-monitoring';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -11,7 +15,7 @@ const prisma = new PrismaClient();
 
 // Configuration Redis
 const redis = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379/0'
+  url: process.env.REDIS_URL || 'redis://localhost:6379/0',
 });
 
 /**
@@ -31,7 +35,9 @@ router.get('/health', async (req: Request, res: Response) => {
     logger.info('Health check requested', { ip: req.ip });
     res.status(200).json(healthCheck);
   } catch (error) {
-    logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('Health check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     res.status(500).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -56,7 +62,9 @@ router.get('/ready', async (req: Request, res: Response) => {
     await prisma.$queryRaw`SELECT 1`;
     checks.database = true;
   } catch (error) {
-    logger.error('Database readiness check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('Database readiness check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 
   try {
@@ -70,7 +78,9 @@ router.get('/ready', async (req: Request, res: Response) => {
       checks.redis = true;
     }
   } catch (error) {
-    logger.error('Redis readiness check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('Redis readiness check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 
   const isReady = checks.database && checks.redis;
@@ -112,7 +122,9 @@ router.get('/metrics', (req: Request, res: Response) => {
     logger.info('Metrics requested', { ip: req.ip });
     res.status(200).json(metrics);
   } catch (error) {
-    logger.error('Metrics request failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('Metrics request failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     res.status(500).json({
       error: 'Failed to retrieve metrics',
       timestamp: new Date().toISOString(),
@@ -127,7 +139,7 @@ router.get('/metrics', (req: Request, res: Response) => {
 router.get('/db-status', async (req: Request, res: Response) => {
   try {
     const startTime = Date.now();
-    
+
     // Test de connexion
     await prisma.$queryRaw`SELECT 1`;
     const connectionTime = Date.now() - startTime;
@@ -155,7 +167,9 @@ router.get('/db-status', async (req: Request, res: Response) => {
     logger.info('Database status check', { connectionTime });
     res.status(200).json(dbStatus);
   } catch (error) {
-    logger.error('Database status check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('Database status check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     res.status(500).json({
       status: 'disconnected',
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -171,7 +185,7 @@ router.get('/db-status', async (req: Request, res: Response) => {
 router.get('/redis-status', async (req: Request, res: Response) => {
   try {
     const startTime = Date.now();
-    
+
     // Test de connexion
     const pong = await redis.ping();
     const connectionTime = Date.now() - startTime;
@@ -199,7 +213,9 @@ router.get('/redis-status', async (req: Request, res: Response) => {
     logger.info('Redis status check', { connectionTime });
     res.status(200).json(redisStatus);
   } catch (error) {
-    logger.error('Redis status check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('Redis status check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     res.status(500).json({
       status: 'disconnected',
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -228,7 +244,9 @@ router.get('/system', (req: Request, res: Response) => {
     logger.info('System info requested', { ip: req.ip });
     res.status(200).json(systemInfo);
   } catch (error) {
-    logger.error('System info request failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error('System info request failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     res.status(500).json({
       error: 'Failed to retrieve system info',
       timestamp: new Date().toISOString(),

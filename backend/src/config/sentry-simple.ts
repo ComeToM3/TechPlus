@@ -15,16 +15,16 @@ export const initSentry = (): void => {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: config.nodeEnv,
-    
+
     // Configuration des traces
     tracesSampleRate: config.nodeEnv === 'production' ? 0.1 : 1.0,
-    
+
     // Configuration des breadcrumbs
     maxBreadcrumbs: 50,
-    
+
     // Configuration des releases
     release: process.env.npm_package_version || '1.0.0',
-    
+
     // Configuration des tags
     initialScope: {
       tags: {
@@ -65,22 +65,18 @@ export const initSentry = (): void => {
       'ECONNRESET',
       'ENOTFOUND',
       'ECONNREFUSED',
-      
+
       // Erreurs de validation communes
       'Validation failed',
       'Invalid input',
-      
+
       // Erreurs de rate limiting
       'Too many requests',
       'Rate limit exceeded',
     ],
 
     // Configuration des URLs ignorées
-    ignoreTransactions: [
-      '/health',
-      '/api/health',
-      '/favicon.ico',
-    ],
+    ignoreTransactions: ['/health', '/api/health', '/favicon.ico'],
   });
 
   logger.info('Sentry initialized successfully', {
@@ -114,13 +110,13 @@ export const sentryErrorHandler = (err: any, req: any, res: any, next: any) => {
  * Fonction utilitaire pour capturer des erreurs manuellement
  */
 export const captureError = (error: Error, context?: Record<string, any>): void => {
-  Sentry.withScope((scope) => {
+  Sentry.withScope(scope => {
     if (context) {
       Object.keys(context).forEach(key => {
         scope.setContext(key, context[key]);
       });
     }
-    
+
     scope.setLevel('error');
     Sentry.captureException(error);
   });
@@ -129,14 +125,18 @@ export const captureError = (error: Error, context?: Record<string, any>): void 
 /**
  * Fonction utilitaire pour capturer des messages
  */
-export const captureMessage = (message: string, level: Sentry.SeverityLevel = 'info', context?: Record<string, any>): void => {
-  Sentry.withScope((scope) => {
+export const captureMessage = (
+  message: string,
+  level: Sentry.SeverityLevel = 'info',
+  context?: Record<string, any>
+): void => {
+  Sentry.withScope(scope => {
     if (context) {
       Object.keys(context).forEach(key => {
         scope.setContext(key, context[key]);
       });
     }
-    
+
     scope.setLevel(level);
     Sentry.captureMessage(message);
   });
@@ -159,7 +159,12 @@ export const addSentryContext = (key: string, context: Record<string, any>): voi
 /**
  * Fonction utilitaire pour ajouter des breadcrumbs
  */
-export const addSentryBreadcrumb = (message: string, category: string, level: Sentry.SeverityLevel = 'info', data?: Record<string, any>): void => {
+export const addSentryBreadcrumb = (
+  message: string,
+  category: string,
+  level: Sentry.SeverityLevel = 'info',
+  data?: Record<string, any>
+): void => {
   Sentry.addBreadcrumb({
     message,
     category,
@@ -176,7 +181,7 @@ export const setSentryUser = (user: { id: string; email?: string; username?: str
   const userData: any = { id: user.id };
   if (user.email) userData.email = user.email;
   if (user.username) userData.username = user.username;
-  
+
   Sentry.setUser(userData);
 };
 
@@ -190,7 +195,12 @@ export const clearSentryUser = (): void => {
 /**
  * Fonction pour capturer des métriques personnalisées
  */
-export const captureMetric = (name: string, value: number, unit: string = 'none', tags?: Record<string, string>): void => {
+export const captureMetric = (
+  name: string,
+  value: number,
+  unit: string = 'none',
+  tags?: Record<string, string>
+): void => {
   // Utiliser les breadcrumbs pour les métriques
   addSentryBreadcrumb(`Metric: ${name}`, 'metric', 'info', {
     value,

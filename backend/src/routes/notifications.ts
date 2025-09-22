@@ -33,20 +33,14 @@ router.post(
 router.post(
   '/send-custom',
   notificationLimiter,
-  [
-    validateEmail('to'),
-    handleValidationErrors,
-  ],
+  [validateEmail('to'), handleValidationErrors],
   sendCustomEmail
 );
 
 router.post(
   '/send-test',
   notificationLimiter,
-  [
-    validateEmail('to'),
-    handleValidationErrors,
-  ],
+  [validateEmail('to'), handleValidationErrors],
   sendTestEmail
 );
 

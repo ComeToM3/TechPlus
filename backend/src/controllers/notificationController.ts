@@ -78,14 +78,7 @@ export const sendCustomEmail = asyncHandler(async (req: Request, res: Response) 
  * Récupérer l'historique des notifications
  */
 export const getNotificationHistory = asyncHandler(async (req: Request, res: Response) => {
-  const {
-    limit = 50,
-    offset = 0,
-    type,
-    status,
-    recipientEmail,
-    reservationId,
-  } = req.query;
+  const { limit = 50, offset = 0, type, status, recipientEmail, reservationId } = req.query;
 
   const filters: any = {};
   if (type) filters.type = type;
@@ -135,7 +128,9 @@ export const verifySMTPConnection = asyncHandler(async (req: Request, res: Respo
     success: true,
     data: {
       smtpConfigured: isConnected,
-      message: isConnected ? 'SMTP connection verified' : 'SMTP not configured or connection failed',
+      message: isConnected
+        ? 'SMTP connection verified'
+        : 'SMTP not configured or connection failed',
     },
   });
 });
@@ -200,12 +195,7 @@ Recipient: ${to}
 If you received this email, the notification service is working correctly!
   `.trim();
 
-  const success = await notificationService.sendEmail(
-    to,
-    testSubject,
-    testHtml,
-    testText
-  );
+  const success = await notificationService.sendEmail(to, testSubject, testHtml, testText);
 
   if (!success) {
     throw new CustomError('Failed to send test email', 500);
@@ -230,7 +220,7 @@ export const getNotificationStats = asyncHandler(async (req: Request, res: Respo
   // Calculer la date de début selon la période
   let startDate: Date;
   const now = new Date();
-  
+
   switch (period) {
     case '1d':
       startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -250,31 +240,24 @@ export const getNotificationStats = asyncHandler(async (req: Request, res: Respo
   const prisma = new PrismaClient();
 
   try {
-    const [
-      total,
-      sent,
-      failed,
-      pending,
-      byType,
-      byStatus,
-    ] = await Promise.all([
+    const [total, sent, failed, pending, byType, byStatus] = await Promise.all([
       prisma.notification.count({
         where: { createdAt: { gte: startDate } },
       }),
       prisma.notification.count({
-        where: { 
+        where: {
           createdAt: { gte: startDate },
           status: NotificationStatus.SENT,
         },
       }),
       prisma.notification.count({
-        where: { 
+        where: {
           createdAt: { gte: startDate },
           status: NotificationStatus.FAILED,
         },
       }),
       prisma.notification.count({
-        where: { 
+        where: {
           createdAt: { gte: startDate },
           status: NotificationStatus.PENDING,
         },
@@ -297,14 +280,20 @@ export const getNotificationStats = asyncHandler(async (req: Request, res: Respo
       failed,
       pending,
       successRate: total > 0 ? Math.round((sent / total) * 100) : 0,
-      byType: byType.reduce((acc, item) => {
-        acc[item.type] = item._count.type;
-        return acc;
-      }, {} as Record<string, number>),
-      byStatus: byStatus.reduce((acc, item) => {
-        acc[item.status] = item._count.status;
-        return acc;
-      }, {} as Record<string, number>),
+      byType: byType.reduce(
+        (acc, item) => {
+          acc[item.type] = item._count.type;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
+      byStatus: byStatus.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count.status;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
       period,
       startDate,
       endDate: now,

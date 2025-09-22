@@ -82,4 +82,3 @@ export interface NotificationStats {
   byType: Record<NotificationType, number>;
   byStatus: Record<NotificationStatus, number>;
 }
-

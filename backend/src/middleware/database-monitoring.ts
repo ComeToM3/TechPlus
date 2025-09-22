@@ -47,7 +47,11 @@ export const setupDatabaseMonitoring = (prisma: PrismaClient): void => {
 /**
  * Middleware pour capturer les métriques de connexion
  */
-export const databaseConnectionMonitoring = (req: Request, res: Response, next: NextFunction): void => {
+export const databaseConnectionMonitoring = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Capturer les métriques de connexion
   captureMetric('database.connection.check', 1, 'none', {
     endpoint: req.path,
@@ -71,7 +75,8 @@ export const getDatabaseMetrics = (): DatabaseMetrics & {
   return {
     ...dbMetrics,
     errorRate: dbMetrics.queryCount > 0 ? (dbMetrics.errorCount / dbMetrics.queryCount) * 100 : 0,
-    slowQueryRate: dbMetrics.queryCount > 0 ? (dbMetrics.slowQueryCount / dbMetrics.queryCount) * 100 : 0,
+    slowQueryRate:
+      dbMetrics.queryCount > 0 ? (dbMetrics.slowQueryCount / dbMetrics.queryCount) * 100 : 0,
     queriesPerMinute: uptimeMinutes > 0 ? dbMetrics.queryCount / uptimeMinutes : 0,
   };
 };
@@ -117,7 +122,9 @@ export const analyzeDatabasePerformance = (): {
   // Analyser les requêtes lentes
   if (metrics.slowQueryRate > 10) {
     score -= 25;
-    recommendations.push('High percentage of slow queries. Consider query optimization and indexing.');
+    recommendations.push(
+      'High percentage of slow queries. Consider query optimization and indexing.'
+    );
   } else if (metrics.slowQueryRate > 5) {
     score -= 10;
     recommendations.push('Some slow queries detected. Review query performance.');
@@ -205,23 +212,28 @@ export const generateDatabaseReport = (): {
  * Middleware pour logger les métriques de base de données périodiquement
  */
 export const periodicDatabaseLogging = (): void => {
-  setInterval(() => {
-    const report = generateDatabaseReport();
-    
-    if (report.summary.status === 'critical') {
-      logger.error('Database performance critical', report);
-    } else if (report.summary.status === 'warning') {
-      logger.warn('Database performance warning', report);
-    } else {
-      logger.info('Database performance check', report);
-    }
-  }, 10 * 60 * 1000); // Toutes les 10 minutes
+  setInterval(
+    () => {
+      const report = generateDatabaseReport();
+
+      if (report.summary.status === 'critical') {
+        logger.error('Database performance critical', report);
+      } else if (report.summary.status === 'warning') {
+        logger.warn('Database performance warning', report);
+      } else {
+        logger.info('Database performance check', report);
+      }
+    },
+    10 * 60 * 1000
+  ); // Toutes les 10 minutes
 };
 
 /**
  * Fonction pour surveiller les connexions de base de données
  */
-export const monitorDatabaseConnections = async (prisma: PrismaClient): Promise<{
+export const monitorDatabaseConnections = async (
+  prisma: PrismaClient
+): Promise<{
   activeConnections: number;
   maxConnections: number;
   connectionUtilization: number;
@@ -237,7 +249,7 @@ export const monitorDatabaseConnections = async (prisma: PrismaClient): Promise<
     captureMetric('database.connection.response_time', responseTime, 'millisecond');
     captureMetric('database.connection.test', 1, 'none');
 
-    // Simuler les métriques de connexion (dans un vrai environnement, 
+    // Simuler les métriques de connexion (dans un vrai environnement,
     // vous utiliseriez les métriques réelles de PostgreSQL)
     const activeConnections = Math.floor(Math.random() * 20) + 5; // Simulation
     const maxConnections = 100; // Configuration typique

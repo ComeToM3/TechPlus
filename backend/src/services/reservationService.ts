@@ -188,7 +188,7 @@ export class ReservationService {
       },
       orderBy: [
         { capacity: 'asc' }, // Préférer les tables les plus petites
-        { number: 'asc' },   // Puis par numéro
+        { number: 'asc' }, // Puis par numéro
       ],
     });
 
@@ -214,19 +214,27 @@ export class ReservationService {
       }
 
       // Récupérer les heures d'ouverture (par défaut si non configurées)
-      const openingHours = restaurant.openingHours as any || this.getDefaultOpeningHours();
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const openingHours = (restaurant.openingHours as any) || this.getDefaultOpeningHours();
+      const dayNames = [
+        'sunday',
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+      ];
       const dayOfWeek = dayNames[new Date(date).getDay()] as string;
-      
+
       const dateStr = new Date(date).toISOString().split('T')[0] as string;
-      
+
       if (!dayOfWeek) {
         return {
           date: dateStr,
           slots: [],
         };
       }
-      
+
       const dayHours = openingHours[dayOfWeek];
       if (!dayHours || dayHours.closed) {
         return {
@@ -293,7 +301,7 @@ export class ReservationService {
    */
   private static generateTimeIntervals(dayHours: any): string[] {
     const intervals: string[] = [];
-    
+
     // Service du midi
     if (dayHours.open && dayHours.close) {
       const startTime = this.parseTime(dayHours.open);
@@ -326,7 +334,7 @@ export class ReservationService {
    */
   private static generateIntervals(startMinutes: number, endMinutes: number): string[] {
     const intervals: string[] = [];
-    
+
     for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;

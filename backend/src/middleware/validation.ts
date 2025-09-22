@@ -1,23 +1,34 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
+import { CustomError } from './error';
+import { validateRequest, validationSchemas } from './joiValidation';
+import {
+  sanitizeInput,
+  validateContentType,
+  validateRequestSize,
+  validateHeaders,
+  validateUrlParams,
+  validateJsonData,
+  validateFileUpload,
+} from './sanitization';
 
 /**
- * Middleware pour gérer les erreurs de validation
+ * Middleware pour gérer les erreurs de validation express-validator
  */
 export const handleValidationErrors = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res.status(400).json({
-      error: 'Validation failed',
-      message: 'Please check your input data',
-      details: errors.array().map(error => ({
-        field: error.type === 'field' ? (error as any).path : 'unknown',
-        message: error.msg,
-        value: error.type === 'field' ? (error as any).value : undefined,
-      })),
+    const errorMessages = errors.array().map(error => ({
+      field: error.type === 'field' ? (error as any).path : 'unknown',
+      message: error.msg,
+      value: error.type === 'field' ? (error as any).value : undefined,
+    }));
+
+    throw new CustomError('Validation failed', 400, {
+      details: errorMessages,
+      type: 'VALIDATION_ERROR',
     });
-    return;
   }
 
   next();
@@ -226,3 +237,46 @@ export const validateMenuItem = [
 export const validateEmail = (field: string = 'email') => {
   return body(field).isEmail().withMessage(`${field} must be a valid email address`);
 };
+
+/**
+ * Middleware de validation complet avec Joi
+ */
+export const validateWithJoi = (schema: {
+  body?: any;
+  query?: any;
+  params?: any;
+  headers?: any;
+}) => {
+  return validateRequest(schema);
+};
+
+/**
+ * Middleware de sanitization et validation complet
+ */
+export const fullValidation = (schema?: {
+  body?: any;
+  query?: any;
+  params?: any;
+  headers?: any;
+}) => {
+  const middlewares = [
+    validateContentType,
+    validateRequestSize(),
+    validateHeaders,
+    validateUrlParams,
+    sanitizeInput,
+    validateJsonData,
+    validateFileUpload,
+  ];
+
+  if (schema) {
+    middlewares.push(validateRequest(schema));
+  }
+
+  return middlewares;
+};
+
+/**
+ * Schémas de validation prêts à l'emploi
+ */
+export const schemas = validationSchemas;

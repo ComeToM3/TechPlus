@@ -257,7 +257,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 
   // Vérifier l'ancien mot de passe
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user || !user.password) {
+  if (!user?.password) {
     throw new CustomError('User not found or no password set', 404);
   }
 

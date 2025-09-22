@@ -34,34 +34,34 @@ const uptimeMetrics: UptimeMetrics = {
 /**
  * Middleware de monitoring d'uptime
  */
-export const uptimeMonitoringMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const uptimeMonitoringMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   const startTime = performance.now();
   uptimeMetrics.lastRequestTime = Date.now();
   uptimeMetrics.requestCount++;
 
   // Ajouter des breadcrumbs Sentry
-  addSentryBreadcrumb(
-    `Request: ${req.method} ${req.path}`,
-    'http',
-    'info',
-    {
-      method: req.method,
-      path: req.path,
-      user_agent: req.get('User-Agent'),
-      ip: req.ip,
-    }
-  );
+  addSentryBreadcrumb(`Request: ${req.method} ${req.path}`, 'http', 'info', {
+    method: req.method,
+    path: req.path,
+    user_agent: req.get('User-Agent'),
+    ip: req.ip,
+  });
 
   // Intercepter la fin de la réponse
   const originalEnd = res.end;
-  res.end = function(chunk?: any, encoding?: any): Response {
+  res.end = function (chunk?: any, encoding?: any): Response {
     const endTime = performance.now();
     const responseTime = endTime - startTime;
-    
+
     // Mettre à jour les métriques
     uptimeMetrics.totalResponseTime += responseTime;
-    uptimeMetrics.averageResponseTime = uptimeMetrics.totalResponseTime / uptimeMetrics.requestCount;
-    
+    uptimeMetrics.averageResponseTime =
+      uptimeMetrics.totalResponseTime / uptimeMetrics.requestCount;
+
     if (res.statusCode >= 400) {
       uptimeMetrics.errorCount++;
     }
@@ -88,7 +88,8 @@ export const uptimeMonitoringMiddleware = (req: Request, res: Response, next: Ne
     }
 
     // Logger les métriques importantes
-    if (responseTime > 1000) { // Requêtes lentes > 1s
+    if (responseTime > 1000) {
+      // Requêtes lentes > 1s
       logger.warn('Slow request detected', {
         method: req.method,
         path: req.path,
@@ -107,7 +108,11 @@ export const uptimeMonitoringMiddleware = (req: Request, res: Response, next: Ne
 /**
  * Middleware spécialisé pour les health checks
  */
-export const healthCheckMonitoringMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const healthCheckMonitoringMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   uptimeMetrics.healthCheckCount++;
   uptimeMetrics.lastHealthCheckTime = Date.now();
 
@@ -131,12 +136,15 @@ export const getUptimeMetrics = (): UptimeMetrics & {
   const now = Date.now();
   const uptime = now - uptimeMetrics.startTime;
   const uptimeMinutes = uptime / (1000 * 60);
-  
+
   return {
     ...uptimeMetrics,
     uptime,
     uptimeFormatted: formatUptime(uptime),
-    errorRate: uptimeMetrics.requestCount > 0 ? (uptimeMetrics.errorCount / uptimeMetrics.requestCount) * 100 : 0,
+    errorRate:
+      uptimeMetrics.requestCount > 0
+        ? (uptimeMetrics.errorCount / uptimeMetrics.requestCount) * 100
+        : 0,
     requestsPerMinute: uptimeMinutes > 0 ? uptimeMetrics.requestCount / uptimeMinutes : 0,
   };
 };
@@ -179,7 +187,11 @@ export const resetUptimeMetrics = (): void => {
 /**
  * Middleware pour capturer les métriques de disponibilité
  */
-export const availabilityMonitoringMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const availabilityMonitoringMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Capturer la disponibilité de l'endpoint
   captureMetric('endpoint.availability', 1, 'none', {
     endpoint: req.path,
@@ -211,18 +223,18 @@ export const getSystemHealth = (): {
   healthScore: number;
 } => {
   const metrics = getUptimeMetrics();
-  
+
   // Calculer un score de santé basé sur les métriques
   let healthScore = 100;
-  
+
   // Pénaliser les erreurs
   if (metrics.errorRate > 5) healthScore -= 20;
   if (metrics.errorRate > 10) healthScore -= 30;
-  
+
   // Pénaliser les temps de réponse lents
   if (metrics.averageResponseTime > 1000) healthScore -= 15;
   if (metrics.averageResponseTime > 2000) healthScore -= 25;
-  
+
   // Pénaliser le manque de trafic (possible problème)
   if (metrics.requestsPerMinute < 0.1 && metrics.uptime > 5 * 60 * 1000) healthScore -= 10;
 
@@ -282,17 +294,20 @@ export const generateUptimeReport = (): {
  * Middleware pour logger les métriques d'uptime périodiquement
  */
 export const periodicUptimeLogging = (): void => {
-  setInterval(() => {
-    const report = generateUptimeReport();
-    
-    if (report.summary.status === 'unhealthy') {
-      logger.error('System health degraded', report);
-    } else if (report.summary.status === 'degraded') {
-      logger.warn('System health warning', report);
-    } else {
-      logger.info('System health check', report);
-    }
-  }, 5 * 60 * 1000); // Toutes les 5 minutes
+  setInterval(
+    () => {
+      const report = generateUptimeReport();
+
+      if (report.summary.status === 'unhealthy') {
+        logger.error('System health degraded', report);
+      } else if (report.summary.status === 'degraded') {
+        logger.warn('System health warning', report);
+      } else {
+        logger.info('System health check', report);
+      }
+    },
+    5 * 60 * 1000
+  ); // Toutes les 5 minutes
 };
 
 export default {

@@ -39,7 +39,7 @@ export const performanceMetricsMiddleware = (req: Request, res: Response, next: 
 
   // Intercepter la fin de la réponse
   const originalEnd = res.end;
-  res.end = function(chunk?: any, encoding?: any): Response {
+  res.end = function (chunk?: any, encoding?: any): Response {
     const responseTime = Date.now() - startTime;
 
     // Mettre à jour les métriques
@@ -77,11 +77,11 @@ export const performanceMetricsMiddleware = (req: Request, res: Response, next: 
  */
 export const getPerformanceMetrics = (): Record<string, PerformanceMetrics> => {
   const result: Record<string, PerformanceMetrics> = {};
-  
+
   for (const [route, routeMetrics] of metrics.entries()) {
     result[route] = { ...routeMetrics };
   }
-  
+
   return result;
 };
 
@@ -109,22 +109,22 @@ export const measureExecutionTime = (operation: string) => {
 
     descriptor.value = async function (...args: any[]) {
       const startTime = Date.now();
-      
+
       try {
         const result = await method.apply(this, args);
         const executionTime = Date.now() - startTime;
-        
+
         metricsLogger.info('Function Execution Time', {
           operation,
           function: propertyName,
           executionTime: `${executionTime}ms`,
           success: true,
         });
-        
+
         return result;
       } catch (error) {
         const executionTime = Date.now() - startTime;
-        
+
         metricsLogger.error('Function Execution Time', {
           operation,
           function: propertyName,
@@ -132,7 +132,7 @@ export const measureExecutionTime = (operation: string) => {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         throw error;
       }
     };
@@ -144,33 +144,30 @@ export const measureExecutionTime = (operation: string) => {
 /**
  * Fonction utilitaire pour mesurer le temps d'exécution d'une fonction
  */
-export const measureTime = async <T>(
-  operation: string,
-  fn: () => Promise<T>
-): Promise<T> => {
+export const measureTime = async <T>(operation: string, fn: () => Promise<T>): Promise<T> => {
   const startTime = Date.now();
-  
+
   try {
     const result = await fn();
     const executionTime = Date.now() - startTime;
-    
+
     metricsLogger.info('Operation Execution Time', {
       operation,
       executionTime: `${executionTime}ms`,
       success: true,
     });
-    
+
     return result;
   } catch (error) {
     const executionTime = Date.now() - startTime;
-    
+
     metricsLogger.error('Operation Execution Time', {
       operation,
       executionTime: `${executionTime}ms`,
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
-    
+
     throw error;
   }
 };
@@ -180,9 +177,10 @@ export const measureTime = async <T>(
  */
 export const memoryUsageMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const memoryUsage = process.memoryUsage();
-  
+
   // Log de l'utilisation de la mémoire toutes les 100 requêtes
-  if (Math.random() < 0.01) { // 1% de chance
+  if (Math.random() < 0.01) {
+    // 1% de chance
     metricsLogger.info('Memory Usage', {
       rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
       heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
@@ -191,7 +189,7 @@ export const memoryUsageMiddleware = (req: Request, res: Response, next: NextFun
       arrayBuffers: `${Math.round(memoryUsage.arrayBuffers / 1024 / 1024)}MB`,
     });
   }
-  
+
   next();
 };
 
@@ -200,7 +198,7 @@ export const memoryUsageMiddleware = (req: Request, res: Response, next: NextFun
  */
 export const getMemoryUsage = () => {
   const memoryUsage = process.memoryUsage();
-  
+
   return {
     rss: Math.round(memoryUsage.rss / 1024 / 1024), // MB
     heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024), // MB
@@ -215,7 +213,7 @@ export const getMemoryUsage = () => {
  */
 export const getUptime = () => {
   const uptime = process.uptime();
-  
+
   return {
     seconds: Math.floor(uptime),
     minutes: Math.floor(uptime / 60),

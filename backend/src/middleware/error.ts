@@ -4,6 +4,8 @@ import { config } from '@/config/environment';
 export interface AppError extends Error {
   statusCode?: number;
   isOperational?: boolean;
+  details?: any;
+  type?: string | undefined;
 }
 
 /**
@@ -12,11 +14,19 @@ export interface AppError extends Error {
 export class CustomError extends Error implements AppError {
   public statusCode: number;
   public isOperational: boolean;
+  public details?: any;
+  public type?: string | undefined;
 
-  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
+  constructor(
+    message: string,
+    statusCode: number = 500,
+    options: { isOperational?: boolean; details?: any; type?: string } = {}
+  ) {
     super(message);
     this.statusCode = statusCode;
-    this.isOperational = isOperational;
+    this.isOperational = options.isOperational ?? true;
+    this.details = options.details;
+    this.type = options.type;
 
     Error.captureStackTrace(this, this.constructor);
   }

@@ -27,9 +27,9 @@ const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.errors({ stack: true }),
   winston.format.json(),
-  winston.format.printf((info) => {
+  winston.format.printf(info => {
     const { timestamp, level, message, stack, ...meta } = info;
-    
+
     // Format structuré pour les logs JSON
     const logEntry: Record<string, any> = {
       timestamp,
@@ -55,9 +55,9 @@ const logFormat = winston.format.combine(
 const consoleFormat = winston.format.combine(
   winston.format.colorize({ all: true }),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.printf((info) => {
+  winston.format.printf(info => {
     const { timestamp, level, message, stack } = info;
-    return `${timestamp} [${level}]: ${message}${stack ? '\n' + stack : ''}`;
+    return `${timestamp} [${level}]: ${message}${stack ? `\n${stack}` : ''}`;
   })
 );
 
@@ -117,14 +117,14 @@ const logger = winston.createLogger({
   transports,
   // Gestion des exceptions non capturées
   exceptionHandlers: [
-    new winston.transports.File({ 
+    new winston.transports.File({
       filename: path.join('logs', 'exceptions.log'),
       format: logFormat,
     }),
   ],
   // Gestion des rejets de promesses non gérés
   rejectionHandlers: [
-    new winston.transports.File({ 
+    new winston.transports.File({
       filename: path.join('logs', 'rejections.log'),
       format: logFormat,
     }),
@@ -191,7 +191,11 @@ export const metricsLogger = winston.createLogger({
 });
 
 // Méthodes utilitaires pour le logging structuré
-export const logWithContext = (level: string, message: string, context: Record<string, any> = {}) => {
+export const logWithContext = (
+  level: string,
+  message: string,
+  context: Record<string, any> = {}
+) => {
   logger.log(level, message, { context });
 };
 
@@ -217,7 +221,11 @@ export const logHttpRequest = (req: any, res: any, responseTime: number) => {
   httpLogger.http('HTTP Request', logData);
 };
 
-export const logPerformance = (operation: string, duration: number, metadata: Record<string, any> = {}) => {
+export const logPerformance = (
+  operation: string,
+  duration: number,
+  metadata: Record<string, any> = {}
+) => {
   metricsLogger.info('Performance Metric', {
     operation,
     duration: `${duration}ms`,
@@ -243,7 +251,7 @@ export const logBusiness = (event: string, details: Record<string, any> = {}) =>
 
 // Configuration pour les tests (logs silencieux)
 if (process.env.NODE_ENV === 'test') {
-  logger.transports.forEach((transport) => {
+  logger.transports.forEach(transport => {
     if (transport instanceof winston.transports.Console) {
       transport.silent = true;
     }

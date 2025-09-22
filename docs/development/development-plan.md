@@ -305,31 +305,31 @@ Ce plan de développement structure le projet TechPlus en phases logiques, perme
   - [x] Queue de notifications
 
 #### Middleware et Sécurité
-- [ ] **Validation**
-  - [ ] Middleware de validation (Joi/express-validator)
-  - [ ] Sanitization des données (helmet, express-sanitizer)
-  - [ ] Validation des types (TypeScript strict mode)
-  - [ ] Validation des formats (email, phone, date)
-  - [ ] Custom validation rules (business logic)
+- [x] **Validation**
+  - [x] Middleware de validation (Joi/express-validator)
+  - [x] Sanitization des données (helmet, express-sanitizer)
+  - [x] Validation des types (TypeScript strict mode)
+  - [x] Validation des formats (email, phone, date)
+  - [x] Custom validation rules (business logic)
 
-- [ ] **Sécurité**
-  - [ ] Rate limiting (express-rate-limit)
-    - [ ] API endpoints: 100 req/15min
-    - [ ] Auth endpoints: 5 req/15min
-    - [ ] Password reset: 3 req/hour
-  - [ ] CORS configuration stricte
-    - [ ] Origins autorisées uniquement
-    - [ ] Headers autorisés spécifiques
-    - [ ] Methods autorisés (GET, POST, PUT, DELETE)
-  - [ ] Helmet security headers
-    - [ ] Content Security Policy
-    - [ ] X-Frame-Options
-    - [ ] X-Content-Type-Options
-    - [ ] Strict-Transport-Security
-  - [ ] Protection XSS/CSRF
-    - [ ] Input sanitization
-    - [ ] CSRF tokens pour les formulaires
-    - [ ] SameSite cookies
+- [x] **Sécurité**
+  - [x] Rate limiting (express-rate-limit)
+    - [x] API endpoints: 100 req/15min
+    - [x] Auth endpoints: 5 req/15min
+    - [x] Password reset: 3 req/hour
+  - [x] CORS configuration stricte
+    - [x] Origins autorisées uniquement
+    - [x] Headers autorisés spécifiques
+    - [x] Methods autorisés (GET, POST, PUT, DELETE)
+  - [x] Helmet security headers
+    - [x] Content Security Policy
+    - [x] X-Frame-Options
+    - [x] X-Content-Type-Options
+    - [x] Strict-Transport-Security
+  - [x] Protection XSS/CSRF
+    - [x] Input sanitization
+    - [x] CSRF tokens pour les formulaires
+    - [x] SameSite cookies
 
 ### 🧪 Tests Backend
 - [ ] **Tests Unitaires**

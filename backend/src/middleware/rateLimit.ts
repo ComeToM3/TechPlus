@@ -35,6 +35,22 @@ export const authLimiter = rateLimit({
 });
 
 /**
+ * Rate limiter pour le reset de mot de passe
+ */
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 3, // 3 tentatives par heure
+  message: {
+    error: 'Too many password reset attempts',
+    message: 'Too many password reset attempts, please try again in an hour.',
+    retryAfter: 3600, // 1 heure
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Utiliser l'IP par défaut
+});
+
+/**
  * Rate limiter pour les réservations
  */
 export const reservationLimiter = rateLimit({
