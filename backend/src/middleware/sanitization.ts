@@ -95,6 +95,7 @@ function sanitizeString(str: string): string {
     .replace(/\//g, '&#x2F;');
 
   // Supprimer les caractères de contrôle
+  // eslint-disable-next-line no-control-regex
   sanitized = sanitized.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 
   // Normaliser les espaces

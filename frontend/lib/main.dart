@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:dio/dio.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/network/api_client.dart';
 import 'core/navigation/app_router.dart';
-import 'core/providers/theme_provider.dart';
-import 'core/providers/locale_provider.dart';
+import 'core/theme/theme_provider.dart';
+import 'core/l10n/locale_provider.dart';
 import 'core/security/security_service.dart';
-import 'features/auth/presentation/providers/auth_providers.dart';
+import 'features/auth/presentation/providers/auth_provider.dart';
 import 'shared/widgets/layouts/bento_card.dart';
 import 'shared/widgets/buttons/animated_button.dart';
 import 'generated/l10n/app_localizations.dart';
@@ -22,7 +23,9 @@ void main() async {
     await SecurityService().initialize();
     
     // Initialiser le client API
-    await ApiClient().initialize();
+    final dio = Dio();
+    final apiClient = ApiClient(dio);
+    await apiClient.initialize();
     
     print('✅ Application initialized successfully');
   } catch (e) {
@@ -54,7 +57,10 @@ class TechPlusApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: LocaleNotifier.supportedLocales,
+      supportedLocales: const [
+        Locale('fr', 'FR'),
+        Locale('en', 'US'),
+      ],
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );
@@ -66,7 +72,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
+    final authState = ref.watch(authProvider);
     final themeNotifier = ref.read(themeProvider.notifier);
     final localeNotifier = ref.read(localeProvider.notifier);
     final l10n = AppLocalizations.of(context)!;
@@ -77,13 +83,34 @@ class HomePage extends ConsumerWidget {
         centerTitle: true,
         actions: [
           // Bouton de changement de langue
-          IconButton(
-            icon: Text(
-              localeNotifier.getLanguageFlag(ref.watch(localeProvider)),
-              style: const TextStyle(fontSize: 20),
-            ),
-            onPressed: () => localeNotifier.toggleLanguage(),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.language),
             tooltip: 'Changer la langue',
+            onSelected: (String languageCode) {
+              localeNotifier.setLocale(languageCode);
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'fr',
+                child: Row(
+                  children: [
+                    Text('🇫🇷'),
+                    SizedBox(width: 8),
+                    Text('Français'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'en',
+                child: Row(
+                  children: [
+                    Text('🇬🇧'),
+                    SizedBox(width: 8),
+                    Text('English'),
+                  ],
+                ),
+              ),
+            ],
           ),
           // Bouton de basculement du thème
           IconButton(
@@ -104,7 +131,7 @@ class HomePage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await ref.read(authStateProvider.notifier).logout();
+              await ref.read(authProvider.notifier).logout();
               if (context.mounted) {
                 context.go('/admin/login');
               }

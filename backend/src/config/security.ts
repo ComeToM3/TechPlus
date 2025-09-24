@@ -80,8 +80,57 @@ export const corsConfig = {
       allowedOrigins.push(
         'http://localhost:3000',
         'http://localhost:3001',
-        'http://localhost:8080'
+        'http://localhost:8080',
+        'http://localhost:8081',
+        'http://localhost:8082',
+        'http://localhost:8083',
+        'http://localhost:8084',
+        'http://localhost:8085',
+        'http://localhost:8086',
+        'http://localhost:8087',
+        'http://localhost:8088',
+        'http://localhost:8089',
+        'http://localhost:8090',
+        'http://localhost:8091',
+        'http://localhost:8092',
+        'http://localhost:8093',
+        'http://localhost:8094',
+        'http://localhost:8095',
+        'http://localhost:8096',
+        'http://localhost:8097',
+        'http://localhost:8098',
+        'http://localhost:8099',
+        'http://localhost:8100',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'http://127.0.0.1:8080',
+        'http://127.0.0.1:8081',
+        'http://127.0.0.1:8082',
+        'http://127.0.0.1:8083',
+        'http://127.0.0.1:8084',
+        'http://127.0.0.1:8085',
+        'http://127.0.0.1:8086',
+        'http://127.0.0.1:8087',
+        'http://127.0.0.1:8088',
+        'http://127.0.0.1:8089',
+        'http://127.0.0.1:8090',
+        'http://127.0.0.1:8091',
+        'http://127.0.0.1:8092',
+        'http://127.0.0.1:8093',
+        'http://127.0.0.1:8094',
+        'http://127.0.0.1:8095',
+        'http://127.0.0.1:8096',
+        'http://127.0.0.1:8097',
+        'http://127.0.0.1:8098',
+        'http://127.0.0.1:8099',
+        'http://127.0.0.1:8100'
       );
+      
+      // Autoriser tous les ports Flutter Web (ports dynamiques)
+      for (let port = 30000; port <= 65000; port++) {
+        allowedOrigins.push(`http://127.0.0.1:${port}`);
+        allowedOrigins.push(`http://localhost:${port}`);
+      }
     }
 
     // Autoriser les requêtes sans origine (mobile apps, Postman, etc.)

@@ -1,11 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../network/api_client.dart';
 
 /// Provider pour le client API
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final apiClient = ApiClient();
+  final dio = Dio();
+  final apiClient = ApiClient(dio);
   apiClient.initialize();
   return apiClient;
+});
+
+/// Provider pour SharedPreferences
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+  return await SharedPreferences.getInstance();
 });
 
 /// Provider pour l'état de l'application

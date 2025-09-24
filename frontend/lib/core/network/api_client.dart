@@ -1,109 +1,69 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import '../constants/app_constants.dart';
-import '../security/security_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'auth_token_manager.dart';
 
-/// Client HTTP pour l'API TechPlus
+/// Intercepteur d'authentification pour ajouter automatiquement le token
+class AuthInterceptor extends Interceptor {
+  final AuthTokenManager _tokenManager = AuthTokenManager();
+
+  AuthInterceptor() {
+    // Écouter les changements de token
+    _tokenManager.addListener(_onTokenChanged);
+    // Initialiser avec le token actuel
+    _onTokenChanged(_tokenManager.accessToken);
+  }
+
+  void _onTokenChanged(String? token) {
+    // Le token est maintenant géré par le AuthTokenManager
+  }
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // Ajouter le token d'authentification si disponible
+    final token = _tokenManager.accessToken;
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
+      print('🔐 Auth token added to request: ${token.substring(0, 20)}...');
+    } else {
+      print('⚠️ No auth token available for request');
+    }
+    handler.next(options);
+  }
+}
+
+/// Client API pour les appels HTTP
 class ApiClient {
-  static final ApiClient _instance = ApiClient._internal();
-  factory ApiClient() => _instance;
-  ApiClient._internal();
+  final Dio _dio;
+  final AuthInterceptor _authInterceptor;
 
-  late Dio _dio;
-  final SecurityService _securityService = SecurityService();
-
-  /// Initialise le client HTTP avec sécurité
-  Future<void> initialize() async {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: AppConstants.baseUrl,
-        connectTimeout: AppConstants.connectTimeout,
-        receiveTimeout: AppConstants.receiveTimeout,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      ),
-    );
-
-    // Configurer la sécurité
-    await _configureSecurity();
+  ApiClient(this._dio) : _authInterceptor = AuthInterceptor() {
+    // Configuration de base
+    _dio.options.baseUrl = 'http://localhost:3000';
+    _dio.options.connectTimeout = const Duration(seconds: 30);
+    _dio.options.receiveTimeout = const Duration(seconds: 30);
     
     // Intercepteurs
-    _dio.interceptors.add(_createAuthInterceptor());
-    _dio.interceptors.add(_createLoggingInterceptor());
-    _dio.interceptors.add(_createErrorInterceptor());
-  }
-
-  /// Configure la sécurité pour le client API
-  Future<void> _configureSecurity() async {
-    try {
-      // Vérifier HTTPS
-      if (!_securityService.httpsEnforcement.validateHttpsUrl(AppConstants.baseUrl)) {
-        throw Exception('Base URL must use HTTPS: ${AppConstants.baseUrl}');
-      }
-
-      // Configurer le certificate pinning
-      // final adapter = _dio.httpClientAdapter;
-      // if (adapter is DefaultHttpClientAdapter) {
-      //   adapter.onHttpClientCreate = (client) {
-      //     _securityService.certificatePinning.configureHttpClient(client);
-      //     _securityService.httpsEnforcement.configureHttpClient(client);
-      //     return client;
-      //   };
-      // }
-
-      if (kDebugMode) {
-        print('✅ API client security configured');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error configuring API client security: $e');
-      }
-      rethrow;
-    }
-  }
-
-  /// Intercepteur pour l'authentification
-  Interceptor _createAuthInterceptor() {
-    return InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // Ajouter le token d'authentification
-        final token = await _securityService.tokenManager.getValidAccessToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        handler.next(options);
-      },
-      onError: (error, handler) {
-        // TODO: Gérer les erreurs d'authentification (401, 403)
-        handler.next(error);
-      },
-    );
-  }
-
-  /// Intercepteur pour les logs
-  Interceptor _createLoggingInterceptor() {
-    return LogInterceptor(
+    _dio.interceptors.add(LogInterceptor(
       requestBody: true,
       responseBody: true,
       error: true,
-      requestHeader: false,
-      responseHeader: false,
-    );
+    ));
+    
+    // Intercepteur d'authentification
+    _dio.interceptors.add(_authInterceptor);
   }
 
-  /// Intercepteur pour la gestion d'erreurs
-  Interceptor _createErrorInterceptor() {
-    return InterceptorsWrapper(
-      onError: (error, handler) {
-        // TODO: Gérer les erreurs globales
-        handler.next(error);
-      },
-    );
+  /// Mettre à jour le token d'authentification
+  void updateAuthToken(String? token) {
+    AuthTokenManager().updateToken(token);
   }
 
-  /// GET request
+  /// Initialiser le client API
+  Future<void> initialize() async {
+    // L'initialisation est maintenant faite dans le constructeur
+  }
+
+  /// Effectuer une requête GET
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -116,7 +76,7 @@ class ApiClient {
     );
   }
 
-  /// POST request
+  /// Effectuer une requête POST
   Future<Response<T>> post<T>(
     String path, {
     dynamic data,
@@ -131,7 +91,7 @@ class ApiClient {
     );
   }
 
-  /// PUT request
+  /// Effectuer une requête PUT
   Future<Response<T>> put<T>(
     String path, {
     dynamic data,
@@ -146,7 +106,22 @@ class ApiClient {
     );
   }
 
-  /// DELETE request
+  /// Effectuer une requête PATCH
+  Future<Response<T>> patch<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    return await _dio.patch<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
+  }
+
+  /// Effectuer une requête DELETE
   Future<Response<T>> delete<T>(
     String path, {
     dynamic data,
@@ -160,7 +135,13 @@ class ApiClient {
       options: options,
     );
   }
-
-  /// Instance Dio pour les cas avancés
-  Dio get dio => _dio;
 }
+
+/// Provider pour le client API
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final dio = Dio();
+  final apiClient = ApiClient(dio);
+  // Initialiser de manière asynchrone
+  apiClient.initialize();
+  return apiClient;
+});

@@ -237,6 +237,10 @@ class _AnimatedButtonState extends State<AnimatedButton>
         return Colors.transparent;
       case ButtonType.ghost:
         return Colors.transparent;
+      case ButtonType.danger:
+        return theme.colorScheme.error;
+      case ButtonType.success:
+        return Colors.green;
     }
   }
 
@@ -255,12 +259,16 @@ class _AnimatedButtonState extends State<AnimatedButton>
         return theme.colorScheme.primary;
       case ButtonType.ghost:
         return theme.colorScheme.primary;
+      case ButtonType.danger:
+        return theme.colorScheme.onError;
+      case ButtonType.success:
+        return Colors.white;
     }
   }
 }
 
 /// Types de boutons
-enum ButtonType { primary, secondary, outline, ghost }
+enum ButtonType { primary, secondary, outline, ghost, danger, success }
 
 /// Tailles de boutons
 enum ButtonSize { small, medium, large }

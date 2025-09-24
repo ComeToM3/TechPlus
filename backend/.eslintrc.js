@@ -3,7 +3,8 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2024,
     sourceType: 'module',
-    project: './tsconfig.json',
+    project: ['./tsconfig.json', './tsconfig.test.json'],
+    tsconfigRootDir: __dirname,
   },
   plugins: ['@typescript-eslint', 'prettier'],
   extends: [
@@ -18,7 +19,7 @@ module.exports = {
     jest: true,
     es2024: true,
   },
-  ignorePatterns: ['.eslintrc.js', 'dist/', 'node_modules/', 'coverage/'],
+  ignorePatterns: ['.eslintrc.js', 'dist/', 'node_modules/', 'coverage/', 'src/test/**/*.ts', '**/*.test.ts', '**/*.spec.ts'],
   rules: {
     // Prettier integration
     'prettier/prettier': 'error',

@@ -155,6 +155,7 @@ import availabilityRoutes from '@/routes/availability';
 import paymentRoutes from '@/routes/payments';
 import notificationRoutes from '@/routes/notifications';
 import healthRoutes from '@/routes/health';
+import adminRoutes from '@/routes/admin';
 
 // API routes
 app.get('/', (req, res) => {
@@ -167,6 +168,8 @@ app.get('/', (req, res) => {
       reservations: '/api/reservations',
       availability: '/api/availability',
       payments: '/api/payments',
+      notifications: '/api/notifications',
+      admin: '/api/admin',
       health: '/health',
     },
   });
@@ -179,6 +182,7 @@ app.use('/api/availability', publicApiRateLimit, availabilityRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/health', healthCheckMonitoringMiddleware, databaseConnectionMonitoring, healthRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Test session endpoint
 app.get('/api/test-session', (req, res) => {

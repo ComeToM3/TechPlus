@@ -10,10 +10,10 @@ async function main() {
   const restaurant = await prisma.restaurant.create({
     data: {
       name: 'TechPlus Restaurant',
-      description: 'Un restaurant moderne avec une cuisine française raffinée',
-      address: '123 Rue de la Paix, 75001 Paris, France',
-      phone: '+33 1 23 45 67 89',
-      email: 'contact@techplus-restaurant.com',
+      description: 'Un restaurant moderne avec une cuisine québécoise raffinée',
+      address: '123 Rue Saint-Denis, Montréal, QC H2X 3K8, Canada',
+      phone: '+1 514 123 4567',
+      email: 'contact@techplus-restaurant.ca',
       website: 'https://techplus-restaurant.com',
       images: [
         'https://example.com/restaurant-1.jpg',
@@ -34,8 +34,8 @@ async function main() {
         saturday: { open: '12:00', close: '14:30', evening: { open: '19:00', close: '22:30' } },
         sunday: { closed: true }
       },
-      averagePricePerPerson: 45.00,
-      minimumDepositAmount: 15.00,
+      averagePricePerPerson: 65.00,
+      minimumDepositAmount: 20.00,
       paymentThreshold: 6,
       cancellationPolicy: 'Annulation gratuite jusqu\'à 24h avant la réservation'
     }
@@ -70,7 +70,7 @@ async function main() {
       email: 'admin@techplus-restaurant.com',
       password: hashedAdminPassword,
       name: 'Admin TechPlus',
-      phone: '+33 1 23 45 67 89',
+      phone: '+1 514 123 4567',
       role: UserRole.ADMIN,
       isActive: true,
       lastLoginAt: new Date()
@@ -85,8 +85,8 @@ async function main() {
     data: {
       email: 'client@example.com',
       password: hashedClientPassword,
-      name: 'Jean Dupont',
-      phone: '+33 6 12 34 56 78',
+      name: 'Jean Tremblay',
+      phone: '+1 514 234 5678',
       role: UserRole.CLIENT,
       isActive: true,
       lastLoginAt: new Date()
@@ -98,65 +98,65 @@ async function main() {
   // Create menu items
   const menuItems = [
     {
-      name: 'Entrée - Terrine de Foie Gras',
-      description: 'Terrine de foie gras de canard, chutney de figues, pain brioche toasté',
+      name: 'Entrée - Poutine Gourmande',
+      description: 'Frites maison, fromage en grains, sauce brune, foie gras',
+      price: 24.00,
+      category: 'Entrées',
+      allergens: ['lait', 'gluten']
+    },
+    {
+      name: 'Entrée - Salade de Quinoa',
+      description: 'Quinoa, épinards, noix de Grenoble, vinaigrette au sirop d\'érable',
       price: 18.00,
       category: 'Entrées',
-      allergens: ['gluten', 'œufs']
+      allergens: ['fruits à coque']
     },
     {
-      name: 'Entrée - Salade de Chèvre Chaud',
-      description: 'Salade verte, chèvre chaud sur toast, noix, vinaigrette balsamique',
+      name: 'Plat - Saumon de l\'Atlantique',
+      description: 'Saumon grillé, légumes du Québec, sauce au sirop d\'érable',
+      price: 38.00,
+      category: 'Plats',
+      allergens: ['poisson']
+    },
+    {
+      name: 'Plat - Tourtière du Lac-Saint-Jean',
+      description: 'Tourte à la viande, pommes de terre, légumes racines',
+      price: 32.00,
+      category: 'Plats',
+      allergens: ['gluten']
+    },
+    {
+      name: 'Plat - Côte de Bœuf Angus',
+      description: 'Côte de bœuf Angus du Québec (pour 2 personnes), frites maison',
+      price: 85.00,
+      category: 'Plats',
+      allergens: []
+    },
+    {
+      name: 'Dessert - Tarte au Sucre',
+      description: 'Tarte au sucre du Québec, crème fouettée',
       price: 14.00,
-      category: 'Entrées',
-      allergens: ['lait', 'gluten', 'fruits à coque']
-    },
-    {
-      name: 'Plat - Magret de Canard',
-      description: 'Magret de canard grillé, sauce aux cerises, légumes de saison',
-      price: 28.00,
-      category: 'Plats',
-      allergens: []
-    },
-    {
-      name: 'Plat - Saumon en Croûte',
-      description: 'Filet de saumon en croûte d\'herbes, risotto aux champignons',
-      price: 26.00,
-      category: 'Plats',
-      allergens: ['gluten', 'lait', 'œufs', 'poisson']
-    },
-    {
-      name: 'Plat - Côte de Bœuf',
-      description: 'Côte de bœuf grillée (pour 2 personnes), pommes de terre rôties',
-      price: 65.00,
-      category: 'Plats',
-      allergens: []
-    },
-    {
-      name: 'Dessert - Tarte Tatin',
-      description: 'Tarte tatin aux pommes, crème anglaise vanille',
-      price: 12.00,
       category: 'Desserts',
       allergens: ['gluten', 'lait', 'œufs']
     },
     {
-      name: 'Dessert - Crème Brûlée',
-      description: 'Crème brûlée à la vanille de Madagascar',
-      price: 10.00,
+      name: 'Dessert - Pudding Chômeur',
+      description: 'Pudding chômeur au sirop d\'érable, crème glacée',
+      price: 12.00,
       category: 'Desserts',
-      allergens: ['lait', 'œufs']
+      allergens: ['lait', 'œufs', 'gluten']
     },
     {
-      name: 'Boisson - Vin Rouge',
-      description: 'Bordeaux 2018, Château Margaux',
-      price: 45.00,
+      name: 'Boisson - Vin Rouge du Québec',
+      description: 'Vin rouge de l\'Île d\'Orléans, Cuvée 2020',
+      price: 55.00,
       category: 'Vins',
       allergens: ['sulfites']
     },
     {
-      name: 'Boisson - Champagne',
-      description: 'Champagne Dom Pérignon 2013',
-      price: 180.00,
+      name: 'Boisson - Cidre de Glace',
+      description: 'Cidre de glace du Québec, Domaine Pinnacle',
+      price: 45.00,
       category: 'Vins',
       allergens: ['sulfites']
     }
@@ -208,14 +208,14 @@ async function main() {
       partySize: 8,
       status: ReservationStatus.PENDING,
       notes: 'Dîner d\'entreprise',
-      clientName: 'Marie Martin',
-      clientEmail: 'marie.martin@company.com',
-      clientPhone: '+33 6 98 76 54 32',
+      clientName: 'Marie Gagnon',
+      clientEmail: 'marie.gagnon@company.ca',
+      clientPhone: '+1 514 987 6543',
       tableId: tables[15]!.id, // Table pour 8 personnes
       restaurantId: restaurant.id,
       requiresPayment: true,
-      estimatedAmount: 360.00, // 8 personnes × 45€
-      depositAmount: 60.00, // 15€ par personne
+      estimatedAmount: 520.00, // 8 personnes × 65$ CAD
+      depositAmount: 160.00, // 20$ CAD par personne
       paymentStatus: PaymentStatus.PENDING,
       managementToken: 'guest_' + Math.random().toString(36).substr(2, 9),
       tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours

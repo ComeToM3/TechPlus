@@ -54,9 +54,1276 @@
   "@reservations": {
     "description": "Titre des réservations"
   },
-  "restaurantName": "Nom du restaurant",
+  "restaurantName": "TechPlus Restaurant",
   "@restaurantName": {
-    "description": "Champ nom du restaurant"
+    "description": "Nom du restaurant"
+  },
+  "restaurantSlogan": "Une expérience culinaire exceptionnelle",
+  "@restaurantSlogan": {
+    "description": "Slogan du restaurant"
+  },
+  "bookNow": "Réserver maintenant",
+  "@bookNow": {
+    "description": "Bouton réserver maintenant"
+  },
+  "ourServices": "Nos Services",
+  "@ourServices": {
+    "description": "Titre section services"
+  },
+  "onlineReservation": "Réservation en ligne",
+  "@onlineReservation": {
+    "description": "Titre service réservation en ligne"
+  },
+  "onlineReservationDescription": "Réservez votre table 24h/24 depuis notre site",
+  "@onlineReservationDescription": {
+    "description": "Description service réservation en ligne"
+  },
+  "diverseMenu": "Menu varié",
+  "@diverseMenu": {
+    "description": "Titre service menu varié"
+  },
+  "diverseMenuDescription": "Découvrez notre carte avec des plats d'exception",
+  "@diverseMenuDescription": {
+    "description": "Description service menu varié"
+  },
+  "premiumService": "Service premium",
+  "@premiumService": {
+    "description": "Titre service premium"
+  },
+  "premiumServiceDescription": "Un service personnalisé pour votre confort",
+  "@premiumServiceDescription": {
+    "description": "Description service premium"
+  },
+  "menuPreview": "Aperçu du Menu",
+  "@menuPreview": {
+    "description": "Titre aperçu du menu"
+  },
+  "viewFullMenu": "Voir tout le menu",
+  "@viewFullMenu": {
+    "description": "Bouton voir tout le menu"
+  },
+  "readyForUniqueExperience": "Prêt à vivre une expérience culinaire unique ?",
+  "@readyForUniqueExperience": {
+    "description": "Titre section call-to-action"
+  },
+  "bookTableNow": "Réservez votre table dès maintenant et découvrez notre cuisine d'exception",
+  "@bookTableNow": {
+    "description": "Description section call-to-action"
+  },
+  "bookTable": "Réserver une table",
+  "@bookTable": {
+    "description": "Bouton réserver une table"
+  },
+  "menu": "Menu",
+  "@menu": {
+    "description": "Lien menu"
+  },
+  "about": "À propos",
+  "@about": {
+    "description": "Lien à propos"
+  },
+  "contact": "Contact",
+  "@contact": {
+    "description": "Lien contact"
+  },
+  "copyright": "© 2025 TechPlus Restaurant. Tous droits réservés.",
+  "@copyright": {
+    "description": "Copyright"
+  },
+  "lightMode": "Mode clair",
+  "@lightMode": {
+    "description": "Bouton mode clair"
+  },
+  "darkMode": "Mode sombre",
+  "@darkMode": {
+    "description": "Bouton mode sombre"
+  },
+  "language": "Langue",
+  "@language": {
+    "description": "Bouton langue"
+  },
+  "french": "Français",
+  "@french": {
+    "description": "Langue française"
+  },
+  "english": "Anglais",
+  "@english": {
+    "description": "Langue anglaise"
+  },
+  "adminPanel": "Panneau d'administration",
+  "@adminPanel": {
+    "description": "Lien panneau d'administration"
+  },
+  "adminDashboard": "Tableau de bord Admin",
+  "@adminDashboard": {
+    "description": "Titre du tableau de bord administrateur"
+  },
+  "welcomeBack": "Bon retour !",
+  "@welcomeBack": {
+    "description": "Message de bienvenue"
+  },
+  "dashboardOverview": "Vue d'ensemble de votre restaurant",
+  "@dashboardOverview": {
+    "description": "Description du tableau de bord"
+  },
+  "newReservation": "Nouvelle réservation",
+  "@newReservation": {
+    "description": "Bouton nouvelle réservation"
+  },
+  "viewReservations": "Voir les réservations",
+  "@viewReservations": {
+    "description": "Bouton voir les réservations"
+  },
+  "refresh": "Actualiser",
+  "@refresh": {
+    "description": "Bouton actualiser"
+  },
+  "settings": "Paramètres",
+  "@settings": {
+    "description": "Bouton paramètres"
+  },
+  "errorLoadingData": "Erreur lors du chargement des données",
+  "@errorLoadingData": {
+    "description": "Message d'erreur de chargement"
+  },
+  "retry": "Réessayer",
+  "@retry": {
+    "description": "Bouton réessayer"
+  },
+  "noDataAvailable": "Aucune donnée disponible",
+  "@noDataAvailable": {
+    "description": "Message aucune donnée"
+  },
+  "noDataDescription": "Les métriques apparaîtront ici une fois que vous aurez des réservations",
+  "@noDataDescription": {
+    "description": "Description aucune donnée"
+  },
+  "mainMetrics": "Métriques principales",
+  "@mainMetrics": {
+    "description": "Titre métriques principales"
+  },
+  "todayReservations": "Réservations du jour",
+  "@todayReservations": {
+    "description": "Réservations du jour"
+  },
+  "todayRevenue": "Revenus du jour",
+  "@todayRevenue": {
+    "description": "Revenus du jour"
+  },
+  "tableOccupancy": "Occupation des tables",
+  "@tableOccupancy": {
+    "description": "Occupation des tables"
+  },
+  "pendingReservations": "Réservations en attente",
+  "@pendingReservations": {
+    "description": "Réservations en attente"
+  },
+  "additionalMetrics": "Métriques supplémentaires",
+  "@additionalMetrics": {
+    "description": "Titre métriques supplémentaires"
+  },
+  "totalReservations": "Total réservations",
+  "@totalReservations": {
+    "description": "Total des réservations"
+  },
+  "totalRevenue": "Revenus totaux",
+  "@totalRevenue": {
+    "description": "Revenus totaux"
+  },
+  "totalCustomers": "Total clients",
+  "@totalCustomers": {
+    "description": "Total des clients"
+  },
+  "newCustomers": "Nouveaux clients",
+  "@newCustomers": {
+    "description": "Nouveaux clients"
+  },
+  "trendsAndAnalytics": "Tendances et analyses",
+  "@trendsAndAnalytics": {
+    "description": "Titre section tendances"
+  },
+  "chartsComingSoon": "Graphiques bientôt disponibles",
+  "@chartsComingSoon": {
+    "description": "Message graphiques à venir"
+  },
+  "tableStatus": "État des tables",
+  "@tableStatus": {
+    "description": "Titre état des tables"
+  },
+  "viewAll": "Voir tout",
+  "@viewAll": {
+    "description": "Bouton voir tout"
+  },
+  "tableMapComingSoon": "Plan des tables bientôt disponible",
+  "@tableMapComingSoon": {
+    "description": "Message plan des tables à venir"
+  },
+  "confirmed": "Confirmées",
+  "@confirmed": {
+    "description": "Statut confirmé"
+  },
+  "pending": "En attente",
+  "@pending": {
+    "description": "Statut en attente"
+  },
+  "cancelled": "Annulées",
+  "@cancelled": {
+    "description": "Statut annulé"
+  },
+  "total": "Total",
+  "@total": {
+    "description": "Total"
+  },
+  "reservationsTodaySummary": "Résumé des réservations du jour",
+  "@reservationsTodaySummary": {
+    "description": "Résumé des réservations"
+  },
+  "occupied": "Occupées",
+  "@occupied": {
+    "description": "Tables occupées"
+  },
+  "available": "Disponibles",
+  "@available": {
+    "description": "Tables disponibles"
+  },
+  "highOccupancy": "Occupation élevée - Considérez ajouter des tables",
+  "@highOccupancy": {
+    "description": "Message occupation élevée"
+  },
+  "goodOccupancy": "Bonne occupation - Performance optimale",
+  "@goodOccupancy": {
+    "description": "Message bonne occupation"
+  },
+  "moderateOccupancy": "Occupation modérée - Potentiel d'amélioration",
+  "@moderateOccupancy": {
+    "description": "Message occupation modérée"
+  },
+  "lowOccupancy": "Occupation faible - Actions marketing recommandées",
+  "@lowOccupancy": {
+    "description": "Message occupation faible"
+  },
+  "revenue": "Revenus",
+  "@revenue": {
+    "description": "Titre revenus"
+  },
+  "revenueGrowthPositive": "Croissance de {percentage}% par rapport à la moyenne",
+  "@revenueGrowthPositive": {
+    "description": "Message croissance positive des revenus",
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "revenueGrowthNegative": "Baisse de {percentage}% par rapport à la moyenne",
+  "@revenueGrowthNegative": {
+    "description": "Message baisse des revenus",
+    "placeholders": {
+      "percentage": {
+        "type": "String"
+      }
+    }
+  },
+  "revenueSummary": "Analyse des revenus et tendances",
+  "@revenueSummary": {
+    "description": "Résumé des revenus"
+  },
+  "topTables": "Tables populaires",
+  "@topTables": {
+    "description": "Titre tables populaires"
+  },
+  "seats": "places",
+  "@seats": {
+    "description": "Places de table"
+  },
+  "reservations": "réservations",
+  "@reservations": {
+    "description": "Nombre de réservations"
+  },
+  "topTablesSummary": "Classement des tables les plus demandées",
+  "@topTablesSummary": {
+    "description": "Résumé des tables populaires"
+  },
+  "detailedMetrics": "Métriques détaillées",
+  "@detailedMetrics": {
+    "description": "Titre métriques détaillées"
+  },
+  "totalTables": "Tables totales",
+  "@totalTables": {
+    "description": "Nombre total de tables"
+  },
+  "averageRevenue": "Revenus moyens",
+  "@averageRevenue": {
+    "description": "Revenus moyens"
+  },
+  "reservationCalendar": "Calendrier des réservations",
+  "@reservationCalendar": {
+    "description": "Titre calendrier des réservations"
+  },
+  "monthly": "Mensuel",
+  "@monthly": {
+    "description": "Vue mensuelle"
+  },
+  "weekly": "Hebdomadaire",
+  "@weekly": {
+    "description": "Vue hebdomadaire"
+  },
+  "daily": "Quotidien",
+  "@daily": {
+    "description": "Vue quotidienne"
+  },
+  "reservationsForDate": "Réservations du {day}/{month}",
+  "@reservationsForDate": {
+    "description": "Réservations pour une date",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "noReservationsForDate": "Aucune réservation pour cette date",
+  "@noReservationsForDate": {
+    "description": "Message aucune réservation"
+  },
+  "people": "personnes",
+  "@people": {
+    "description": "Nombre de personnes"
+  },
+  "table": "Table",
+  "@table": {
+    "description": "Table"
+  },
+  "reservationManagement": "Gestion des réservations",
+  "@reservationManagement": {
+    "description": "Titre gestion des réservations"
+  },
+  "filters": "Filtres",
+  "@filters": {
+    "description": "Filtres"
+  },
+  "refresh": "Actualiser",
+  "@refresh": {
+    "description": "Actualiser"
+  },
+  "confirmedReservations": "Réservations confirmées",
+  "@confirmedReservations": {
+    "description": "Réservations confirmées"
+  },
+  "quickActions": "Actions rapides",
+  "@quickActions": {
+    "description": "Actions rapides"
+  },
+  "export": "Exporter",
+  "@export": {
+    "description": "Exporter"
+  },
+  "close": "Fermer",
+  "@close": {
+    "description": "Fermer"
+  },
+  "advancedFilters": "Filtres avancés",
+  "@advancedFilters": {
+    "description": "Titre filtres avancés"
+  },
+  "clearFilters": "Effacer les filtres",
+  "@clearFilters": {
+    "description": "Effacer les filtres"
+  },
+  "searchReservations": "Rechercher des réservations...",
+  "@searchReservations": {
+    "description": "Placeholder recherche réservations"
+  },
+  "status": "Statut",
+  "@status": {
+    "description": "Statut"
+  },
+  "tables": "Tables",
+  "@tables": {
+    "description": "Tables"
+  },
+  "dateRange": "Période",
+  "@dateRange": {
+    "description": "Période"
+  },
+  "startDate": "Date de début",
+  "@startDate": {
+    "description": "Date de début"
+  },
+  "endDate": "Date de fin",
+  "@endDate": {
+    "description": "Date de fin"
+  },
+  "applyFilters": "Appliquer les filtres",
+  "@applyFilters": {
+    "description": "Appliquer les filtres"
+  },
+  "selectedItems": "{count} éléments sélectionnés",
+  "@selectedItems": {
+    "description": "Éléments sélectionnés",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "changeStatus": "Changer le statut",
+  "@changeStatus": {
+    "description": "Changer le statut"
+  },
+  "assignTable": "Assigner une table",
+  "@assignTable": {
+    "description": "Assigner une table"
+  },
+  "unassignTable": "Désassigner la table",
+  "@unassignTable": {
+    "description": "Désassigner la table"
+  },
+  "notifications": "Notifications",
+  "@notifications": {
+    "description": "Notifications"
+  },
+  "sendReminder": "Envoyer un rappel",
+  "@sendReminder": {
+    "description": "Envoyer un rappel"
+  },
+  "sendConfirmation": "Envoyer une confirmation",
+  "@sendConfirmation": {
+    "description": "Envoyer une confirmation"
+  },
+  "deleteSelected": "Supprimer la sélection",
+  "@deleteSelected": {
+    "description": "Supprimer la sélection"
+  },
+  "selectAll": "Tout sélectionner",
+  "@selectAll": {
+    "description": "Tout sélectionner"
+  },
+  "clearSelection": "Effacer la sélection",
+  "@clearSelection": {
+    "description": "Effacer la sélection"
+  },
+  "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cette réservation ?",
+  "@deleteConfirmation": {
+    "description": "Confirmation de suppression"
+  },
+  "exportData": "Exporter les données",
+  "@exportData": {
+    "description": "Exporter les données"
+  },
+  "exportFormat": "Format d'export",
+  "@exportFormat": {
+    "description": "Format d'export"
+  },
+  "csvDescription": "Compatible Excel",
+  "@csvDescription": {
+    "description": "Description CSV"
+  },
+  "excelDescription": "Fichier Excel",
+  "@excelDescription": {
+    "description": "Description Excel"
+  },
+  "pdfDescription": "Document PDF",
+  "@pdfDescription": {
+    "description": "Description PDF"
+  },
+  "exportPeriod": "Période d'export",
+  "@exportPeriod": {
+    "description": "Période d'export"
+  },
+  "includeFields": "Champs à inclure",
+  "@includeFields": {
+    "description": "Champs à inclure"
+  },
+  "advancedOptions": "Options avancées",
+  "@advancedOptions": {
+    "description": "Options avancées"
+  },
+  "includeCancelled": "Inclure les annulées",
+  "@includeCancelled": {
+    "description": "Inclure les annulées"
+  },
+  "includeCompleted": "Inclure les terminées",
+  "@includeCompleted": {
+    "description": "Inclure les terminées"
+  },
+  "preview": "Aperçu",
+  "@preview": {
+    "description": "Aperçu"
+  },
+  "reservationList": "Liste des réservations",
+  "@reservationList": {
+    "description": "Liste des réservations"
+  },
+  "errorLoadingReservations": "Erreur lors du chargement des réservations",
+  "@errorLoadingReservations": {
+    "description": "Erreur chargement réservations"
+  },
+  "retry": "Réessayer",
+  "@retry": {
+    "description": "Réessayer"
+  },
+  "noReservations": "Aucune réservation",
+  "@noReservations": {
+    "description": "Aucune réservation"
+  },
+  "noReservationsDescription": "Commencez par créer votre première réservation",
+  "@noReservationsDescription": {
+    "description": "Description aucune réservation"
+  },
+  "view": "Voir",
+  "@view": {
+    "description": "Voir"
+  },
+  "edit": "Modifier",
+  "@edit": {
+    "description": "Modifier"
+  },
+  "duplicate": "Dupliquer",
+  "@duplicate": {
+    "description": "Dupliquer"
+  },
+  "editReservation": "Modifier la réservation",
+  "@editReservation": {
+    "description": "Modifier la réservation"
+  },
+  "deleteReservation": "Supprimer la réservation",
+  "@deleteReservation": {
+    "description": "Supprimer la réservation"
+  },
+  "clientInformation": "Informations client",
+  "@clientInformation": {
+    "description": "Informations client"
+  },
+  "basicInformation": "Informations de base",
+  "@basicInformation": {
+    "description": "Informations de base"
+  },
+  "notSpecified": "Non spécifié",
+  "@notSpecified": {
+    "description": "Non spécifié"
+  },
+  "contactInformation": "Informations de contact",
+  "@contactInformation": {
+    "description": "Informations de contact"
+  },
+  "noContactInfo": "Aucune information de contact",
+  "@noContactInfo": {
+    "description": "Aucune information de contact"
+  },
+  "noContactInfoDescription": "Aucun email ou téléphone fourni",
+  "@noContactInfoDescription": {
+    "description": "Description aucune info contact"
+  },
+  "sendEmail": "Envoyer un email",
+  "@sendEmail": {
+    "description": "Envoyer un email"
+  },
+  "call": "Appeler",
+  "@call": {
+    "description": "Appeler"
+  },
+  "contact": "Contacter",
+  "@contact": {
+    "description": "Contacter"
+  },
+  "modificationHistory": "Historique des modifications",
+  "@modificationHistory": {
+    "description": "Historique des modifications"
+  },
+  "noHistory": "Aucun historique",
+  "@noHistory": {
+    "description": "Aucun historique"
+  },
+  "noHistoryDescription": "Aucune modification enregistrée",
+  "@noHistoryDescription": {
+    "description": "Description aucun historique"
+  },
+  "by": "Par",
+  "@by": {
+    "description": "Par"
+  },
+  "now": "Maintenant",
+  "@now": {
+    "description": "Maintenant"
+  },
+  "internalNotes": "Notes internes",
+  "@internalNotes": {
+    "description": "Notes internes"
+  },
+  "noNotes": "Aucune note",
+  "@noNotes": {
+    "description": "Aucune note"
+  },
+  "noNotesDescription": "Ajoutez des notes pour suivre les détails",
+  "@noNotesDescription": {
+    "description": "Description aucune note"
+  },
+  "addNote": "Ajouter une note",
+  "@addNote": {
+    "description": "Ajouter une note"
+  },
+  "noteType": "Type de note",
+  "@noteType": {
+    "description": "Type de note"
+  },
+  "noteContent": "Contenu de la note",
+  "@noteContent": {
+    "description": "Contenu de la note"
+  },
+  "noteContentHint": "Saisissez votre note...",
+  "@noteContentHint": {
+    "description": "Placeholder contenu note"
+  },
+  "privateNote": "Note privée",
+  "@privateNote": {
+    "description": "Note privée"
+  },
+  "deleteNote": "Supprimer la note",
+  "@deleteNote": {
+    "description": "Supprimer la note"
+  },
+  "deleteNoteConfirmation": "Êtes-vous sûr de vouloir supprimer cette note ?",
+  "@deleteNoteConfirmation": {
+    "description": "Confirmation suppression note"
+  },
+  "noteContentRequired": "Le contenu de la note est requis",
+  "@noteContentRequired": {
+    "description": "Contenu note requis"
+  },
+  "availableActions": "Actions disponibles",
+  "@availableActions": {
+    "description": "Actions disponibles"
+  },
+  "mainActions": "Actions principales",
+  "@mainActions": {
+    "description": "Actions principales"
+  },
+  "statusActions": "Actions de statut",
+  "@statusActions": {
+    "description": "Actions de statut"
+  },
+  "communication": "Communication",
+  "@communication": {
+    "description": "Communication"
+  },
+  "management": "Gestion",
+  "@management": {
+    "description": "Gestion"
+  },
+  "sendSms": "Envoyer un SMS",
+  "@sendSms": {
+    "description": "Envoyer un SMS"
+  },
+  "assignTable": "Assigner une table",
+  "@assignTable": {
+    "description": "Assigner une table"
+  },
+  "changeTime": "Changer l'heure",
+  "@changeTime": {
+    "description": "Changer l'heure"
+  },
+  "selectClient": "Sélectionner un client",
+  "@selectClient": {
+    "description": "Sélectionner un client"
+  },
+  "searchClient": "Rechercher un client",
+  "@searchClient": {
+    "description": "Rechercher un client"
+  },
+  "searchClientHint": "Nom, email ou téléphone...",
+  "@searchClientHint": {
+    "description": "Placeholder recherche client"
+  },
+  "selected": "Sélectionné",
+  "@selected": {
+    "description": "Sélectionné"
+  },
+  "noClients": "Aucun client",
+  "@noClients": {
+    "description": "Aucun client"
+  },
+  "noClientsDescription": "Commencez par ajouter des clients",
+  "@noClientsDescription": {
+    "description": "Description aucun client"
+  },
+  "noClientsFound": "Aucun client trouvé",
+  "@noClientsFound": {
+    "description": "Aucun client trouvé"
+  },
+  "noClientsFoundDescription": "Essayez avec d'autres mots-clés",
+  "@noClientsFoundDescription": {
+    "description": "Description aucun client trouvé"
+  },
+  "newClient": "Nouveau client",
+  "@newClient": {
+    "description": "Nouveau client"
+  },
+  "selectAvailability": "Sélectionner la disponibilité",
+  "@selectAvailability": {
+    "description": "Sélectionner la disponibilité"
+  },
+  "selectDate": "Sélectionner une date",
+  "@selectDate": {
+    "description": "Sélectionner une date"
+  },
+  "availableSlots": "Créneaux disponibles",
+  "@availableSlots": {
+    "description": "Créneaux disponibles"
+  },
+  "noSlotsAvailable": "Aucun créneau disponible",
+  "@noSlotsAvailable": {
+    "description": "Aucun créneau disponible"
+  },
+  "noSlotsAvailableDescription": "Essayez une autre date",
+  "@noSlotsAvailableDescription": {
+    "description": "Description aucun créneau"
+  },
+  "availabilityInfo": "Créneaux disponibles pour {partySize} personnes",
+  "@availabilityInfo": {
+    "description": "Info disponibilité",
+    "placeholders": {
+      "partySize": {
+        "type": "String"
+      }
+    }
+  },
+  "reservationInformation": "Informations de réservation",
+  "@reservationInformation": {
+    "description": "Informations de réservation"
+  },
+  "valid": "Valide",
+  "@valid": {
+    "description": "Valide"
+  },
+  "incomplete": "Incomplet",
+  "@incomplete": {
+    "description": "Incomplet"
+  },
+  "clientName": "Nom du client",
+  "@clientName": {
+    "description": "Nom du client"
+  },
+  "clientNameHint": "Nom complet du client",
+  "@clientNameHint": {
+    "description": "Placeholder nom client"
+  },
+  "clientNameRequired": "Le nom du client est requis",
+  "@clientNameRequired": {
+    "description": "Nom client requis"
+  },
+  "partySizeHint": "Nombre de personnes",
+  "@partySizeHint": {
+    "description": "Placeholder nombre de personnes"
+  },
+  "partySizeRequired": "Le nombre de personnes est requis",
+  "@partySizeRequired": {
+    "description": "Nombre de personnes requis"
+  },
+  "partySizeInvalid": "Nombre de personnes invalide (1-20)",
+  "@partySizeInvalid": {
+    "description": "Nombre de personnes invalide"
+  },
+  "emailHint": "email@exemple.com",
+  "@emailHint": {
+    "description": "Placeholder email"
+  },
+  "emailInvalid": "Format d'email invalide",
+  "@emailInvalid": {
+    "description": "Email invalide"
+  },
+  "phoneHint": "+1 514 123 4567",
+  "@phoneHint": {
+    "description": "Placeholder téléphone"
+  },
+  "specialRequestsHint": "Demandes spéciales du client...",
+  "@specialRequestsHint": {
+    "description": "Placeholder demandes spéciales"
+  },
+  "adminNotes": "Notes admin",
+  "@adminNotes": {
+    "description": "Notes admin"
+  },
+  "adminNotesHint": "Notes internes pour l'équipe...",
+  "@adminNotesHint": {
+    "description": "Placeholder notes admin"
+  },
+  "validate": "Valider",
+  "@validate": {
+    "description": "Valider"
+  },
+  "clear": "Effacer",
+  "@clear": {
+    "description": "Effacer"
+  },
+  "formValidated": "Formulaire validé",
+  "@formValidated": {
+    "description": "Formulaire validé"
+  },
+  "formValidationFailed": "Erreurs dans le formulaire",
+  "@formValidationFailed": {
+    "description": "Erreurs formulaire"
+  },
+  "createReservationDescription": "Créez une nouvelle réservation pour un client",
+  "@createReservationDescription": {
+    "description": "Description création réservation"
+  },
+  "selectAvailability": "Sélectionner disponibilité",
+  "@selectAvailability": {
+    "description": "Sélectionner disponibilité"
+  },
+  "fillInformation": "Remplir informations",
+  "@fillInformation": {
+    "description": "Remplir informations"
+  },
+  "finalActions": "Actions finales",
+  "@finalActions": {
+    "description": "Actions finales"
+  },
+  "preview": "Aperçu",
+  "@preview": {
+    "description": "Aperçu"
+  },
+  "saveDraft": "Sauvegarder brouillon",
+  "@saveDraft": {
+    "description": "Sauvegarder brouillon"
+  },
+  "formIncomplete": "Formulaire incomplet",
+  "@formIncomplete": {
+    "description": "Formulaire incomplet"
+  },
+  "reservationCreated": "Réservation créée avec succès",
+  "@reservationCreated": {
+    "description": "Réservation créée"
+  },
+  "cancelConfirmation": "Êtes-vous sûr de vouloir annuler ?",
+  "@cancelConfirmation": {
+    "description": "Confirmation annulation"
+  },
+  "yes": "Oui",
+  "@yes": {
+    "description": "Oui"
+  },
+  "no": "Non",
+  "@no": {
+    "description": "Non"
+  },
+  "tableManagement": "Gestion des Tables",
+  "@tableManagement": {
+    "description": "Gestion des Tables"
+  },
+  "createTable": "Créer une Table",
+  "@createTable": {
+    "description": "Créer une Table"
+  },
+  "editTable": "Modifier la Table",
+  "@editTable": {
+    "description": "Modifier la Table"
+  },
+  "deleteTable": "Supprimer la Table",
+  "@deleteTable": {
+    "description": "Supprimer la Table"
+  },
+  "deleteTableConfirmation": "Êtes-vous sûr de vouloir supprimer la table {number} ?",
+  "@deleteTableConfirmation": {
+    "description": "Confirmation suppression table",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTables": "Rechercher des tables...",
+  "@searchTables": {
+    "description": "Rechercher des tables"
+  },
+  "noTables": "Aucune table",
+  "@noTables": {
+    "description": "Aucune table"
+  },
+  "noTablesDescription": "Commencez par créer des tables",
+  "@noTablesDescription": {
+    "description": "Description aucune table"
+  },
+  "noTablesFound": "Aucune table trouvée",
+  "@noTablesFound": {
+    "description": "Aucune table trouvée"
+  },
+  "noTablesFoundDescription": "Essayez avec d'autres critères",
+  "@noTablesFoundDescription": {
+    "description": "Description aucune table trouvée"
+  },
+  "errorLoadingTables": "Erreur de chargement",
+  "@errorLoadingTables": {
+    "description": "Erreur de chargement des tables"
+  },
+  "restaurantLayout": "Plan du Restaurant",
+  "@restaurantLayout": {
+    "description": "Plan du Restaurant"
+  },
+  "layoutActions": "Actions sur le Plan",
+  "@layoutActions": {
+    "description": "Actions sur le Plan"
+  },
+  "editLayout": "Modifier le Plan",
+  "@editLayout": {
+    "description": "Modifier le Plan"
+  },
+  "resetLayout": "Réinitialiser le Plan",
+  "@resetLayout": {
+    "description": "Réinitialiser le Plan"
+  },
+  "errorLoadingLayout": "Erreur de chargement du plan",
+  "@errorLoadingLayout": {
+    "description": "Erreur de chargement du plan"
+  },
+  "noLayout": "Aucun plan",
+  "@noLayout": {
+    "description": "Aucun plan"
+  },
+  "noLayoutDescription": "Créez un plan pour votre restaurant",
+  "@noLayoutDescription": {
+    "description": "Description aucun plan"
+  },
+  "layoutSaved": "Plan sauvegardé",
+  "@layoutSaved": {
+    "description": "Plan sauvegardé"
+  },
+  "generalStatistics": "Statistiques Générales",
+  "@generalStatistics": {
+    "description": "Statistiques Générales"
+  },
+  "tableStatistics": "Statistiques par Table",
+  "@tableStatistics": {
+    "description": "Statistiques par Table"
+  },
+  "totalTables": "Total des Tables",
+  "@totalTables": {
+    "description": "Total des Tables"
+  },
+  "availableTables": "Tables Disponibles",
+  "@availableTables": {
+    "description": "Tables Disponibles"
+  },
+  "occupiedTables": "Tables Occupées",
+  "@occupiedTables": {
+    "description": "Tables Occupées"
+  },
+  "totalCapacity": "Capacité Totale",
+  "@totalCapacity": {
+    "description": "Capacité Totale"
+  },
+  "reservations": "Réservations",
+  "@reservations": {
+    "description": "Réservations"
+  },
+  "occupancy": "Occupation",
+  "@occupancy": {
+    "description": "Occupation"
+  },
+  "revenue": "Revenus",
+  "@revenue": {
+    "description": "Revenus"
+  },
+  "noStatistics": "Aucune statistique disponible",
+  "@noStatistics": {
+    "description": "Aucune statistique"
+  },
+  "bulkActions": "Actions en Lot",
+  "@bulkActions": {
+    "description": "Actions en Lot"
+  },
+  "quickActions": "Actions Rapides",
+  "@quickActions": {
+    "description": "Actions Rapides"
+  },
+  "list": "Liste",
+  "@list": {
+    "description": "Liste"
+  },
+  "layout": "Plan",
+  "@layout": {
+    "description": "Plan"
+  },
+  "statistics": "Statistiques",
+  "@statistics": {
+    "description": "Statistiques"
+  },
+  "menuManagement": "Gestion du Menu",
+  "@menuManagement": {
+    "description": "Gestion du Menu"
+  },
+  "createMenuItem": "Créer un Article",
+  "@createMenuItem": {
+    "description": "Créer un Article"
+  },
+  "editMenuItem": "Modifier l'Article",
+  "@editMenuItem": {
+    "description": "Modifier l'Article"
+  },
+  "deleteMenuItem": "Supprimer l'Article",
+  "@deleteMenuItem": {
+    "description": "Supprimer l'Article"
+  },
+  "deleteMenuItemConfirmation": "Êtes-vous sûr de vouloir supprimer l'article {name} ?",
+  "@deleteMenuItemConfirmation": {
+    "description": "Confirmation suppression article",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "searchMenuItems": "Rechercher des articles...",
+  "@searchMenuItems": {
+    "description": "Rechercher des articles"
+  },
+  "noMenuItems": "Aucun article",
+  "@noMenuItems": {
+    "description": "Aucun article"
+  },
+  "noMenuItemsDescription": "Commencez par créer des articles",
+  "@noMenuItemsDescription": {
+    "description": "Description aucun article"
+  },
+  "noMenuItemsFound": "Aucun article trouvé",
+  "@noMenuItemsFound": {
+    "description": "Aucun article trouvé"
+  },
+  "noMenuItemsFoundDescription": "Essayez avec d'autres critères",
+  "@noMenuItemsFoundDescription": {
+    "description": "Description aucun article trouvé"
+  },
+  "errorLoadingMenuItems": "Erreur de chargement",
+  "@errorLoadingMenuItems": {
+    "description": "Erreur de chargement des articles"
+  },
+  "makeAvailable": "Rendre Disponible",
+  "@makeAvailable": {
+    "description": "Rendre Disponible"
+  },
+  "makeUnavailable": "Rendre Indisponible",
+  "@makeUnavailable": {
+    "description": "Rendre Indisponible"
+  },
+  "availableOnly": "Disponibles uniquement",
+  "@availableOnly": {
+    "description": "Disponibles uniquement"
+  },
+  "allCategories": "Toutes les catégories",
+  "@allCategories": {
+    "description": "Toutes les catégories"
+  },
+  "menuItems": "Articles",
+  "@menuItems": {
+    "description": "Articles"
+  },
+  "categories": "Catégories",
+  "@categories": {
+    "description": "Catégories"
+  },
+  "images": "Images",
+  "@images": {
+    "description": "Images"
+  },
+  "createCategory": "Créer une Catégorie",
+  "@createCategory": {
+    "description": "Créer une Catégorie"
+  },
+  "categoryActions": "Actions sur les Catégories",
+  "@categoryActions": {
+    "description": "Actions sur les Catégories"
+  },
+  "reorderCategories": "Réorganiser les Catégories",
+  "@reorderCategories": {
+    "description": "Réorganiser les Catégories"
+  },
+  "noCategories": "Aucune catégorie",
+  "@noCategories": {
+    "description": "Aucune catégorie"
+  },
+  "noCategoriesDescription": "Commencez par créer des catégories",
+  "@noCategoriesDescription": {
+    "description": "Description aucune catégorie"
+  },
+  "imageManagement": "Gestion des Images",
+  "@imageManagement": {
+    "description": "Gestion des Images"
+  },
+  "imageManagementDescription": "Gérez les images de votre menu",
+  "@imageManagementDescription": {
+    "description": "Description gestion des images"
+  },
+  "uploadImage": "Uploader une Image",
+  "@uploadImage": {
+    "description": "Uploader une Image"
+  },
+  "optimizeImages": "Optimiser les Images",
+  "@optimizeImages": {
+    "description": "Optimiser les Images"
+  },
+  "popularItems": "Articles Populaires",
+  "@popularItems": {
+    "description": "Articles Populaires"
+  },
+  "popularCategories": "Catégories Populaires",
+  "@popularCategories": {
+    "description": "Catégories Populaires"
+  },
+  "noPopularItems": "Aucun article populaire",
+  "@noPopularItems": {
+    "description": "Aucun article populaire"
+  },
+  "noPopularCategories": "Aucune catégorie populaire",
+  "@noPopularCategories": {
+    "description": "Aucune catégorie populaire"
+  },
+  "errorLoadingData": "Erreur de chargement des données",
+  "@errorLoadingData": {
+    "description": "Erreur de chargement des données"
+  },
+  "delete": "Supprimer",
+  "@delete": {
+    "description": "Supprimer"
+  },
+  "confirm": "Confirmer",
+  "@confirm": {
+    "description": "Confirmer"
+  },
+  "cancel": "Annuler",
+  "@cancel": {
+    "description": "Annuler"
+  },
+  "markCompleted": "Marquer Terminé",
+  "@markCompleted": {
+    "description": "Marquer Terminé"
+  },
+  "markNoShow": "Marquer No-Show",
+  "@markNoShow": {
+    "description": "Marquer No-Show"
+  },
+  "reopen": "Rouvrir",
+  "@reopen": {
+    "description": "Rouvrir"
+  },
+  "restore": "Restaurer",
+  "specialRequests": "Demandes spéciales",
+  "completed": "Terminé",
+  "noShow": "Absent",
+  "search": "Rechercher",
+  "phone": "Téléphone",
+  "save": "Enregistrer",
+  "restaurantConfiguration": "Configuration du Restaurant",
+  "generalInformation": "Informations Générales",
+  "openingHours": "Heures d'Ouverture",
+  "paymentSettings": "Paramètres de Paiement",
+  "cancellationPolicy": "Politique d'Annulation",
+  "basicInformation": "Informations de Base",
+  "restaurantName": "Nom du Restaurant",
+  "description": "Description",
+  "address": "Adresse",
+  "streetAddress": "Adresse",
+  "city": "Ville",
+  "postalCode": "Code Postal",
+  "country": "Pays",
+  "contact": "Contact",
+  "phone": "Téléphone",
+  "email": "Email",
+  "website": "Site Web",
+  "requiredField": "Champ requis",
+  "invalidEmail": "Email invalide",
+  "configurationSaved": "Configuration sauvegardée",
+  "configureOpeningHours": "Configurez les heures d'ouverture",
+  "openTime": "Heure d'ouverture",
+  "closeTime": "Heure de fermeture",
+  "lunchBreak": "Pause déjeuner",
+  "breakStart": "Début de pause",
+  "breakEnd": "Fin de pause",
+  "notes": "Notes",
+  "openingHoursSaved": "Heures d'ouverture sauvegardées",
+  "paymentMethods": "Méthodes de Paiement",
+  "stripe": "Stripe",
+  "stripeDescription": "Paiement par carte via Stripe",
+  "stripePublicKey": "Clé publique Stripe",
+  "stripeSecretKey": "Clé secrète Stripe",
+  "paypal": "PayPal",
+  "paypalDescription": "Paiement via PayPal",
+  "paypalClientId": "ID client PayPal",
+  "cash": "Espèces",
+  "cashDescription": "Paiement en espèces",
+  "card": "Carte",
+  "cardDescription": "Paiement par carte",
+  "financialSettings": "Paramètres Financiers",
+  "depositPercentage": "Pourcentage d'acompte",
+  "taxRate": "Taux de taxe",
+  "taxIncluded": "Taxe incluse",
+  "taxIncludedDescription": "La taxe est incluse dans le prix",
+  "currency": "Devise",
+  "paymentTerms": "Conditions de Paiement",
+  "invalidPercentage": "Pourcentage invalide",
+  "paymentSettingsSaved": "Paramètres de paiement sauvegardés",
+  "generalSettings": "Paramètres Généraux",
+  "refundable": "Remboursable",
+  "refundableDescription": "Les réservations peuvent être remboursées",
+  "freeCancellationHours": "Annulation gratuite (heures)",
+  "hours": "heures",
+  "invalidHours": "Nombre d'heures invalide",
+  "cancellationFeePercentage": "Pourcentage de frais d'annulation",
+  "policyDescription": "Description de la politique",
+  "cancellationRules": "Règles d'Annulation",
+  "addRule": "Ajouter une règle",
+  "noRules": "Aucune règle définie",
+  "rule": "Règle",
+  "hoursBeforeReservation": "Heures avant réservation",
+  "feePercentage": "Pourcentage de frais",
+  "cancellationPolicySaved": "Politique d'annulation sauvegardée",
+  "analytics": "Analytics",
+  "mainKPIs": "KPIs Principaux",
+  "mainKPIsDescription": "Métriques clés de performance",
+  "totalRevenue": "Chiffre d'affaires total",
+  "totalReservations": "Total des réservations",
+  "averageOrderValue": "Valeur moyenne des commandes",
+  "occupancyRate": "Taux d'occupation",
+  "cancellationRate": "Taux d'annulation",
+  "noShowRate": "Taux de no-show",
+  "viewDetails": "Voir les détails",
+  "export": "Exporter",
+  "loadingKPIs": "Chargement des KPIs...",
+  "errorLoadingKPIs": "Erreur lors du chargement des KPIs",
+  "retry": "Réessayer",
+  "evolutionMetrics": "Métriques d'évolution",
+  "evolutionMetricsDescription": "Évolution des métriques dans le temps",
+  "detailedMetrics": "Métriques détaillées",
+  "viewMore": "Voir plus",
+  "loadingEvolution": "Chargement de l'évolution...",
+  "errorLoadingEvolution": "Erreur lors du chargement de l'évolution",
+  "comparisonData": "Données de comparaison",
+  "comparisonDataDescription": "Comparaison des performances",
+  "comparisonDetails": "Détails de comparaison",
+  "loadingComparison": "Chargement de la comparaison...",
+  "errorLoadingComparison": "Erreur lors du chargement de la comparaison",
+  "predictions": "Prédictions",
+  "predictionsDescription": "Prédictions basées sur les données historiques",
+  "predictionDetails": "Détails des prédictions",
+  "loadingPredictions": "Chargement des prédictions...",
+  "errorLoadingPredictions": "Erreur lors du chargement des prédictions",
+  "analyticsOverview": "Vue d'ensemble des analytics",
+  "analyticsOverviewDescription": "Analyse complète des performances du restaurant",
+  "refresh": "Actualiser",
+  "filters": "Filtres",
+  "quickActions": "Actions rapides",
+  "exportData": "Exporter les données",
+  "refreshData": "Actualiser les données",
+  "clearCache": "Vider le cache",
+  "configureFilters": "Configurer les filtres",
+  "exportInProgress": "Export en cours...",
+  "cacheCleared": "Cache vidé",
+  "apply": "Appliquer",
+  "saving": "Enregistrement...",
+  "@restore": {
+    "description": "Restaurer"
   },
   "date": "Date",
   "@date": {
@@ -197,5 +1464,189 @@
   "restaurantReservationSystem": "Système de réservation pour restaurants",
   "@restaurantReservationSystem": {
     "description": "Description de l'application"
+  },
+  "menu": "Menu",
+  "@menu": {
+    "description": "Titre de la page menu"
+  },
+  "reports": "Rapports",
+  "@reports": {
+    "description": "Titre de la page rapports"
+  },
+  "reportFilters": "Filtres de rapport",
+  "@reportFilters": {
+    "description": "Filtres de rapport"
+  },
+  "reportFiltersDescription": "Configurez les filtres pour générer votre rapport",
+  "@reportFiltersDescription": {
+    "description": "Description des filtres de rapport"
+  },
+  "reportType": "Type de rapport",
+  "@reportType": {
+    "description": "Type de rapport"
+  },
+  "daily": "Quotidien",
+  "@daily": {
+    "description": "Rapport quotidien"
+  },
+  "weekly": "Hebdomadaire",
+  "@weekly": {
+    "description": "Rapport hebdomadaire"
+  },
+  "monthly": "Mensuel",
+  "@monthly": {
+    "description": "Rapport mensuel"
+  },
+  "custom": "Personnalisé",
+  "@custom": {
+    "description": "Rapport personnalisé"
+  },
+  "dateRange": "Période",
+  "@dateRange": {
+    "description": "Période du rapport"
+  },
+  "startDate": "Date de début",
+  "@startDate": {
+    "description": "Date de début"
+  },
+  "endDate": "Date de fin",
+  "@endDate": {
+    "description": "Date de fin"
+  },
+  "advancedFilters": "Filtres avancés",
+  "@advancedFilters": {
+    "description": "Filtres avancés"
+  },
+  "reservationStatus": "Statut des réservations",
+  "@reservationStatus": {
+    "description": "Statut des réservations"
+  },
+  "tables": "Tables",
+  "@tables": {
+    "description": "Tables"
+  },
+  "options": "Options",
+  "@options": {
+    "description": "Options"
+  },
+  "includeCancelled": "Inclure les annulées",
+  "@includeCancelled": {
+    "description": "Inclure les annulées"
+  },
+  "includeNoShow": "Inclure les no-show",
+  "@includeNoShow": {
+    "description": "Inclure les no-show"
+  },
+  "applyFilters": "Appliquer les filtres",
+  "@applyFilters": {
+    "description": "Appliquer les filtres"
+  },
+  "resetFilters": "Réinitialiser les filtres",
+  "@resetFilters": {
+    "description": "Réinitialiser les filtres"
+  },
+  "reportMetrics": "Métriques du rapport",
+  "@reportMetrics": {
+    "description": "Métriques du rapport"
+  },
+  "reportMetricsDescription": "Métriques détaillées du rapport",
+  "@reportMetricsDescription": {
+    "description": "Description des métriques du rapport"
+  },
+  "mainMetrics": "Métriques principales",
+  "@mainMetrics": {
+    "description": "Métriques principales"
+  },
+  "detailedMetrics": "Métriques détaillées",
+  "@detailedMetrics": {
+    "description": "Métriques détaillées"
+  },
+  "confirmedReservations": "Réservations confirmées",
+  "@confirmedReservations": {
+    "description": "Réservations confirmées"
+  },
+  "cancelledReservations": "Réservations annulées",
+  "@cancelledReservations": {
+    "description": "Réservations annulées"
+  },
+  "noShowReservations": "Réservations no-show",
+  "@noShowReservations": {
+    "description": "Réservations no-show"
+  },
+  "cancellationRate": "Taux d'annulation",
+  "@cancellationRate": {
+    "description": "Taux d'annulation"
+  },
+  "noShowRate": "Taux de no-show",
+  "@noShowRate": {
+    "description": "Taux de no-show"
+  },
+  "totalGuests": "Total des invités",
+  "@totalGuests": {
+    "description": "Total des invités"
+  },
+  "averageReservationValue": "Valeur moyenne des réservations",
+  "@averageReservationValue": {
+    "description": "Valeur moyenne des réservations"
+  },
+  "reservationsChart": "Graphique des réservations",
+  "@reservationsChart": {
+    "description": "Graphique des réservations"
+  },
+  "reservationsChartDescription": "Évolution du nombre de réservations",
+  "@reservationsChartDescription": {
+    "description": "Description du graphique des réservations"
+  },
+  "revenueChart": "Graphique des revenus",
+  "@revenueChart": {
+    "description": "Graphique des revenus"
+  },
+  "revenueChartDescription": "Évolution des revenus",
+  "@revenueChartDescription": {
+    "description": "Description du graphique des revenus"
+  },
+  "tablesChart": "Graphique des tables",
+  "@tablesChart": {
+    "description": "Graphique des tables"
+  },
+  "tablesChartDescription": "Performance par table",
+  "@tablesChartDescription": {
+    "description": "Description du graphique des tables"
+  },
+  "reportActions": "Actions du rapport",
+  "@reportActions": {
+    "description": "Actions du rapport"
+  },
+  "saveReport": "Sauvegarder le rapport",
+  "@saveReport": {
+    "description": "Sauvegarder le rapport"
+  },
+  "exportPDF": "Exporter en PDF",
+  "@exportPDF": {
+    "description": "Exporter en PDF"
+  },
+  "exportExcel": "Exporter en Excel",
+  "@exportExcel": {
+    "description": "Exporter en Excel"
+  },
+  "exportCSV": "Exporter en CSV",
+  "@exportCSV": {
+    "description": "Exporter en CSV"
+  },
+  "generatingReport": "Génération du rapport...",
+  "@generatingReport": {
+    "description": "Génération du rapport"
+  },
+  "errorGeneratingReport": "Erreur lors de la génération du rapport",
+  "@errorGeneratingReport": {
+    "description": "Erreur génération rapport"
+  },
+  "reportSaved": "Rapport sauvegardé",
+  "@reportSaved": {
+    "description": "Rapport sauvegardé"
+  },
+  "averagePartySize": "Taille moyenne des groupes",
+  "@averagePartySize": {
+    "description": "Taille moyenne des groupes"
   }
 }
