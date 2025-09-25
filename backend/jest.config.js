@@ -27,10 +27,10 @@ module.exports = {
     '!src/test/**',
     '!src/index.ts',
   ],
-  globals: {
-    'ts-jest': {
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
-    },
+    }],
   },
   verbose: true,
   forceExit: true,

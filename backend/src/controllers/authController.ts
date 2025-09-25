@@ -3,7 +3,9 @@ import { compare, hash } from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/config/database';
 import { jwtService } from '@/services/jwt';
+import { OAuthService } from '@/services/oauthService';
 import { CustomError, asyncHandler } from '@/middleware/error';
+import logger from '@/utils/logger';
 
 /**
  * Inscription d'un nouvel utilisateur
@@ -285,20 +287,150 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
  * OAuth2 - Google
  */
 export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
-  // TODO: Implémenter l'authentification Google
-  res.json({
-    success: true,
-    message: 'Google OAuth2 not yet implemented',
-  });
+  try {
+    const { accessToken } = req.body;
+
+    if (!accessToken) {
+      res.status(400).json({
+        success: false,
+        message: 'Access token is required',
+      });
+      return;
+    }
+
+    // Vérifier le token Google
+    const response = await fetch(
+      `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`
+    );
+
+    if (!response.ok) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid Google access token',
+      });
+      return;
+    }
+
+    const googleUser = await response.json() as any;
+
+    // Créer le profil OAuth
+    const oauthProfile = {
+      id: googleUser.id,
+      email: googleUser.email,
+      name: googleUser.name,
+      picture: googleUser.picture,
+      provider: 'google' as const,
+    };
+
+    // Trouver ou créer l'utilisateur
+    const { user, isNewUser } = await OAuthService.findOrCreateUser(oauthProfile);
+
+    // Générer le token JWT
+    const tokenPair = jwtService.generateTokenPair({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    logger.info(`Google OAuth login successful for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: isNewUser ? 'Account created successfully' : 'Login successful',
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          role: user.role,
+        },
+        token: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+        isNewUser,
+      },
+    });
+  } catch (error) {
+    logger.error('Google OAuth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Google authentication failed',
+    });
+  }
 });
 
 /**
  * OAuth2 - Facebook
  */
 export const facebookAuth = asyncHandler(async (req: Request, res: Response) => {
-  // TODO: Implémenter l'authentification Facebook
-  res.json({
-    success: true,
-    message: 'Facebook OAuth2 not yet implemented',
-  });
+  try {
+    const { accessToken } = req.body;
+
+    if (!accessToken) {
+      res.status(400).json({
+        success: false,
+        message: 'Access token is required',
+      });
+      return;
+    }
+
+    // Vérifier le token Facebook
+    const response = await fetch(
+      `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
+    );
+
+    if (!response.ok) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid Facebook access token',
+      });
+      return;
+    }
+
+    const facebookUser = await response.json() as any;
+
+    // Créer le profil OAuth
+    const oauthProfile = {
+      id: facebookUser.id,
+      email: facebookUser.email,
+      name: facebookUser.name,
+      picture: facebookUser.picture?.data?.url,
+      provider: 'facebook' as const,
+    };
+
+    // Trouver ou créer l'utilisateur
+    const { user, isNewUser } = await OAuthService.findOrCreateUser(oauthProfile);
+
+    // Générer le token JWT
+    const tokenPair = jwtService.generateTokenPair({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    logger.info(`Facebook OAuth login successful for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: isNewUser ? 'Account created successfully' : 'Login successful',
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          role: user.role,
+        },
+        token: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+        isNewUser,
+      },
+    });
+  } catch (error) {
+    logger.error('Facebook OAuth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Facebook authentication failed',
+    });
+  }
 });

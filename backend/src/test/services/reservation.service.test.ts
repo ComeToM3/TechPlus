@@ -1,31 +1,27 @@
-import { ReservationService } from '../../services/reservationService';
-import prisma from '../../config/database';
+import { reservationService } from '../../services/reservationService';
 import { CreateReservationData } from '../../types/reservation.types';
 
 // Mock Prisma
-jest.mock('../../config/database', () => ({
-  reservation: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-  table: {
-    findMany: jest.fn(),
-  },
-  restaurant: {
-    findFirst: jest.fn(),
-  },
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
+    reservation: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    table: {
+      findMany: jest.fn(),
+    },
+    restaurant: {
+      findFirst: jest.fn(),
+    },
+  })),
 }));
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
-
 describe('ReservationService', () => {
-  let reservationService: ReservationService;
-
   beforeEach(() => {
-    reservationService = new ReservationService();
     jest.clearAllMocks();
   });
 

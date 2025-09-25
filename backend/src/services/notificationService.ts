@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { PrismaClient } from '@prisma/client';
 import logger from '@/utils/logger';
+import { EmailTemplateService, TemplateData } from './emailTemplateService';
 import {
   NotificationTemplate,
   NotificationType,
@@ -181,38 +182,72 @@ export class NotificationService {
     const date = new Date(reservation.date).toLocaleDateString('fr-FR');
     const time = reservation.time;
 
+    // Préparer les données pour le template
+    const templateData: TemplateData = {
+      restaurantName: restaurant.name,
+      restaurantAddress: restaurant.address,
+      restaurantPhone: restaurant.phone,
+      clientName: reservation.clientName || reservation.user?.name || 'Cher client',
+      clientEmail: reservation.clientEmail || reservation.user?.email,
+      reservationId: reservation.id,
+      reservationDate: date,
+      reservationTime: time,
+      partySize: reservation.partySize,
+      tableNumber: reservation.table?.number?.toString(),
+      specialRequests: reservation.specialRequests,
+      cancellationReason: data?.reason,
+      refundAmount: data?.refundAmount,
+      refundStatus: data?.refundStatus,
+      requiresPayment: reservation.requiresPayment,
+      managementUrl: reservation.managementToken 
+        ? `${process.env.FRONTEND_URL}/manage-reservation?token=${reservation.managementToken}`
+        : '',
+    };
+
+    let html: string;
+    let subject: string;
+
     switch (type) {
       case NotificationType.RESERVATION_CONFIRMATION:
-        return {
-          subject: `Confirmation de réservation - ${restaurant.name}`,
-          html: this.generateConfirmationHTML(reservation, restaurant, date, time),
-          text: this.generateConfirmationText(reservation, restaurant, date, time),
-        };
+        html = EmailTemplateService.generateReservationConfirmation(templateData);
+        subject = `Confirmation de réservation - ${restaurant.name}`;
+        break;
 
       case NotificationType.RESERVATION_REMINDER:
-        return {
-          subject: `Rappel de réservation - ${restaurant.name}`,
-          html: this.generateReminderHTML(reservation, restaurant, date, time),
-          text: this.generateReminderText(reservation, restaurant, date, time),
-        };
+        html = EmailTemplateService.generateReservationReminder(templateData);
+        subject = `Rappel de réservation - ${restaurant.name}`;
+        break;
 
       case NotificationType.RESERVATION_CANCELLATION:
-        return {
-          subject: `Annulation de réservation - ${restaurant.name}`,
-          html: this.generateCancellationHTML(reservation, restaurant, date, time, data.reason),
-          text: this.generateCancellationText(reservation, restaurant, date, time, data.reason),
-        };
+        html = EmailTemplateService.generateReservationCancellation(templateData);
+        subject = `Annulation de réservation - ${restaurant.name}`;
+        break;
 
       case NotificationType.RESERVATION_MODIFICATION:
-        return {
-          subject: `Modification de réservation - ${restaurant.name}`,
-          html: this.generateModificationHTML(reservation, restaurant, date, time, data.changes),
-          text: this.generateModificationText(reservation, restaurant, date, time, data.changes),
-        };
+        html = EmailTemplateService.generateReservationModification(templateData);
+        subject = `Modification de réservation - ${restaurant.name}`;
+        break;
 
       default:
         throw new Error(`Unknown notification type: ${type}`);
     }
+
+    return {
+      subject,
+      html,
+      text: this.generateTextFromHTML(html),
+    };
+  }
+
+  /**
+   * Génère une version texte à partir du HTML
+   */
+  private generateTextFromHTML(html: string): string {
+    // Simple conversion HTML vers texte
+    return html
+      .replace(/<[^>]*>/g, '') // Supprimer les balises HTML
+      .replace(/\s+/g, ' ') // Remplacer les espaces multiples par un seul
+      .trim();
   }
 
   /**

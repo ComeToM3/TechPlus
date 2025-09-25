@@ -125,7 +125,7 @@ export const corsConfig = {
         'http://127.0.0.1:8099',
         'http://127.0.0.1:8100'
       );
-      
+
       // Autoriser tous les ports Flutter Web (ports dynamiques)
       for (let port = 30000; port <= 65000; port++) {
         allowedOrigins.push(`http://127.0.0.1:${port}`);

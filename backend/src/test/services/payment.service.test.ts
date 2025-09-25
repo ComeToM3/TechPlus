@@ -1,4 +1,4 @@
-import { PaymentService } from '../../services/paymentService';
+import { paymentService } from '../../services/paymentService';
 import Stripe from 'stripe';
 
 // Mock Stripe
@@ -16,11 +16,9 @@ jest.mock('stripe', () => {
 });
 
 describe('PaymentService', () => {
-  let paymentService: PaymentService;
   let mockStripe: jest.Mocked<Stripe>;
 
   beforeEach(() => {
-    paymentService = new PaymentService();
     mockStripe = new Stripe('test-key') as jest.Mocked<Stripe>;
     jest.clearAllMocks();
   });
