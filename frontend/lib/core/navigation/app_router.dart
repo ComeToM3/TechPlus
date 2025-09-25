@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../shared/providers/auth_provider.dart';
+import '../../shared/models/user.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/reservation/presentation/pages/reservation_list_page.dart';
+import '../../features/auth/presentation/pages/admin_login_page.dart';
 import '../../features/admin/presentation/pages/reservation_list_page.dart' as admin;
-import '../../features/reservation/presentation/pages/reservation_detail_page.dart';
 import '../../features/reservation/presentation/pages/create_reservation_page.dart';
 import '../../features/reservation/presentation/pages/reservation_selection_page.dart';
 import '../../features/reservation/presentation/pages/reservation_info_page.dart';
@@ -15,7 +15,6 @@ import '../../features/reservation/presentation/pages/reservation_confirmation_p
 import '../../features/reservation/presentation/pages/guest_management_page.dart';
 import '../../features/reservation/presentation/pages/reservation_modification_page.dart';
 import '../../features/reservation/presentation/pages/reservation_cancellation_page.dart';
-import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/token_login_page.dart';
 import '../../features/public/presentation/pages/home_page.dart' as public;
@@ -23,17 +22,123 @@ import '../../features/public/presentation/pages/menu_page.dart';
 import '../../features/public/presentation/pages/about_page.dart';
 import '../../features/public/presentation/pages/contact_page.dart';
 import '../../features/public/presentation/pages/public_reservation_page.dart';
-import '../../features/public/presentation/pages/manage_reservation_page.dart';
 import '../../features/demo/presentation/pages/animations_demo_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
-import '../../features/admin/presentation/pages/simple_admin_dashboard_page.dart';
 import '../../features/admin/presentation/pages/reservation_management_page.dart';
-import '../../features/admin/presentation/pages/reservation_list_page.dart';
 import '../../features/admin/presentation/pages/reservation_details_page.dart';
 import '../../features/admin/presentation/pages/restaurant_config_page.dart';
 import '../../features/admin/presentation/pages/analytics_page.dart';
 import '../../features/admin/presentation/pages/reports_page.dart';
-import '../../main.dart';
+import '../../features/admin/presentation/pages/table_management_page.dart';
+import '../../features/admin/presentation/pages/schedule_management_page.dart';
+
+/// Fonction pour créer le routeur (pour les tests)
+GoRouter createRouter(ProviderContainer container) {
+  return GoRouter(
+    initialLocation: '/',
+    routes: [
+      // Routes publiques
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const public.HomePage(),
+      ),
+      GoRoute(
+        path: '/menu',
+        builder: (context, state) => const MenuPage(),
+      ),
+      GoRoute(
+        path: '/about',
+        builder: (context, state) => const AboutPage(),
+      ),
+      GoRoute(
+        path: '/contact',
+        builder: (context, state) => const ContactPage(),
+      ),
+      GoRoute(
+        path: '/reservation',
+        builder: (context, state) => const PublicReservationPage(),
+      ),
+      // Routes d'authentification
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/token-login',
+        builder: (context, state) => const TokenLoginPage(),
+      ),
+      // Routes de réservation
+      GoRoute(
+        path: '/reservation/select',
+        builder: (context, state) => const ReservationSelectionPage(),
+      ),
+      GoRoute(
+        path: '/reservation/info',
+        builder: (context, state) => const ReservationInfoPage(),
+      ),
+      GoRoute(
+        path: '/reservation/payment',
+        builder: (context, state) => const ReservationPaymentPage(),
+      ),
+      GoRoute(
+        path: '/reservation/confirmation',
+        builder: (context, state) => const ReservationConfirmationPage(),
+      ),
+      GoRoute(
+        path: '/reservation/guest',
+        builder: (context, state) => const GuestManagementPage(),
+      ),
+      GoRoute(
+        path: '/reservation/modify',
+        builder: (context, state) => const ReservationModificationPage(),
+      ),
+      GoRoute(
+        path: '/reservation/cancel',
+        builder: (context, state) => const ReservationCancellationPage(),
+      ),
+      // Routes admin
+      GoRoute(
+        path: '/admin/login',
+        builder: (context, state) => const AdminLoginPage(),
+      ),
+      GoRoute(
+        path: '/admin/dashboard',
+        builder: (context, state) => const AdminDashboardPage(),
+      ),
+      GoRoute(
+        path: '/admin/reservations',
+        builder: (context, state) => const admin.ReservationListPage(),
+      ),
+      GoRoute(
+        path: '/admin/reservations/:id',
+        builder: (context, state) => ReservationDetailsPage(
+          reservationId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/admin/config',
+        builder: (context, state) => const RestaurantConfigPage(),
+      ),
+      GoRoute(
+        path: '/admin/analytics',
+        builder: (context, state) => const AnalyticsPage(),
+      ),
+      GoRoute(
+        path: '/admin/reports',
+        builder: (context, state) => const ReportsPage(),
+      ),
+      // Route de démonstration
+      GoRoute(
+        path: '/demo/animations',
+        builder: (context, state) => const AnimationsDemoPage(),
+      ),
+    ],
+  );
+}
 
 /// Provider pour le routeur de l'application
 final routerProvider = Provider<GoRouter>((ref) {
@@ -206,6 +311,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: 'reports',
               name: 'admin-reports',
               builder: (context, state) => const ReportsPage(),
+            ),
+            GoRoute(
+              path: 'tables',
+              name: 'admin-tables',
+              builder: (context, state) => const TableManagementPage(),
+            ),
+            GoRoute(
+              path: 'schedule',
+              name: 'admin-schedule',
+              builder: (context, state) => const ScheduleManagementPage(),
             ),
         ],
       ),

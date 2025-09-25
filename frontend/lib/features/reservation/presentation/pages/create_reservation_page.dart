@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../providers/reservation_providers.dart';
+import '../../../../shared/models/reservation.dart';
 
 class CreateReservationPage extends ConsumerStatefulWidget {
   const CreateReservationPage({super.key});

@@ -1,23 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../shared/providers/index.dart';
 import '../../domain/entities/reservation_calendar.dart';
 import '../../domain/repositories/reservation_calendar_repository.dart';
 import '../../data/repositories/reservation_calendar_repository_impl.dart';
 import '../../data/datasources/reservation_calendar_remote_datasource.dart';
 import '../../data/datasources/reservation_calendar_local_datasource.dart';
-import '../../../../core/network/api_client.dart';
-import 'package:dio/dio.dart';
-
-/// Provider pour SharedPreferences
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('SharedPreferences must be overridden');
-});
-
-/// Provider pour ApiClient
-final apiClientProvider = Provider<ApiClient>((ref) {
-  final dio = Dio();
-  return ApiClient(dio);
-});
 
 /// Provider pour la data source distante
 final reservationCalendarRemoteDataSourceProvider = Provider<ReservationCalendarRemoteDataSource>((ref) {
@@ -27,8 +14,12 @@ final reservationCalendarRemoteDataSourceProvider = Provider<ReservationCalendar
 
 /// Provider pour la data source locale
 final reservationCalendarLocalDataSourceProvider = Provider<ReservationCalendarLocalDataSource>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return ReservationCalendarLocalDataSource(prefs);
+  final prefsAsync = ref.watch(sharedPreferencesProvider);
+  return prefsAsync.when(
+    data: (prefs) => ReservationCalendarLocalDataSource(prefs),
+    loading: () => throw Exception('SharedPreferences not ready'),
+    error: (error, stack) => throw Exception('Failed to load SharedPreferences: $error'),
+  );
 });
 
 /// Provider pour le repository

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_provider.dart';
+import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/widgets/buttons/animated_button.dart';
 import '../../../../shared/widgets/forms/custom_text_field.dart';
 
@@ -394,7 +394,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             const SizedBox(height: 24),
             
             // Message d'erreur
-            if (authState.errorMessage != null)
+            if (authState.error != null)
               Container(
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 16),
@@ -412,7 +412,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        authState.errorMessage!,
+                        authState.error!,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onErrorContainer,
                         ),

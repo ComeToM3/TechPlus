@@ -51,6 +51,15 @@ dependencies:
   # Security
   crypto: ^3.0.5
   html: ^0.15.5
+  
+  # OAuth2 for Admin - Latest stable versions 2025
+  google_sign_in: ^6.2.1
+  flutter_facebook_auth: ^6.0.3
+  sign_in_with_apple: ^6.1.0
+  flutter_appauth: ^5.0.0
+
+  # Stripe Payments - Latest stable version 2025
+  flutter_stripe: ^11.1.0
 
   # Internationalization
   intl: ^0.20.2
@@ -99,9 +108,12 @@ flutter:
   # Internationalization configuration
   generate: true
 
-  # To add assets to your application, add an assets section, like this:
+  # Assets configuration
   assets:
-    - assets/translations/
+    - assets/images/
+    - assets/icons/
+    - assets/images/menu/
+    - assets/images/restaurant/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

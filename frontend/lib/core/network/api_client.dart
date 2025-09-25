@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_token_manager.dart';
 
 /// Intercepteur d'authentification pour ajouter automatiquement le token
@@ -137,11 +136,4 @@ class ApiClient {
   }
 }
 
-/// Provider pour le client API
-final apiClientProvider = Provider<ApiClient>((ref) {
-  final dio = Dio();
-  final apiClient = ApiClient(dio);
-  // Initialiser de manière asynchrone
-  apiClient.initialize();
-  return apiClient;
-});
+// Provider moved to shared/providers/core_providers.dart

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/injection_container.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../../shared/providers/index.dart';
 import '../../data/datasources/analytics_remote_datasource.dart';
 import '../../data/datasources/analytics_local_datasource.dart';
 import '../../data/repositories/analytics_repository_impl.dart';
@@ -9,9 +8,9 @@ import '../../domain/entities/analytics_entity.dart';
 /// Provider pour le repository analytics
 final analyticsRepositoryProvider = Provider<AnalyticsRepositoryImpl>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  final sharedPreferences = ref.watch(sharedPreferencesProvider);
+  final sharedPreferencesAsync = ref.watch(sharedPreferencesProvider);
   
-  return sharedPreferences.when(
+  return sharedPreferencesAsync.when(
     data: (prefs) => AnalyticsRepositoryImpl(
       AnalyticsRemoteDataSource(apiClient),
       AnalyticsLocalDataSource(prefs),

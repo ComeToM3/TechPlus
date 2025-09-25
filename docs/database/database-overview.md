@@ -24,7 +24,7 @@ Le modèle de données utilise **PostgreSQL** avec **Prisma ORM** pour une gesti
 - Statut actif/inactif
 
 ### Reservation
-- Réservations avec ou sans compte
+- Réservations sans compte
 - Gestion des paiements
 - Tokens de gestion pour les guests
 - Notes internes admin

@@ -11,6 +11,8 @@ import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/network/api_service_provider.dart';
 
 /// Page de détails d'une réservation
 class ReservationDetailsPage extends ConsumerStatefulWidget {
@@ -31,10 +33,12 @@ class _ReservationDetailsPageState extends ConsumerState<ReservationDetailsPage>
   List<ReservationHistory> _history = [];
   List<ReservationNote> _notes = [];
   bool _isLoading = true;
+  late ApiService _apiService;
 
   @override
   void initState() {
     super.initState();
+    _apiService = ref.read(apiServiceProvider);
     _loadReservationData();
   }
 
@@ -355,27 +359,29 @@ class _ReservationDetailsPageState extends ConsumerState<ReservationDetailsPage>
     }
   }
 
-  void _loadReservationData() {
-    // Simulation du chargement des données
+  void _loadReservationData() async {
     setState(() {
       _isLoading = true;
     });
 
-    Future.delayed(const Duration(seconds: 1), () {
-      // Données simulées
+    try {
+      // Appeler l'API backend pour récupérer les données de la réservation
+      final reservation = await _apiService.getReservation(widget.reservationId);
+      
+      // Convertir en ReservationCalendar pour l'affichage
       _reservation = ReservationCalendar(
-        id: widget.reservationId,
-        clientName: 'Jean Tremblay',
-        clientEmail: 'jean.tremblay@email.ca',
-        clientPhone: '+1 514 123 4567',
-        date: DateTime.now().add(const Duration(days: 2)),
-        time: '19:30',
-        partySize: 4,
-        status: 'confirmed',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        updatedAt: DateTime.now(),
-        tableNumber: '5',
-        specialRequests: 'Table près de la fenêtre, anniversaire',
+        id: reservation.id,
+        clientName: reservation.clientName ?? '',
+        clientEmail: reservation.clientEmail ?? '',
+        clientPhone: reservation.clientPhone ?? '',
+        date: reservation.date,
+        time: reservation.time,
+        partySize: reservation.partySize,
+        status: reservation.status.toLowerCase(),
+        createdAt: reservation.createdAt ?? DateTime.now(),
+        updatedAt: reservation.updatedAt ?? DateTime.now(),
+        tableNumber: reservation.tableId ?? '',
+        specialRequests: reservation.specialRequests ?? '',
       );
 
       _history = [
@@ -412,7 +418,19 @@ class _ReservationDetailsPageState extends ConsumerState<ReservationDetailsPage>
       setState(() {
         _isLoading = false;
       });
-    });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      // Afficher une erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors du chargement: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   void _refreshData() {

@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/reservation_local_datasource.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/network/api_service_provider.dart';
+import '../../../../core/network/api_providers.dart';
+import '../../../../shared/models/reservation.dart';
 
 /// État du flux de réservation
 class ReservationFlowState {
@@ -150,8 +154,9 @@ class ReservationFlowState {
 /// Notifier pour gérer le flux de réservation
 class ReservationFlowNotifier extends StateNotifier<ReservationFlowState> {
   final ReservationLocalDataSource _localDataSource;
+  final ApiService _apiService;
   
-  ReservationFlowNotifier(this._localDataSource) : super(ReservationFlowState());
+  ReservationFlowNotifier(this._localDataSource, this._apiService) : super(ReservationFlowState());
 
   /// Sélectionner une date
   Future<void> selectDate(DateTime date) async {
@@ -163,10 +168,8 @@ class ReservationFlowNotifier extends StateNotifier<ReservationFlowState> {
     );
 
     try {
-      // Simuler la récupération des créneaux disponibles
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      final availableTimes = _getAvailableTimesForDate(date);
+      // Appeler l'API backend pour récupérer les créneaux disponibles
+      final availableTimes = await _apiService.getAvailableTimeSlots(date, state.partySize);
       
       state = state.copyWith(
         availableTimes: availableTimes,
@@ -227,35 +230,24 @@ class ReservationFlowNotifier extends StateNotifier<ReservationFlowState> {
   }
 
   /// Obtenir les créneaux disponibles pour une date donnée
-  List<String> _getAvailableTimesForDate(DateTime date) {
-    // Simuler des créneaux disponibles
-    final now = DateTime.now();
-    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-    
-    final allTimes = [
-      '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-      '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'
-    ];
-
-    if (isToday) {
-      // Pour aujourd'hui, filtrer les créneaux passés
-      final currentHour = now.hour;
-      final currentMinute = now.minute;
+  Future<List<String>> _getAvailableTimesForDate(DateTime date, WidgetRef ref) async {
+    try {
+      // Appeler l'API réelle pour obtenir les créneaux disponibles
+      final availabilityApi = ref.read(availabilityApiProvider);
+      final slots = await availabilityApi.getAvailableSlots(
+        date: date,
+        partySize: state.partySize,
+      );
       
-      return allTimes.where((time) {
-        final timeParts = time.split(':');
-        final hour = int.parse(timeParts[0]);
-        final minute = int.parse(timeParts[1]);
-        
-        if (hour < currentHour) return false;
-        if (hour == currentHour && minute <= currentMinute) return false;
-        
-        return true;
-      }).toList();
+      // Retourner seulement les créneaux disponibles
+      return slots
+          .where((slot) => slot.isAvailable)
+          .map((slot) => slot.time)
+          .toList();
+    } catch (e) {
+      // En cas d'erreur, retourner une liste vide
+      return [];
     }
-
-    // Pour les autres jours, tous les créneaux sont disponibles
-    return allTimes;
   }
 
   /// Calculer la durée de réservation
@@ -440,15 +432,15 @@ class ReservationFlowNotifier extends StateNotifier<ReservationFlowState> {
     );
 
     try {
-      // TODO: Appeler l'API backend pour créer le PaymentIntent
-      // Pour l'instant, on simule la création
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Simuler un PaymentIntent ID
-      final paymentIntentId = 'pi_${DateTime.now().millisecondsSinceEpoch}';
+      // Appeler l'API backend pour créer le PaymentIntent
+      final paymentIntent = await _apiService.createPaymentIntent(
+        amount: state.depositAmount,
+        currency: 'EUR',
+        reservationId: state.reservationId ?? 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      );
       
       state = state.copyWith(
-        paymentIntentId: paymentIntentId,
+        paymentIntentId: paymentIntent.paymentIntentId,
         isPaymentProcessing: false,
       );
     } catch (e) {
@@ -469,9 +461,8 @@ class ReservationFlowNotifier extends StateNotifier<ReservationFlowState> {
     );
 
     try {
-      // TODO: Appeler l'API backend pour confirmer le paiement
-      // Pour l'instant, on simule la confirmation
-      await Future.delayed(const Duration(seconds: 3));
+      // Appeler l'API backend pour confirmer le paiement
+      await _apiService.confirmPayment(state.paymentIntentId!);
       
       state = state.copyWith(
         isPaymentCompleted: true,
@@ -528,17 +519,27 @@ L'acompte de ${state.depositAmount.toStringAsFixed(2)}€ sera débité immédia
     );
 
     try {
-      // TODO: Appeler l'API backend pour créer la réservation
-      // Pour l'instant, on simule la création
-      await Future.delayed(const Duration(seconds: 3));
-      
-      // Générer un ID de réservation et un token de gestion
-      final reservationId = 'RES-${DateTime.now().millisecondsSinceEpoch}';
-      final managementToken = _generateManagementToken();
+      // Créer l'objet réservation
+      final reservation = Reservation(
+        id: '', // Sera généré par le backend
+        date: state.selectedDate!,
+        time: state.selectedTime!,
+        duration: 90, // Durée par défaut
+        partySize: state.partySize,
+        specialRequests: state.specialRequests,
+        clientName: state.clientName,
+        clientEmail: state.clientEmail,
+        clientPhone: state.clientPhone,
+        status: 'PENDING',
+        restaurantId: 'restaurant_1', // À récupérer depuis la configuration
+      );
+
+      // Appeler l'API backend pour créer la réservation
+      final createdReservation = await _apiService.createReservation(reservation);
       
       state = state.copyWith(
-        reservationId: reservationId,
-        managementToken: managementToken,
+        reservationId: createdReservation.id,
+        managementToken: createdReservation.managementToken,
         isReservationConfirmed: true,
         isProcessingConfirmation: false,
       );
@@ -557,9 +558,11 @@ L'acompte de ${state.depositAmount.toStringAsFixed(2)}€ sera débité immédia
   /// Envoyer l'email de confirmation
   Future<void> _sendConfirmationEmail() async {
     try {
-      // TODO: Appeler l'API backend pour envoyer l'email
-      // Pour l'instant, on simule l'envoi
-      await Future.delayed(const Duration(seconds: 2));
+      // Appeler l'API backend pour envoyer l'email de confirmation
+      await _apiService.sendConfirmationEmail(
+        reservationId: state.reservationId!,
+        clientEmail: state.clientEmail,
+      );
       
       state = state.copyWith(
         isEmailSent: true,
@@ -620,7 +623,8 @@ L'acompte de ${state.depositAmount.toStringAsFixed(2)}€ sera débité immédia
 
 /// Provider pour le flux de réservation
 final reservationFlowProvider = StateNotifierProvider<ReservationFlowNotifier, ReservationFlowState>((ref) {
-  return ReservationFlowNotifier(ReservationLocalDataSource());
+  final apiService = ref.watch(apiServiceProvider);
+  return ReservationFlowNotifier(ReservationLocalDataSource(), apiService);
 });
 
 /// Provider pour les dates disponibles (30 prochains jours)

@@ -350,7 +350,7 @@ abstract class AppLocalizations {
   /// **'Actualiser'**
   String get refresh;
 
-  /// Bouton paramètres
+  /// Onglet paramètres
   ///
   /// In fr, this message translates to:
   /// **'Paramètres'**
@@ -506,10 +506,10 @@ abstract class AppLocalizations {
   /// **'Occupées'**
   String get occupied;
 
-  /// Tables disponibles
+  /// Statut disponible
   ///
   /// In fr, this message translates to:
-  /// **'Disponibles'**
+  /// **'Disponible'**
   String get available;
 
   /// Message occupation élevée
@@ -926,7 +926,7 @@ abstract class AppLocalizations {
   /// **'Informations client'**
   String get clientInformation;
 
-  /// Informations de base
+  /// Titre section informations de base
   ///
   /// In fr, this message translates to:
   /// **'Informations de Base'**
@@ -998,7 +998,7 @@ abstract class AppLocalizations {
   /// **'Maintenant'**
   String get now;
 
-  /// Notes internes
+  /// Label pour les notes internes
   ///
   /// In fr, this message translates to:
   /// **'Notes internes'**
@@ -1369,6 +1369,468 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Gestion des Tables'**
   String get tableManagement;
+
+  /// Titre de la page de gestion des créneaux horaires
+  ///
+  /// In fr, this message translates to:
+  /// **'Gestion des Créneaux'**
+  String get scheduleManagement;
+
+  /// Titre de la configuration des créneaux
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration des Créneaux'**
+  String get scheduleConfiguration;
+
+  /// Description de la configuration des créneaux
+  ///
+  /// In fr, this message translates to:
+  /// **'Configurez les créneaux horaires de votre restaurant pour chaque jour de la semaine'**
+  String get scheduleConfigurationDescription;
+
+  /// Onglet créneaux
+  ///
+  /// In fr, this message translates to:
+  /// **'Créneaux'**
+  String get schedule;
+
+  /// Titre des créneaux horaires
+  ///
+  /// In fr, this message translates to:
+  /// **'Créneaux horaires'**
+  String get timeSlots;
+
+  /// Bouton pour ajouter un créneau
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un créneau'**
+  String get addTimeSlot;
+
+  /// Titre de modification d'un créneau
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le créneau'**
+  String get editTimeSlot;
+
+  /// Message de succès création créneau
+  ///
+  /// In fr, this message translates to:
+  /// **'Créneau créé avec succès'**
+  String get timeSlotCreated;
+
+  /// Message de succès modification créneau
+  ///
+  /// In fr, this message translates to:
+  /// **'Créneau modifié avec succès'**
+  String get timeSlotUpdated;
+
+  /// Champ heure
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure'**
+  String get time;
+
+  /// Champ capacité
+  ///
+  /// In fr, this message translates to:
+  /// **'Capacité'**
+  String get capacity;
+
+  /// Statut recommandé
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommandé'**
+  String get recommended;
+
+  /// Champ notes
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// Placeholder pour les notes
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes internes pour l\'équipe'**
+  String get notesHint;
+
+  /// Titre section configuration créneau
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration du créneau'**
+  String get slotConfiguration;
+
+  /// Titre section paramètres de durée
+  ///
+  /// In fr, this message translates to:
+  /// **'Paramètres de durée'**
+  String get durationSettings;
+
+  /// Titre section paramètres de réservation
+  ///
+  /// In fr, this message translates to:
+  /// **'Paramètres de réservation'**
+  String get bookingSettings;
+
+  /// Titre section options de réservation
+  ///
+  /// In fr, this message translates to:
+  /// **'Options de réservation'**
+  String get bookingOptions;
+
+  /// Label durée des créneaux
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée des créneaux'**
+  String get slotDuration;
+
+  /// Description durée des créneaux
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée standard d\'un créneau en minutes'**
+  String get slotDurationDescription;
+
+  /// Label temps de pause
+  ///
+  /// In fr, this message translates to:
+  /// **'Temps de pause'**
+  String get bufferTime;
+
+  /// Description temps de pause
+  ///
+  /// In fr, this message translates to:
+  /// **'Temps de pause entre les créneaux en minutes'**
+  String get bufferTimeDescription;
+
+  /// Label réservation avancée maximale
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation avancée max'**
+  String get maxAdvanceBooking;
+
+  /// Description réservation avancée maximale
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre maximum de jours à l\'avance pour réserver'**
+  String get maxAdvanceBookingDescription;
+
+  /// Label réservation minimale
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation minimale'**
+  String get minAdvanceBooking;
+
+  /// Description réservation minimale
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre minimum d\'heures à l\'avance pour réserver'**
+  String get minAdvanceBookingDescription;
+
+  /// Label autoriser réservations du jour
+  ///
+  /// In fr, this message translates to:
+  /// **'Autoriser les réservations du jour'**
+  String get allowSameDayBooking;
+
+  /// Description autoriser réservations du jour
+  ///
+  /// In fr, this message translates to:
+  /// **'Permettre aux clients de réserver le jour même'**
+  String get allowSameDayBookingDescription;
+
+  /// Label autoriser réservations weekend
+  ///
+  /// In fr, this message translates to:
+  /// **'Autoriser les réservations weekend'**
+  String get allowWeekendBooking;
+
+  /// Description autoriser réservations weekend
+  ///
+  /// In fr, this message translates to:
+  /// **'Permettre aux clients de réserver le weekend'**
+  String get allowWeekendBookingDescription;
+
+  /// Message de succès sauvegarde configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration sauvegardée'**
+  String get scheduleSaved;
+
+  /// Message de succès sauvegarde paramètres
+  ///
+  /// In fr, this message translates to:
+  /// **'Paramètres sauvegardés'**
+  String get settingsSaved;
+
+  /// Message d'erreur chargement configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement de la configuration'**
+  String get errorLoadingSchedule;
+
+  /// Label jours total
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours total'**
+  String get totalDays;
+
+  /// Label jours ouverts
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours ouverts'**
+  String get openDays;
+
+  /// Label créneaux total
+  ///
+  /// In fr, this message translates to:
+  /// **'Créneaux total'**
+  String get totalSlots;
+
+  /// Statut actif
+  ///
+  /// In fr, this message translates to:
+  /// **'Actif'**
+  String get active;
+
+  /// Statut inactif
+  ///
+  /// In fr, this message translates to:
+  /// **'Inactif'**
+  String get inactive;
+
+  /// Action copier configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier la configuration'**
+  String get copySchedule;
+
+  /// Action réinitialiser configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser la configuration'**
+  String get resetSchedule;
+
+  /// Confirmation réinitialisation configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir réinitialiser la configuration ? Cette action est irréversible.'**
+  String get resetScheduleConfirmation;
+
+  /// Action exporter configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter la configuration'**
+  String get exportSchedule;
+
+  /// Action importer configuration
+  ///
+  /// In fr, this message translates to:
+  /// **'Importer la configuration'**
+  String get importSchedule;
+
+  /// Bouton réinitialiser
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser'**
+  String get reset;
+
+  /// Message d'erreur format heure
+  ///
+  /// In fr, this message translates to:
+  /// **'Format d\'heure invalide (HH:MM)'**
+  String get invalidTimeFormat;
+
+  /// Message d'erreur capacité invalide
+  ///
+  /// In fr, this message translates to:
+  /// **'Capacité invalide'**
+  String get invalidCapacity;
+
+  /// Message d'erreur capacité trop élevée
+  ///
+  /// In fr, this message translates to:
+  /// **'Capacité trop élevée (max 100)'**
+  String get capacityTooHigh;
+
+  /// Message d'erreur valeur invalide
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur invalide'**
+  String get invalidValue;
+
+  /// Label actions
+  ///
+  /// In fr, this message translates to:
+  /// **'Actions'**
+  String get actions;
+
+  /// Label tous
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get all;
+
+  /// Label plan interactif
+  ///
+  /// In fr, this message translates to:
+  /// **'Plan interactif'**
+  String get interactiveLayout;
+
+  /// Label mode consultation
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode consultation'**
+  String get viewMode;
+
+  /// Label mode édition
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode édition'**
+  String get editMode;
+
+  /// Label réinitialiser vue
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser la vue'**
+  String get resetView;
+
+  /// Label ajouter table
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une table'**
+  String get addTable;
+
+  /// Label entrée
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrée'**
+  String get entrance;
+
+  /// Label aucune position
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune position'**
+  String get noPosition;
+
+  /// Statut réservée
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservée'**
+  String get reserved;
+
+  /// Statut maintenance
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenance'**
+  String get maintenance;
+
+  /// Statut hors service
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors service'**
+  String get outOfOrder;
+
+  /// Label aujourd'hui
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get today;
+
+  /// Label cette semaine
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette semaine'**
+  String get thisWeek;
+
+  /// Label ce mois
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce mois'**
+  String get thisMonth;
+
+  /// Label tables actives
+  ///
+  /// In fr, this message translates to:
+  /// **'Tables actives'**
+  String get activeTables;
+
+  /// Titre performance tables
+  ///
+  /// In fr, this message translates to:
+  /// **'Performance des tables'**
+  String get tablePerformance;
+
+  /// Titre graphiques utilisation
+  ///
+  /// In fr, this message translates to:
+  /// **'Graphiques d\'utilisation'**
+  String get usageCharts;
+
+  /// Description graphiques
+  ///
+  /// In fr, this message translates to:
+  /// **'Visualisation des données d\'utilisation des tables'**
+  String get chartsDescription;
+
+  /// Message succès création table
+  ///
+  /// In fr, this message translates to:
+  /// **'Table créée avec succès'**
+  String get tableCreated;
+
+  /// Message succès modification table
+  ///
+  /// In fr, this message translates to:
+  /// **'Table modifiée avec succès'**
+  String get tableUpdated;
+
+  /// Label numéro table
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro de table'**
+  String get tableNumber;
+
+  /// Message erreur numéro invalide
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro invalide'**
+  String get invalidNumber;
+
+  /// Label position
+  ///
+  /// In fr, this message translates to:
+  /// **'Position'**
+  String get position;
+
+  /// Placeholder position
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex: A1, B2, Terrasse'**
+  String get positionHint;
+
+  /// Titre section statut
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut et configuration'**
+  String get statusAndConfiguration;
+
+  /// Label table active
+  ///
+  /// In fr, this message translates to:
+  /// **'Table active'**
+  String get activeTable;
+
+  /// Label statut disponibilité
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut de disponibilité'**
+  String get availabilityStatus;
+
+  /// Bouton créer
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer'**
+  String get create;
 
   /// Créer une Table
   ///
@@ -1934,12 +2396,6 @@ abstract class AppLocalizations {
   /// **'Fin de pause'**
   String get breakEnd;
 
-  /// No description provided for @notes.
-  ///
-  /// In fr, this message translates to:
-  /// **'Notes'**
-  String get notes;
-
   /// No description provided for @openingHoursSaved.
   ///
   /// In fr, this message translates to:
@@ -2371,12 +2827,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Date'**
   String get date;
-
-  /// Champ heure
-  ///
-  /// In fr, this message translates to:
-  /// **'Heure'**
-  String get time;
 
   /// Nombre de personnes pour la réservation
   ///

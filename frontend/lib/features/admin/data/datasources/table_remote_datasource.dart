@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../domain/entities/table_entity.dart';
-import '../../domain/repositories/table_repository.dart';
+import '../../domain/entities/restaurant_layout_entity.dart';
 
 /// Data source distant pour la gestion des tables
 class TableRemoteDataSource {

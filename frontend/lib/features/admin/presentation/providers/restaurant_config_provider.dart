@@ -1,12 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/providers/index.dart';
 import '../../domain/entities/restaurant_config_entity.dart';
 import '../../domain/repositories/restaurant_config_repository.dart';
 import '../../data/repositories/restaurant_config_repository_impl.dart';
 import '../../data/datasources/restaurant_config_remote_datasource.dart';
 import '../../data/datasources/restaurant_config_local_datasource.dart';
-import '../../../../core/network/api_client.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/di/injection_container.dart';
 
 /// Provider pour le repository de configuration du restaurant
 final restaurantConfigRepositoryProvider = Provider<RestaurantConfigRepository>((ref) {

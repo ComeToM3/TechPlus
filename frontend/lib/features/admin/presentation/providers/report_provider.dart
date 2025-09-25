@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/providers/app_providers.dart';
-import '../../../../core/providers/locale_provider.dart';
+import '../../../../shared/providers/index.dart';
 import '../../domain/entities/report_entity.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../../data/repositories/report_repository_impl.dart';

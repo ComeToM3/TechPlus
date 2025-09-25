@@ -5,6 +5,8 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/network/availability_api.dart';
+import '../../../../shared/providers/core_providers.dart';
 
 /// Widget pour la sélection des créneaux disponibles
 class AvailabilitySelectorWidget extends ConsumerStatefulWidget {
@@ -348,18 +350,38 @@ class _AvailabilitySelectorWidgetState extends ConsumerState<AvailabilitySelecto
     widget.onAvailabilityChanged(_selectedDate, time);
   }
 
-  void _loadAvailableSlots(DateTime date) {
+  void _loadAvailableSlots(DateTime date) async {
     setState(() {
       _isLoading = true;
     });
 
-    // Simulation du chargement des créneaux
-    Future.delayed(const Duration(seconds: 1), () {
+    try {
+      // Appeler l'API réelle pour obtenir les créneaux
+      final availabilityApi = ref.read(availabilityApiProvider);
+      final slots = await availabilityApi.getAvailableSlots(
+        date: date,
+        partySize: widget.partySize,
+      );
+      
       setState(() {
-        _availableSlots = _generateAvailableSlots(date, widget.partySize);
+        _availableSlots = slots;
         _isLoading = false;
       });
-    });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      // Afficher une erreur
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement des créneaux: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   List<TimeSlot> _generateAvailableSlots(DateTime date, int partySize) {

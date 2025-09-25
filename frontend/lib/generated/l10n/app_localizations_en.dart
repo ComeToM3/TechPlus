@@ -667,6 +667,247 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tableManagement => 'Table Management';
 
   @override
+  String get scheduleManagement => 'Gestion des Créneaux';
+
+  @override
+  String get scheduleConfiguration => 'Configuration des Créneaux';
+
+  @override
+  String get scheduleConfigurationDescription =>
+      'Configurez les créneaux horaires de votre restaurant pour chaque jour de la semaine';
+
+  @override
+  String get schedule => 'Créneaux';
+
+  @override
+  String get timeSlots => 'Créneaux horaires';
+
+  @override
+  String get addTimeSlot => 'Ajouter un créneau';
+
+  @override
+  String get editTimeSlot => 'Modifier le créneau';
+
+  @override
+  String get timeSlotCreated => 'Créneau créé avec succès';
+
+  @override
+  String get timeSlotUpdated => 'Créneau modifié avec succès';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get capacity => 'Capacité';
+
+  @override
+  String get recommended => 'Recommandé';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get notesHint => 'Notes internes pour l\'équipe';
+
+  @override
+  String get slotConfiguration => 'Configuration du créneau';
+
+  @override
+  String get durationSettings => 'Paramètres de durée';
+
+  @override
+  String get bookingSettings => 'Paramètres de réservation';
+
+  @override
+  String get bookingOptions => 'Options de réservation';
+
+  @override
+  String get slotDuration => 'Durée des créneaux';
+
+  @override
+  String get slotDurationDescription =>
+      'Durée standard d\'un créneau en minutes';
+
+  @override
+  String get bufferTime => 'Temps de pause';
+
+  @override
+  String get bufferTimeDescription =>
+      'Temps de pause entre les créneaux en minutes';
+
+  @override
+  String get maxAdvanceBooking => 'Réservation avancée max';
+
+  @override
+  String get maxAdvanceBookingDescription =>
+      'Nombre maximum de jours à l\'avance pour réserver';
+
+  @override
+  String get minAdvanceBooking => 'Réservation minimale';
+
+  @override
+  String get minAdvanceBookingDescription =>
+      'Nombre minimum d\'heures à l\'avance pour réserver';
+
+  @override
+  String get allowSameDayBooking => 'Autoriser les réservations du jour';
+
+  @override
+  String get allowSameDayBookingDescription =>
+      'Permettre aux clients de réserver le jour même';
+
+  @override
+  String get allowWeekendBooking => 'Autoriser les réservations weekend';
+
+  @override
+  String get allowWeekendBookingDescription =>
+      'Permettre aux clients de réserver le weekend';
+
+  @override
+  String get scheduleSaved => 'Configuration sauvegardée';
+
+  @override
+  String get settingsSaved => 'Paramètres sauvegardés';
+
+  @override
+  String get errorLoadingSchedule =>
+      'Erreur lors du chargement de la configuration';
+
+  @override
+  String get totalDays => 'Jours total';
+
+  @override
+  String get openDays => 'Jours ouverts';
+
+  @override
+  String get totalSlots => 'Créneaux total';
+
+  @override
+  String get active => 'Actif';
+
+  @override
+  String get inactive => 'Inactif';
+
+  @override
+  String get copySchedule => 'Copier la configuration';
+
+  @override
+  String get resetSchedule => 'Réinitialiser la configuration';
+
+  @override
+  String get resetScheduleConfirmation =>
+      'Êtes-vous sûr de vouloir réinitialiser la configuration ? Cette action est irréversible.';
+
+  @override
+  String get exportSchedule => 'Exporter la configuration';
+
+  @override
+  String get importSchedule => 'Importer la configuration';
+
+  @override
+  String get reset => 'Réinitialiser';
+
+  @override
+  String get invalidTimeFormat => 'Format d\'heure invalide (HH:MM)';
+
+  @override
+  String get invalidCapacity => 'Capacité invalide';
+
+  @override
+  String get capacityTooHigh => 'Capacité trop élevée (max 100)';
+
+  @override
+  String get invalidValue => 'Valeur invalide';
+
+  @override
+  String get actions => 'Actions';
+
+  @override
+  String get all => 'Tous';
+
+  @override
+  String get interactiveLayout => 'Plan interactif';
+
+  @override
+  String get viewMode => 'Mode consultation';
+
+  @override
+  String get editMode => 'Mode édition';
+
+  @override
+  String get resetView => 'Réinitialiser la vue';
+
+  @override
+  String get addTable => 'Ajouter une table';
+
+  @override
+  String get entrance => 'Entrée';
+
+  @override
+  String get noPosition => 'Aucune position';
+
+  @override
+  String get reserved => 'Réservée';
+
+  @override
+  String get maintenance => 'Maintenance';
+
+  @override
+  String get outOfOrder => 'Hors service';
+
+  @override
+  String get today => 'Aujourd\'hui';
+
+  @override
+  String get thisWeek => 'Cette semaine';
+
+  @override
+  String get thisMonth => 'Ce mois';
+
+  @override
+  String get activeTables => 'Tables actives';
+
+  @override
+  String get tablePerformance => 'Performance des tables';
+
+  @override
+  String get usageCharts => 'Graphiques d\'utilisation';
+
+  @override
+  String get chartsDescription =>
+      'Visualisation des données d\'utilisation des tables';
+
+  @override
+  String get tableCreated => 'Table créée avec succès';
+
+  @override
+  String get tableUpdated => 'Table modifiée avec succès';
+
+  @override
+  String get tableNumber => 'Numéro de table';
+
+  @override
+  String get invalidNumber => 'Numéro invalide';
+
+  @override
+  String get position => 'Position';
+
+  @override
+  String get positionHint => 'Ex: A1, B2, Terrasse';
+
+  @override
+  String get statusAndConfiguration => 'Statut et configuration';
+
+  @override
+  String get activeTable => 'Table active';
+
+  @override
+  String get availabilityStatus => 'Statut de disponibilité';
+
+  @override
+  String get create => 'Créer';
+
+  @override
   String get createTable => 'Create Table';
 
   @override
@@ -953,9 +1194,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get breakEnd => 'Break end';
 
   @override
-  String get notes => 'Notes';
-
-  @override
   String get openingHoursSaved => 'Opening hours saved';
 
   @override
@@ -1171,9 +1409,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
-
-  @override
-  String get time => 'Time';
 
   @override
   String get partySize => 'Party Size';

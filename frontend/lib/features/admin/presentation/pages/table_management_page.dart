@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/table_list_widget.dart';
 import '../widgets/restaurant_layout_widget.dart';
+import '../widgets/interactive_restaurant_layout_widget.dart';
+import '../widgets/table_statistics_widget.dart';
+import '../widgets/table_form_widget.dart';
 import '../../domain/entities/table_entity.dart';
 import '../providers/table_provider.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
@@ -124,9 +127,11 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Plan du restaurant
-          RestaurantLayoutWidget(
+          // Plan interactif du restaurant
+          InteractiveRestaurantLayoutWidget(
             onTableSelected: _onTableSelected,
+            onTableEdit: _onTableEdit,
+            onTableDelete: _onTableDelete,
             isEditable: true,
           ),
           const SizedBox(height: 16),
@@ -139,18 +144,47 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   }
 
   Widget _buildStatisticsTab(ThemeData theme, AppLocalizations l10n) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Statistiques générales
-          _buildGeneralStats(theme, l10n),
-          const SizedBox(height: 16),
-
-          // Statistiques par table
-          _buildTableStats(theme, l10n),
-        ],
-      ),
+    return Consumer(
+      builder: (context, ref, child) {
+        final tablesAsync = ref.watch(tablesProvider);
+        
+        return tablesAsync.when(
+          data: (tables) => SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: TableStatisticsWidget(
+              tables: tables,
+              onRefresh: _refreshData,
+            ),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Erreur lors du chargement des tables: $error',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                SimpleButton(
+                  onPressed: _refreshData,
+                  text: l10n.retry,
+                  type: ButtonType.primary,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -438,19 +472,9 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   void _showCreateTableDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.createTable),
-        content: const Text('Formulaire de création de table à implémenter'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.create),
-          ),
-        ],
+      builder: (context) => TableFormWidget(
+        onSave: _handleCreateTable,
+        onCancel: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -458,19 +482,10 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   void _showEditTableDialog(TableEntity table) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${AppLocalizations.of(context)!.edit} ${AppLocalizations.of(context)!.table} ${table.number}'),
-        content: const Text('Formulaire d\'édition de table à implémenter'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.save),
-          ),
-        ],
+      builder: (context) => TableFormWidget(
+        table: table,
+        onSave: _handleUpdateTable,
+        onCancel: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -536,6 +551,36 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
     ref.invalidate(tablesProvider);
     ref.invalidate(tableStatsProvider);
     ref.invalidate(restaurantLayoutProvider);
+  }
+
+  Future<void> _handleCreateTable(TableEntity table) async {
+    try {
+      final createRequest = CreateTableRequest(
+        number: table.number,
+        capacity: table.capacity,
+        position: table.position,
+        description: table.description,
+      );
+      await ref.read(tableActionsProvider.notifier).createTable(createRequest);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> _handleUpdateTable(TableEntity table) async {
+    try {
+      final updateRequest = UpdateTableRequest(
+        number: table.number,
+        capacity: table.capacity,
+        position: table.position,
+        isActive: table.isActive,
+        status: table.status,
+        description: table.description,
+      );
+      await ref.read(tableActionsProvider.notifier).updateTable(table.id, updateRequest);
+    } catch (e) {
+      rethrow;
+    }
   }
 }
 

@@ -1,28 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../../shared/providers/index.dart';
 import '../../data/datasources/menu_remote_datasource.dart';
 import '../../data/repositories/menu_repository_impl.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/repositories/menu_repository.dart';
-
-/// Provider pour l'API client
-final apiClientProvider = Provider<ApiClient>((ref) {
-  final dio = Dio();
-  return ApiClient(dio);
-});
-
-/// Provider pour la source de données distante du menu
-final menuRemoteDataSourceProvider = Provider<MenuRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return MenuRemoteDataSourceImpl(apiClient: apiClient);
-});
-
-/// Provider pour le repository du menu
-final menuRepositoryProvider = Provider<MenuRepository>((ref) {
-  final remoteDataSource = ref.watch(menuRemoteDataSourceProvider);
-  return MenuRepositoryImpl(remoteDataSource: remoteDataSource);
-});
 
 /// État pour la liste des éléments du menu
 class MenuState {

@@ -1,21 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../../shared/providers/index.dart';
 import '../../domain/entities/menu_entity.dart';
 import '../../domain/repositories/menu_repository.dart';
 import '../../data/datasources/menu_remote_datasource.dart';
 import '../../data/datasources/menu_local_datasource.dart';
 import '../../data/repositories/menu_repository_impl.dart';
 
-/// Provider pour l'ApiClient
-final menuApiClientProvider = Provider<ApiClient>((ref) {
-  final dio = Dio();
-  return ApiClient(dio);
-});
+// Provider moved to shared/providers/core_providers.dart
 
 /// Provider pour le data source distant
 final menuRemoteDataSourceProvider = Provider<MenuRemoteDataSource>((ref) {
-  final apiClient = ref.watch(menuApiClientProvider);
+  final apiClient = ref.watch(apiClientProvider);
   return MenuRemoteDataSource(apiClient);
 });
 

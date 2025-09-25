@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'secure_storage_service.dart';
+import '../network/api_service.dart';
 
 /// Service de gestion sécurisée des tokens JWT
 /// Gère le stockage, la validation, et le renouvellement des tokens
@@ -12,6 +13,7 @@ class TokenManager {
   TokenManager._internal();
 
   late final SecureStorageService _secureStorage;
+  ApiService? _apiService;
   
   // Configuration des tokens
   static const int _accessTokenExpiryBuffer = 300; // 5 minutes avant expiration
@@ -26,10 +28,11 @@ class TokenManager {
   late int _refreshAttempts;
 
   /// Initialise le gestionnaire de tokens
-  Future<void> initialize() async {
+  Future<void> initialize({ApiService? apiService}) async {
     try {
       // Initialiser le service de stockage sécurisé
       _secureStorage = SecureStorageService();
+      _apiService = apiService;
       
       // Initialiser les variables d'état
       _accessToken = null;
@@ -177,18 +180,21 @@ class TokenManager {
         print('🔄 Refreshing access token (attempt $_refreshAttempts)');
       }
 
-      // Ici, vous feriez l'appel API pour renouveler le token
-      // Pour l'instant, on simule un échec
-      await Future.delayed(const Duration(seconds: 1));
+      // Appeler l'API backend pour renouveler le token
+      if (_apiService == null) {
+        if (kDebugMode) {
+          print('❌ ApiService not initialized');
+        }
+        return false;
+      }
       
-      // TODO: Implémenter l'appel API de refresh
-      // final newTokens = await _apiService.refreshToken(_refreshToken!);
-      // await storeTokens(
-      //   accessToken: newTokens.accessToken,
-      //   refreshToken: newTokens.refreshToken,
-      // );
+      final newTokens = await _apiService!.refreshToken(_refreshToken!);
+      await storeTokens(
+        accessToken: newTokens.accessToken,
+        refreshToken: newTokens.refreshToken ?? _refreshToken!,
+      );
       
-      return false; // Simulation d'échec
+      return true; // Succès
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error refreshing access token: $e');

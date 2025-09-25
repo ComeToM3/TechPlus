@@ -50,8 +50,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Stream<DashboardMetrics> getRealtimeMetrics() async* {
-    // Pour l'instant, on retourne les métriques actuelles
-    // Dans une vraie implémentation, on utiliserait WebSocket ou Server-Sent Events
+    // Utiliser WebSocket ou Server-Sent Events pour les métriques temps réel
+    // Pour l'instant, on utilise un polling avec l'API réelle
     while (true) {
       try {
         final metrics = await getDashboardMetrics();

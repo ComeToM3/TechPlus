@@ -6,6 +6,7 @@ import '../../../../shared/widgets/forms/custom_text_field.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/network/api_providers.dart';
 
 /// Widget pour la sélection de client lors de la création de réservation
 class ClientSelectionWidget extends ConsumerStatefulWidget {
@@ -315,55 +316,45 @@ class _ClientSelectionWidgetState extends ConsumerState<ClientSelectionWidget> {
     );
   }
 
-  void _loadClients() {
+  void _loadClients() async {
     setState(() {
       _isLoading = true;
     });
 
-    // Simulation du chargement des clients
-    Future.delayed(const Duration(seconds: 1), () {
+    try {
+      // Appeler l'API réelle pour obtenir les clients
+      final clientsApi = ref.read(clientsApiProvider);
+      final clients = await clientsApi.getClients(
+        search: _searchQuery.isNotEmpty ? _searchQuery : null,
+        limit: 50,
+      );
+      
       setState(() {
-        _clients = [
-          ClientOption(
-            id: '1',
-            name: 'Jean Tremblay',
-            email: 'jean.tremblay@email.ca',
-            phone: '+1 514 123 4567',
-            isVip: true,
-          ),
-          ClientOption(
-            id: '2',
-            name: 'Marie Gagnon',
-            email: 'marie.gagnon@email.ca',
-            phone: '+1 514 234 5678',
-            isVip: false,
-          ),
-          ClientOption(
-            id: '3',
-            name: 'Pierre Bouchard',
-            email: 'pierre.bouchard@email.ca',
-            phone: '+1 514 345 6789',
-            isVip: false,
-          ),
-          ClientOption(
-            id: '4',
-            name: 'Sophie Lavoie',
-            email: 'sophie.lavoie@email.ca',
-            phone: '+1 514 456 7890',
-            isVip: true,
-          ),
-          ClientOption(
-            id: '5',
-            name: 'Client sans compte',
-            email: null,
-            phone: null,
-            isVip: false,
-          ),
-        ];
+        _clients = clients.map((client) => ClientOption(
+          id: client.id,
+          name: client.name,
+          email: client.email,
+          phone: client.phone,
+          isVip: client.isVip,
+        )).toList();
         _filteredClients = _clients;
         _isLoading = false;
       });
-    });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      // Afficher une erreur
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement des clients: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _filterClients() {

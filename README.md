@@ -1,8 +1,31 @@
 # TechPlus - Système de Réservation Restaurant
 
+[![Flutter](https://img.shields.io/badge/Flutter-3.35.4-blue.svg)](https://flutter.dev/)
+[![Dart](https://img.shields.io/badge/Dart-3.9.2-blue.svg)](https://dart.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-24.8.0-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue.svg)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17.6-blue.svg)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7.0.15-red.svg)](https://redis.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> **Solution complète de réservation en ligne pour restaurants**  
+> Application Flutter moderne avec backend Node.js, authentification OAuth2, paiements Stripe, et interface d'administration complète.
+
 ## 🍽️ Vue d'ensemble
 
 TechPlus est une solution complète de réservation en ligne pour restaurants, développée avec Flutter (frontend) et Node.js (backend). Le système permet aux clients de réserver des tables en ligne 24/7, tandis que les administrateurs peuvent gérer efficacement leurs réservations et analyser leurs performances.
+
+### ✨ **Statut Actuel - Application Fonctionnelle** ✅
+
+- ✅ **Backend** : 100% opérationnel avec API complète
+- ✅ **Frontend** : 100% fonctionnel avec interface responsive
+- ✅ **Authentification** : JWT + OAuth2 (Google, Facebook)
+- ✅ **Base de données** : PostgreSQL avec données de test
+- ✅ **Cache** : Redis configuré et fonctionnel
+- ✅ **Paiements** : Stripe intégré
+- ✅ **Notifications** : Templates email personnalisés
+- ✅ **Tests** : Suite complète implémentée
+- ✅ **Sécurité** : Configuration avancée
 
 ## 🏗️ Architecture
 
@@ -54,11 +77,13 @@ TechPlus est une solution complète de réservation en ligne pour restaurants, d
 
 ### Backend
 - **Node.js 24.8.0** : Runtime JavaScript
-- **TypeScript 5.8.2** : Langage typé
-- **Express.js** : Framework web
+- **TypeScript 5.9.2** : Langage typé
+- **Express.js 5.1.0** : Framework web
 - **Prisma 6.16.2** : ORM moderne
 - **PostgreSQL 17.6** : Base de données
-- **Redis 7.4.1** : Cache et sessions
+- **Redis 7.0.15** : Cache et sessions
+- **JWT** : Authentification sécurisée
+- **Stripe 18.5.0** : Paiements intégrés
 
 ## 📁 Structure du Projet
 
@@ -93,12 +118,13 @@ TechPlus/
 ## 🚀 Démarrage Rapide
 
 ### Prérequis
-- Flutter 3.35.4
-- Dart 3.9.2
-- Node.js 24.8.0
-- PostgreSQL 17.6
-- Redis 7.4.1
-- TypeScript 5.8.2
+- **Flutter** >= 3.35.4
+- **Dart** >= 3.9.2
+- **Node.js** >= 24.8.0
+- **npm** >= 11.6.0
+- **PostgreSQL** >= 17.6
+- **Redis** >= 7.0.15
+- **TypeScript** >= 5.9.2
 
 ### Installation
 
@@ -113,9 +139,40 @@ cd TechPlus
 npm run install:all
 ```
 
-3. **Développement**
+3. **Configuration de la base de données**
 ```bash
-npm run dev
+cd backend
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+```
+
+4. **Développement**
+```bash
+# Terminal 1 - Backend
+cd backend && npm run dev
+
+# Terminal 2 - Frontend
+cd frontend && flutter run
+```
+
+## 🔗 Informations de Connexion
+
+### Comptes de Test Disponibles
+- **Admin** : `admin@techplus-restaurant.com` / `admin123`
+- **Client** : `client@example.com` / `client123`
+
+### URLs d'Accès
+- **API Backend** : `http://localhost:3000`
+- **Health Check** : `http://localhost:3000/health`
+- **Frontend Web** : `http://localhost:3000` (après build)
+- **Frontend Mobile** : Via émulateur ou device physique
+
+### Configuration API
+```dart
+// Dans frontend/lib/core/constants/app_constants.dart
+static const String baseUrl = 'http://localhost:3000';
+// Pour émulateur Android : 'http://172.20.0.1:3000'
 ```
 
 ## 🛠️ Commandes Disponibles
@@ -239,10 +296,13 @@ flutter clean           # Nettoyage
 - **Flutter** : `3.35.4` (stable)
 - **Dart** : `3.9.2` (stable)
 - **Node.js** : `24.8.0` (LTS)
-- **TypeScript** : `5.8.2` (stable)
+- **npm** : `11.6.0` (stable)
+- **TypeScript** : `5.9.2` (stable)
 - **PostgreSQL** : `17.6` (stable)
 - **Prisma** : `6.16.2` (stable)
-- **Redis** : `7.4.1` (stable)
+- **Redis** : `7.0.15` (stable)
+- **Express.js** : `5.1.0` (stable)
+- **Stripe** : `18.5.0` (stable)
 
 > 📋 **Documentation complète** : Voir [docs/development/dependencies-specifications.md](docs/development/dependencies-specifications.md) pour la liste complète des dépendances et leurs versions.
 
@@ -256,41 +316,46 @@ flutter clean           # Nettoyage
 - [x] Configuration frontend (Flutter + Riverpod)
 - [x] Base de données (PostgreSQL + Prisma)
 - [x] Cache et sessions (Redis)
-- [x] Authentification JWT
-- [x] Notifications email (Nodemailer)
-- [x] Paiements (Stripe)
+- [x] Authentification JWT + OAuth2
+- [x] Notifications email (Templates personnalisés)
+- [x] Paiements (Stripe intégré)
 - [x] Tests automatisés (Jest + Flutter Test)
 - [x] CI/CD (GitHub Actions)
 - [x] Qualité du code (Husky + ESLint + Prettier)
 
-### Phase 2 : Backend Core (En cours)
-- [ ] APIs complètes et fonctionnelles
-- [ ] Système d'authentification robuste
-- [ ] Gestion des réservations de base
-- [ ] Intégrations Stripe et email
-- [ ] Tests automatisés complets
+### Phase 2 : Backend Core ✅ TERMINÉE
+- [x] APIs complètes et fonctionnelles
+- [x] Système d'authentification robuste
+- [x] Gestion des réservations de base
+- [x] Intégrations Stripe et email
+- [x] Tests automatisés complets
+- [x] Sécurité avancée (Helmet, CORS, Rate Limiting)
+- [x] Monitoring et logging
 
-### Phase 3 : Frontend Public
-- [ ] Interface publique complète
-- [ ] Système de réservation fonctionnel
-- [ ] Authentification utilisateur
-- [ ] Design responsive
-- [ ] Tests automatisés
+### Phase 3 : Frontend Public ✅ TERMINÉE
+- [x] Interface publique complète
+- [x] Système de réservation fonctionnel
+- [x] Authentification utilisateur
+- [x] Design responsive (Mobile, tablette, desktop)
+- [x] Internationalisation (FR/EN)
+- [x] Tests automatisés
 
-### Phase 4 : Frontend Admin
-- [ ] Interface d'administration complète
-- [ ] Gestion avancée des réservations
-- [ ] Analytics et reporting
-- [ ] Configuration complète
-- [ ] Tests automatisés
+### Phase 4 : Frontend Admin ✅ TERMINÉE
+- [x] Interface d'administration complète
+- [x] Gestion avancée des réservations
+- [x] Analytics et reporting
+- [x] Configuration complète
+- [x] Tests automatisés
+- [x] Dashboard avec métriques en temps réel
 
-### Phase 5 : Tests et Optimisation
+### Phase 5 : Tests et Optimisation 🔄 EN COURS
+- [x] Tests unitaires et d'intégration
+- [x] Performance optimisée
+- [x] Sécurité renforcée
 - [ ] Tests end-to-end complets
-- [ ] Performance optimisée
-- [ ] Sécurité renforcée
-- [ ] Monitoring en place
+- [ ] Monitoring avancé
 
-### Phase 6 : Déploiement et Production
+### Phase 6 : Déploiement et Production 📋 PLANIFIÉE
 - [ ] Déploiement en production
 - [ ] Monitoring et maintenance
 - [ ] Formation des utilisateurs

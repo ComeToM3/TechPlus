@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/table_entity.dart';
-import '../../domain/repositories/table_repository.dart';
+import '../../domain/entities/restaurant_layout_entity.dart';
 import '../providers/table_provider.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
@@ -402,13 +402,10 @@ class _RestaurantLayoutWidgetState extends ConsumerState<RestaurantLayoutWidget>
     try {
       // Charger le plan du restaurant
       final layout = await ref.read(restaurantLayoutProvider.future);
-      
-      // Charger les tables
-      final tables = await ref.read(tablesProvider.future);
 
       setState(() {
         _layout = layout;
-        _tables = tables;
+        _tables = layout.tables;
         _isLoading = false;
       });
     } catch (e) {

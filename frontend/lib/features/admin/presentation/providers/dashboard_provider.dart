@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/providers/index.dart';
 import '../../domain/entities/dashboard_metrics.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../data/datasources/dashboard_remote_datasource.dart';
 import '../../data/datasources/dashboard_local_datasource.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/di/injection_container.dart';
 
 /// État du dashboard
@@ -205,18 +205,20 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 /// Provider pour le repository du dashboard
 final dashboardRepositoryProvider = Provider<DashboardRepository?>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  final sharedPreferences = ref.watch(sharedPreferencesProvider).value;
+  final sharedPreferencesAsync = ref.watch(sharedPreferencesProvider);
   
-  if (sharedPreferences == null) {
-    return null; // Retourner null au lieu de lancer une exception
-  }
-
-  final remoteDataSource = DashboardRemoteDataSource(apiClient);
-  final localDataSource = DashboardLocalDataSource(sharedPreferences);
-  
-  return DashboardRepositoryImpl(
-    remoteDataSource: remoteDataSource,
-    localDataSource: localDataSource,
+  return sharedPreferencesAsync.when(
+    data: (sharedPreferences) {
+      final remoteDataSource = DashboardRemoteDataSource(apiClient);
+      final localDataSource = DashboardLocalDataSource(sharedPreferences);
+      
+      return DashboardRepositoryImpl(
+        remoteDataSource: remoteDataSource,
+        localDataSource: localDataSource,
+      );
+    },
+    loading: () => null,
+    error: (error, stack) => null,
   );
 });
 

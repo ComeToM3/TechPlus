@@ -1,4 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/models/reservation.dart';
+import '../../../../shared/errors/app_errors.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/network/api_service_provider.dart';
 
 /// État pour la gestion des réservations par les guests
 class GuestManagementState {
@@ -103,7 +107,9 @@ class GuestManagementState {
 
 /// Notifier pour gérer les réservations des guests
 class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
-  GuestManagementNotifier() : super(GuestManagementState());
+  final ApiService _apiService;
+
+  GuestManagementNotifier(this._apiService) : super(GuestManagementState());
 
   /// Valider un token et charger les données de réservation
   Future<void> validateTokenAndLoadReservation(String token) async {
@@ -122,71 +128,26 @@ class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
     );
 
     try {
-      // TODO: Appeler l'API backend pour valider le token
-      // Pour l'instant, on simule la validation
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Simuler une validation réussie
-      final isValid = _simulateTokenValidation(token);
-      
-      if (!isValid) {
-        state = state.copyWith(
-          isLoading: false,
-          isTokenValid: false,
-          error: 'Token invalide ou expiré',
-        );
-        return;
-      }
-
-      // Charger les données de la réservation
-      await _loadReservationData(token);
-      
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Erreur lors de la validation du token: $e',
-      );
-    }
-  }
-
-  /// Charger les données de la réservation
-  Future<void> _loadReservationData(String token) async {
-    try {
-      // TODO: Appeler l'API backend pour récupérer les données
-      // Pour l'instant, on simule le chargement
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Simuler des données de réservation
-      final reservationData = _simulateReservationData(token);
+      // Appeler l'API backend pour valider le token
+      final reservation = await _apiService.validateGuestToken(token);
       
       state = state.copyWith(
         isLoading: false,
         isTokenValid: true,
         isReservationLoaded: true,
-        reservationId: reservationData['id'],
-        clientName: reservationData['clientName'],
-        clientEmail: reservationData['clientEmail'],
-        clientPhone: reservationData['clientPhone'],
-        reservationDate: reservationData['date'],
-        reservationTime: reservationData['time'],
-        partySize: reservationData['partySize'],
-        specialRequests: reservationData['specialRequests'],
-        status: reservationData['status'],
-        depositAmount: reservationData['depositAmount'],
-        isPaymentCompleted: reservationData['isPaymentCompleted'],
-        canModify: reservationData['canModify'],
-        canCancel: reservationData['canCancel'],
-        cancellationPolicy: reservationData['cancellationPolicy'],
+        reservationId: reservation.id,
         error: null,
       );
       
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Erreur lors du chargement de la réservation: $e',
+        isTokenValid: false,
+        error: 'Token invalide ou expiré',
       );
     }
   }
+
 
   /// Modifier une réservation
   Future<void> modifyReservation({
@@ -211,8 +172,23 @@ class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
     );
 
     try {
-      // TODO: Appeler l'API backend pour modifier la réservation
-      await Future.delayed(const Duration(seconds: 2));
+      // Créer un objet Reservation avec les nouvelles données
+      final updatedReservation = Reservation(
+        id: state.reservationId!,
+        date: newDate ?? state.reservationDate!,
+        time: newTime ?? state.reservationTime!,
+        duration: 90, // Durée par défaut
+        partySize: newPartySize ?? state.partySize!,
+        specialRequests: newSpecialRequests ?? state.specialRequests,
+        clientName: newName ?? state.clientName,
+        clientEmail: newEmail ?? state.clientEmail,
+        clientPhone: newPhone ?? state.clientPhone,
+        status: state.status!,
+        restaurantId: 'restaurant_1', // À récupérer depuis l'état
+      );
+
+      // Appeler l'API backend pour modifier la réservation
+      await _apiService.updateReservationWithToken(state.token!, updatedReservation);
       
       // Mettre à jour l'état local
       state = state.copyWith(
@@ -250,8 +226,8 @@ class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
     );
 
     try {
-      // TODO: Appeler l'API backend pour annuler la réservation
-      await Future.delayed(const Duration(seconds: 2));
+      // Appeler l'API backend pour annuler la réservation
+      await _apiService.cancelReservationWithToken(state.token!, reason: reason);
       
       // Mettre à jour le statut
       state = state.copyWith(
@@ -275,34 +251,6 @@ class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
     state = GuestManagementState();
   }
 
-  /// Simuler la validation d'un token
-  bool _simulateTokenValidation(String token) {
-    // Simuler une validation basique
-    return token.length >= 10 && !token.contains('invalid');
-  }
-
-  /// Simuler des données de réservation
-  Map<String, dynamic> _simulateReservationData(String token) {
-    final now = DateTime.now();
-    final reservationDate = now.add(const Duration(days: 7));
-    
-    return {
-      'id': 'RES-${DateTime.now().millisecondsSinceEpoch}',
-      'clientName': 'Jean Dupont',
-      'clientEmail': 'jean.dupont@email.com',
-      'clientPhone': '+33 6 12 34 56 78',
-      'date': reservationDate,
-      'time': '19:30',
-      'partySize': 4,
-      'specialRequests': 'Table près de la fenêtre, anniversaire',
-      'status': 'CONFIRMED',
-      'depositAmount': 0.0, // Pas de paiement pour 4 personnes
-      'isPaymentCompleted': false,
-      'canModify': true,
-      'canCancel': true,
-      'cancellationPolicy': 'Annulation gratuite jusqu\'à 24h avant',
-    };
-  }
 
   /// Obtenir le statut formaté
   String getFormattedStatus() {
@@ -379,5 +327,6 @@ class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
 
 /// Provider pour la gestion des réservations des guests
 final guestManagementProvider = StateNotifierProvider<GuestManagementNotifier, GuestManagementState>((ref) {
-  return GuestManagementNotifier();
+  final apiService = ref.watch(apiServiceProvider);
+  return GuestManagementNotifier(apiService);
 });

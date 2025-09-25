@@ -350,8 +350,23 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     });
 
     try {
-      // TODO: Implémenter la création de réservation
-      await Future.delayed(const Duration(seconds: 2));
+      // Créer la réservation via l'API
+      final reservation = Reservation(
+        id: '', // Sera généré par le backend
+        date: _selectedDate!,
+        time: _selectedTime!,
+        duration: 90, // Durée par défaut
+        partySize: _partySize,
+        specialRequests: _specialRequestsController.text,
+        clientName: _clientNameController.text,
+        clientEmail: _clientEmailController.text,
+        clientPhone: _clientPhoneController.text,
+        status: 'PENDING',
+        restaurantId: 'restaurant_1', // À récupérer depuis la configuration
+      );
+
+      // Appeler l'API backend pour créer la réservation
+      final createdReservation = await _apiService.createReservation(reservation);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

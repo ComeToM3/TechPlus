@@ -1,10 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-/// Provider pour SharedPreferences
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
-  return SharedPreferences.getInstance();
-});
+// Container d'injection de dépendances
+// Les providers sont maintenant gérés dans shared/providers/core_providers.dart
 
 /// Container d'injection de dépendances
 class InjectionContainer {

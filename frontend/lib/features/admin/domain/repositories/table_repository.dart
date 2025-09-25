@@ -1,4 +1,5 @@
 import '../entities/table_entity.dart';
+import '../entities/restaurant_layout_entity.dart';
 
 /// Repository abstrait pour la gestion des tables
 abstract class TableRepository {
@@ -45,48 +46,6 @@ abstract class TableRepository {
   Future<RestaurantLayout> updateRestaurantLayout(RestaurantLayout layout);
 }
 
-/// Modèle pour le plan du restaurant
-class RestaurantLayout {
-  final String id;
-  final String name;
-  final String description;
-  final List<TablePosition> tablePositions;
-  final LayoutDimensions dimensions;
-  final DateTime updatedAt;
-
-  const RestaurantLayout({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.tablePositions,
-    required this.dimensions,
-    required this.updatedAt,
-  });
-
-  factory RestaurantLayout.fromJson(Map<String, dynamic> json) {
-    return RestaurantLayout(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      tablePositions: (json['tablePositions'] as List)
-          .map((e) => TablePosition.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      dimensions: LayoutDimensions.fromJson(json['dimensions'] as Map<String, dynamic>),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'tablePositions': tablePositions.map((e) => e.toJson()).toList(),
-      'dimensions': dimensions.toJson(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-}
 
 /// Position d'une table dans le plan
 class TablePosition {

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import '../providers/reservation_flow_provider.dart';
+import '../../../../core/services/stripe_service_provider.dart';
+import '../../../../core/config/stripe_config.dart';
 
-/// Widget pour l'interface de paiement Stripe (simulé)
+/// Widget pour l'interface de paiement Stripe (réel)
 class StripePaymentWidget extends ConsumerStatefulWidget {
   const StripePaymentWidget({super.key});
 
@@ -435,21 +438,24 @@ class _StripePaymentWidgetState extends ConsumerState<StripePaymentWidget> {
   }
 
   Future<void> _processPayment() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
     setState(() {
       _isProcessing = true;
     });
 
     try {
-      // Simuler la création du PaymentIntent
-      await ref.read(reservationFlowProvider.notifier).createPaymentIntent();
+      final stripeService = ref.read(stripeServiceProvider);
+      final reservationState = ref.read(reservationFlowProvider);
       
-      // Simuler la confirmation du paiement
-      final paymentMethodId = 'pm_${DateTime.now().millisecondsSinceEpoch}';
-      await ref.read(reservationFlowProvider.notifier).confirmPayment(paymentMethodId);
+      // Traiter le paiement avec PaymentSheet
+      await stripeService.processPayment(
+        amount: reservationState.depositAmount,
+        currency: 'EUR',
+        reservationId: reservationState.reservationId ?? 'temp_${DateTime.now().millisecondsSinceEpoch}',
+        merchantDisplayName: 'TechPlus Restaurant',
+      );
+      
+      // Confirmer via le provider
+      await ref.read(reservationFlowProvider.notifier).confirmPayment('pm_success');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

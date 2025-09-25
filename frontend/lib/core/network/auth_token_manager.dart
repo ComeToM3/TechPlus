@@ -19,6 +19,15 @@ class AuthTokenManager {
     }
   }
 
+  /// Effacer le token
+  void clearToken() {
+    _accessToken = null;
+    // Notifier tous les listeners
+    for (final listener in _listeners) {
+      listener(null);
+    }
+  }
+
   /// Ajouter un listener pour les changements de token
   void addListener(Function(String?) listener) {
     _listeners.add(listener);

@@ -10,7 +10,9 @@ import 'core/navigation/app_router.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/security/security_service.dart';
-import 'features/auth/presentation/providers/auth_provider.dart';
+import 'core/services/stripe_service.dart';
+import 'core/config/env_loader.dart';
+import 'shared/providers/index.dart';
 import 'shared/widgets/layouts/bento_card.dart';
 import 'shared/widgets/buttons/animated_button.dart';
 import 'generated/l10n/app_localizations.dart';
@@ -19,6 +21,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
+    // Charger les variables d'environnement
+    await EnvLoader.loadEnv();
+    
     // Initialiser le service de sécurité
     await SecurityService().initialize();
     
@@ -27,7 +32,11 @@ void main() async {
     final apiClient = ApiClient(dio);
     await apiClient.initialize();
     
+    // Initialiser Stripe
+    await StripeService.initialize();
+    
     print('✅ Application initialized successfully');
+    print('✅ Environment variables loaded: ${EnvLoader.allEnvVars.length} variables');
   } catch (e) {
     print('❌ Error initializing application: $e');
     // Continuer même en cas d'erreur de sécurité

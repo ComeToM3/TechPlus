@@ -29,7 +29,9 @@
     "install:all": "npm install && cd backend && npm install && cd ../frontend && flutter pub get",
     "clean": "npm run clean:backend && npm run clean:frontend",
     "clean:backend": "cd backend && npm run clean",
-    "clean:frontend": "cd frontend && flutter clean"
+    "clean:frontend": "cd frontend && flutter clean",
+    "kill:3000": "netstat -tlnp 2>/dev/null | grep :3000 | awk '{print $7}' | cut -d'/' -f1 | grep -v '-' | sort -u | xargs -r kill -9",
+    "kill:port": "f(){ netstat -tlnp 2>/dev/null | grep \":$1\" | awk '{print $7}' | cut -d'/' -f1 | grep -v '-' | sort -u | xargs -r kill -9; }; f"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

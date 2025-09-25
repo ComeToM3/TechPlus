@@ -914,6 +914,330 @@
   "@tableManagement": {
     "description": "Gestion des Tables"
   },
+  "scheduleManagement": "Gestion des Créneaux",
+  "@scheduleManagement": {
+    "description": "Titre de la page de gestion des créneaux horaires"
+  },
+  "scheduleConfiguration": "Configuration des Créneaux",
+  "@scheduleConfiguration": {
+    "description": "Titre de la configuration des créneaux"
+  },
+  "scheduleConfigurationDescription": "Configurez les créneaux horaires de votre restaurant pour chaque jour de la semaine",
+  "@scheduleConfigurationDescription": {
+    "description": "Description de la configuration des créneaux"
+  },
+  "schedule": "Créneaux",
+  "@schedule": {
+    "description": "Onglet créneaux"
+  },
+  "settings": "Paramètres",
+  "@settings": {
+    "description": "Onglet paramètres"
+  },
+  "timeSlots": "Créneaux horaires",
+  "@timeSlots": {
+    "description": "Titre des créneaux horaires"
+  },
+  "addTimeSlot": "Ajouter un créneau",
+  "@addTimeSlot": {
+    "description": "Bouton pour ajouter un créneau"
+  },
+  "editTimeSlot": "Modifier le créneau",
+  "@editTimeSlot": {
+    "description": "Titre de modification d'un créneau"
+  },
+  "timeSlotCreated": "Créneau créé avec succès",
+  "@timeSlotCreated": {
+    "description": "Message de succès création créneau"
+  },
+  "timeSlotUpdated": "Créneau modifié avec succès",
+  "@timeSlotUpdated": {
+    "description": "Message de succès modification créneau"
+  },
+  "time": "Heure",
+  "@time": {
+    "description": "Champ heure"
+  },
+  "capacity": "Capacité",
+  "@capacity": {
+    "description": "Champ capacité"
+  },
+  "available": "Disponible",
+  "@available": {
+    "description": "Statut disponible"
+  },
+  "recommended": "Recommandé",
+  "@recommended": {
+    "description": "Statut recommandé"
+  },
+  "notes": "Notes",
+  "@notes": {
+    "description": "Champ notes"
+  },
+  "notesHint": "Notes internes pour l'équipe",
+  "@notesHint": {
+    "description": "Placeholder pour les notes"
+  },
+  "internalNotes": "Notes internes",
+  "@internalNotes": {
+    "description": "Label pour les notes internes"
+  },
+  "basicInformation": "Informations de base",
+  "@basicInformation": {
+    "description": "Titre section informations de base"
+  },
+  "slotConfiguration": "Configuration du créneau",
+  "@slotConfiguration": {
+    "description": "Titre section configuration créneau"
+  },
+  "durationSettings": "Paramètres de durée",
+  "@durationSettings": {
+    "description": "Titre section paramètres de durée"
+  },
+  "bookingSettings": "Paramètres de réservation",
+  "@bookingSettings": {
+    "description": "Titre section paramètres de réservation"
+  },
+  "bookingOptions": "Options de réservation",
+  "@bookingOptions": {
+    "description": "Titre section options de réservation"
+  },
+  "slotDuration": "Durée des créneaux",
+  "@slotDuration": {
+    "description": "Label durée des créneaux"
+  },
+  "slotDurationDescription": "Durée standard d'un créneau en minutes",
+  "@slotDurationDescription": {
+    "description": "Description durée des créneaux"
+  },
+  "bufferTime": "Temps de pause",
+  "@bufferTime": {
+    "description": "Label temps de pause"
+  },
+  "bufferTimeDescription": "Temps de pause entre les créneaux en minutes",
+  "@bufferTimeDescription": {
+    "description": "Description temps de pause"
+  },
+  "maxAdvanceBooking": "Réservation avancée max",
+  "@maxAdvanceBooking": {
+    "description": "Label réservation avancée maximale"
+  },
+  "maxAdvanceBookingDescription": "Nombre maximum de jours à l'avance pour réserver",
+  "@maxAdvanceBookingDescription": {
+    "description": "Description réservation avancée maximale"
+  },
+  "minAdvanceBooking": "Réservation minimale",
+  "@minAdvanceBooking": {
+    "description": "Label réservation minimale"
+  },
+  "minAdvanceBookingDescription": "Nombre minimum d'heures à l'avance pour réserver",
+  "@minAdvanceBookingDescription": {
+    "description": "Description réservation minimale"
+  },
+  "allowSameDayBooking": "Autoriser les réservations du jour",
+  "@allowSameDayBooking": {
+    "description": "Label autoriser réservations du jour"
+  },
+  "allowSameDayBookingDescription": "Permettre aux clients de réserver le jour même",
+  "@allowSameDayBookingDescription": {
+    "description": "Description autoriser réservations du jour"
+  },
+  "allowWeekendBooking": "Autoriser les réservations weekend",
+  "@allowWeekendBooking": {
+    "description": "Label autoriser réservations weekend"
+  },
+  "allowWeekendBookingDescription": "Permettre aux clients de réserver le weekend",
+  "@allowWeekendBookingDescription": {
+    "description": "Description autoriser réservations weekend"
+  },
+  "scheduleSaved": "Configuration sauvegardée",
+  "@scheduleSaved": {
+    "description": "Message de succès sauvegarde configuration"
+  },
+  "settingsSaved": "Paramètres sauvegardés",
+  "@settingsSaved": {
+    "description": "Message de succès sauvegarde paramètres"
+  },
+  "errorLoadingSchedule": "Erreur lors du chargement de la configuration",
+  "@errorLoadingSchedule": {
+    "description": "Message d'erreur chargement configuration"
+  },
+  "totalDays": "Jours total",
+  "@totalDays": {
+    "description": "Label jours total"
+  },
+  "openDays": "Jours ouverts",
+  "@openDays": {
+    "description": "Label jours ouverts"
+  },
+  "totalSlots": "Créneaux total",
+  "@totalSlots": {
+    "description": "Label créneaux total"
+  },
+  "active": "Actif",
+  "@active": {
+    "description": "Statut actif"
+  },
+  "inactive": "Inactif",
+  "@inactive": {
+    "description": "Statut inactif"
+  },
+  "copySchedule": "Copier la configuration",
+  "@copySchedule": {
+    "description": "Action copier configuration"
+  },
+  "resetSchedule": "Réinitialiser la configuration",
+  "@resetSchedule": {
+    "description": "Action réinitialiser configuration"
+  },
+  "resetScheduleConfirmation": "Êtes-vous sûr de vouloir réinitialiser la configuration ? Cette action est irréversible.",
+  "@resetScheduleConfirmation": {
+    "description": "Confirmation réinitialisation configuration"
+  },
+  "exportSchedule": "Exporter la configuration",
+  "@exportSchedule": {
+    "description": "Action exporter configuration"
+  },
+  "importSchedule": "Importer la configuration",
+  "@importSchedule": {
+    "description": "Action importer configuration"
+  },
+  "reset": "Réinitialiser",
+  "@reset": {
+    "description": "Bouton réinitialiser"
+  },
+  "invalidTimeFormat": "Format d'heure invalide (HH:MM)",
+  "@invalidTimeFormat": {
+    "description": "Message d'erreur format heure"
+  },
+  "invalidCapacity": "Capacité invalide",
+  "@invalidCapacity": {
+    "description": "Message d'erreur capacité invalide"
+  },
+  "capacityTooHigh": "Capacité trop élevée (max 100)",
+  "@capacityTooHigh": {
+    "description": "Message d'erreur capacité trop élevée"
+  },
+  "invalidValue": "Valeur invalide",
+  "@invalidValue": {
+    "description": "Message d'erreur valeur invalide"
+  },
+  "actions": "Actions",
+  "@actions": {
+    "description": "Label actions"
+  },
+  "all": "Tous",
+  "@all": {
+    "description": "Label tous"
+  },
+  "interactiveLayout": "Plan interactif",
+  "@interactiveLayout": {
+    "description": "Label plan interactif"
+  },
+  "viewMode": "Mode consultation",
+  "@viewMode": {
+    "description": "Label mode consultation"
+  },
+  "editMode": "Mode édition",
+  "@editMode": {
+    "description": "Label mode édition"
+  },
+  "resetView": "Réinitialiser la vue",
+  "@resetView": {
+    "description": "Label réinitialiser vue"
+  },
+  "addTable": "Ajouter une table",
+  "@addTable": {
+    "description": "Label ajouter table"
+  },
+  "entrance": "Entrée",
+  "@entrance": {
+    "description": "Label entrée"
+  },
+  "noPosition": "Aucune position",
+  "@noPosition": {
+    "description": "Label aucune position"
+  },
+  "reserved": "Réservée",
+  "@reserved": {
+    "description": "Statut réservée"
+  },
+  "maintenance": "Maintenance",
+  "@maintenance": {
+    "description": "Statut maintenance"
+  },
+  "outOfOrder": "Hors service",
+  "@outOfOrder": {
+    "description": "Statut hors service"
+  },
+  "today": "Aujourd'hui",
+  "@today": {
+    "description": "Label aujourd'hui"
+  },
+  "thisWeek": "Cette semaine",
+  "@thisWeek": {
+    "description": "Label cette semaine"
+  },
+  "thisMonth": "Ce mois",
+  "@thisMonth": {
+    "description": "Label ce mois"
+  },
+  "activeTables": "Tables actives",
+  "@activeTables": {
+    "description": "Label tables actives"
+  },
+  "tablePerformance": "Performance des tables",
+  "@tablePerformance": {
+    "description": "Titre performance tables"
+  },
+  "usageCharts": "Graphiques d'utilisation",
+  "@usageCharts": {
+    "description": "Titre graphiques utilisation"
+  },
+  "chartsDescription": "Visualisation des données d'utilisation des tables",
+  "@chartsDescription": {
+    "description": "Description graphiques"
+  },
+  "tableCreated": "Table créée avec succès",
+  "@tableCreated": {
+    "description": "Message succès création table"
+  },
+  "tableUpdated": "Table modifiée avec succès",
+  "@tableUpdated": {
+    "description": "Message succès modification table"
+  },
+  "tableNumber": "Numéro de table",
+  "@tableNumber": {
+    "description": "Label numéro table"
+  },
+  "invalidNumber": "Numéro invalide",
+  "@invalidNumber": {
+    "description": "Message erreur numéro invalide"
+  },
+  "position": "Position",
+  "@position": {
+    "description": "Label position"
+  },
+  "positionHint": "Ex: A1, B2, Terrasse",
+  "@positionHint": {
+    "description": "Placeholder position"
+  },
+  "statusAndConfiguration": "Statut et configuration",
+  "@statusAndConfiguration": {
+    "description": "Titre section statut"
+  },
+  "activeTable": "Table active",
+  "@activeTable": {
+    "description": "Label table active"
+  },
+  "availabilityStatus": "Statut de disponibilité",
+  "@availabilityStatus": {
+    "description": "Label statut disponibilité"
+  },
+  "create": "Créer",
+  "@create": {
+    "description": "Bouton créer"
+  },
   "createTable": "Créer une Table",
   "@createTable": {
     "description": "Créer une Table"

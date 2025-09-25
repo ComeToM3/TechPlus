@@ -1,4 +1,5 @@
 import '../../domain/entities/table_entity.dart';
+import '../../domain/entities/restaurant_layout_entity.dart';
 import '../../domain/repositories/table_repository.dart';
 import '../datasources/table_remote_datasource.dart';
 import '../datasources/table_local_datasource.dart';

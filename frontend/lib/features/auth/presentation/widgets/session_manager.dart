@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/auth_provider.dart';
+import '../../../../shared/providers/auth_provider.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/network/api_service_provider.dart';
 
 /// Widget pour gérer la session utilisateur
 class SessionManager extends ConsumerStatefulWidget {
@@ -16,9 +18,12 @@ class SessionManager extends ConsumerStatefulWidget {
 }
 
 class _SessionManagerState extends ConsumerState<SessionManager> {
+  late ApiService _apiService;
+  
   @override
   void initState() {
     super.initState();
+    _apiService = ref.read(apiServiceProvider);
     _initializeSession();
   }
 
@@ -39,10 +44,14 @@ class _SessionManagerState extends ConsumerState<SessionManager> {
   }
 
   void _validateToken() {
-    // TODO: Implémenter la validation du token
-    // Pour l'instant, on simule une validation
-    Future.delayed(const Duration(seconds: 1), () {
-      // Si le token est expiré, essayer de le rafraîchir
+    // Vérifier la validité du token via l'API
+    _apiService.validateToken().then((isValid) {
+      if (!isValid) {
+        // Si le token est expiré, essayer de le rafraîchir
+        _refreshTokenIfNeeded();
+      }
+    }).catchError((error) {
+      // En cas d'erreur, essayer de rafraîchir le token
       _refreshTokenIfNeeded();
     });
   }
@@ -58,11 +67,11 @@ class _SessionManagerState extends ConsumerState<SessionManager> {
   }
 
   void _scheduleTokenRefresh() {
-    // Rafraîchir le token toutes les 50 minutes (tokens JWT expirent généralement après 1h)
-    Future.delayed(const Duration(minutes: 50), () {
+    // Vérifier la validité du token toutes les 30 minutes
+    Future.delayed(const Duration(minutes: 30), () {
       if (mounted) {
-        ref.read(authProvider.notifier).refreshAccessToken();
-        _scheduleTokenRefresh(); // Programmer le prochain rafraîchissement
+        _validateToken();
+        _scheduleTokenRefresh(); // Programmer la prochaine vérification
       }
     });
   }

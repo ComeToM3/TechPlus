@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/table_entity.dart';
-import '../../domain/repositories/table_repository.dart';
+import '../../domain/entities/restaurant_layout_entity.dart';
 
 /// Data source local pour la gestion des tables
 class TableLocalDataSource {
