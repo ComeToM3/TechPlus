@@ -16,7 +16,7 @@ final menuRemoteDataSourceProvider = Provider<MenuRemoteDataSource>((ref) {
 
 /// Provider pour le data source local
 final menuLocalDataSourceProvider = Provider<MenuLocalDataSource>((ref) {
-  return const MenuLocalDataSource();
+  return MenuLocalDataSource();
 });
 
 /// Provider pour le repository

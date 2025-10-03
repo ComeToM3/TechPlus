@@ -124,7 +124,7 @@ class _MenuItemsListWidgetState extends ConsumerState<MenuItemsListWidget> {
             return DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: InputDecoration(
-                labelText: l10n.category,
+                labelText: 'Category',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

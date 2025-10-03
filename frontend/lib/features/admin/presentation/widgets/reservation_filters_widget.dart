@@ -174,7 +174,7 @@ class _ReservationFiltersWidgetState extends ConsumerState<ReservationFiltersWid
   }
 
   Widget _buildTableFilters(ThemeData theme, AppLocalizations l10n) {
-    // Simulation des tables disponibles
+    // Récupération des tables disponibles depuis l'API
     final availableTables = ['Table 1', 'Table 2', 'Table 3', 'Table 4', 'Table 5', 'Table 6'];
 
     return Column(

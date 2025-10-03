@@ -9,11 +9,13 @@ import '../../../../generated/l10n/app_localizations.dart';
 
 /// Widget principal pour la configuration des créneaux horaires
 class ScheduleConfigurationWidget extends ConsumerStatefulWidget {
+  final Map<String, dynamic>? config;
   final Function(ScheduleConfig)? onScheduleChanged;
   final Function(TimeSlotSettings)? onSettingsChanged;
 
   const ScheduleConfigurationWidget({
     super.key,
+    this.config,
     this.onScheduleChanged,
     this.onSettingsChanged,
   });
@@ -42,10 +44,15 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
   }
 
   void _loadScheduleConfig() {
-    // TODO: Charger depuis l'API
-    setState(() {
-      _scheduleConfig = _getDefaultScheduleConfig();
-    });
+    if (widget.config != null) {
+      setState(() {
+        _scheduleConfig = _convertApiDataToScheduleConfig(widget.config!);
+      });
+    } else {
+      setState(() {
+        _scheduleConfig = _getDefaultScheduleConfig();
+      });
+    }
   }
 
   ScheduleConfig _getDefaultScheduleConfig() {
@@ -487,8 +494,9 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
     });
 
     try {
-      // TODO: Sauvegarder via l'API
-      await Future.delayed(const Duration(seconds: 1)); // Simulation
+      if (widget.onScheduleChanged != null && _scheduleConfig != null) {
+        await widget.onScheduleChanged!(_scheduleConfig!);
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -514,6 +522,55 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
         });
       }
     }
+  }
+
+  /// Convertit les données de l'API en ScheduleConfig
+  ScheduleConfig _convertApiDataToScheduleConfig(Map<String, dynamic> apiData) {
+    final daySchedules = <DaySchedule>[];
+    
+    if (apiData['daySchedules'] != null) {
+      for (final dayData in apiData['daySchedules']) {
+        final timeSlots = <TimeSlot>[];
+        
+        if (dayData['timeSlots'] != null) {
+          for (final slotData in dayData['timeSlots']) {
+            timeSlots.add(TimeSlot(
+              time: slotData['time'] ?? '',
+              isAvailable: slotData['isAvailable'] ?? true,
+              capacity: slotData['capacity'] ?? 20,
+              isRecommended: slotData['isRecommended'] ?? false,
+            ));
+          }
+        }
+        
+        daySchedules.add(DaySchedule(
+          dayOfWeek: dayData['dayOfWeek'] ?? '',
+          isOpen: dayData['isOpen'] ?? true,
+          notes: dayData['notes'],
+          timeSlots: timeSlots,
+        ));
+      }
+    }
+
+    return ScheduleConfig(
+      id: apiData['id'] ?? '',
+      restaurantId: apiData['restaurantId'] ?? '',
+      daySchedules: daySchedules,
+      timeSlotSettings: TimeSlotSettings(
+        slotDurationMinutes: apiData['slotDurationMinutes'] ?? 30,
+        bufferTimeMinutes: apiData['bufferTimeMinutes'] ?? 15,
+        maxAdvanceBookingDays: apiData['maxAdvanceBookingDays'] ?? 30,
+        minAdvanceBookingHours: apiData['minAdvanceBookingHours'] ?? 2,
+        allowSameDayBooking: apiData['allowSameDayBooking'] ?? true,
+        allowWeekendBooking: apiData['allowWeekendBooking'] ?? true,
+      ),
+      createdAt: apiData['createdAt'] != null 
+          ? DateTime.parse(apiData['createdAt']) 
+          : DateTime.now(),
+      updatedAt: apiData['updatedAt'] != null 
+          ? DateTime.parse(apiData['updatedAt']) 
+          : DateTime.now(),
+    );
   }
 
   void _showDurationDialog(TimeSlotSettings settings) {

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/entities/dashboard_metrics.dart';
-import '../providers/dashboard_provider.dart';
-import '../widgets/metrics_card.dart';
-import '../widgets/today_reservations_widget.dart';
-import '../widgets/occupancy_rate_widget.dart';
-import '../widgets/revenue_widget.dart';
-import '../widgets/top_tables_widget.dart';
-import '../../../../shared/widgets/buttons/simple_button.dart';
-import '../../../../shared/animations/animated_widget.dart';
-import '../../../../shared/animations/animation_constants.dart';
+
+import '../../data/providers/dashboard_provider.dart';
+import '../../data/models/dashboard_metrics_model.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 
-/// Page principale du dashboard admin
+import 'reservation_management_page.dart';
+import 'table_management_page.dart';
+import 'schedule_management_page.dart';
+import 'analytics_page.dart';
+import 'reports_page.dart';
+import 'menu_management_page.dart';
+
+/// Dashboard principal moderne et responsive pour l'administration
 class AdminDashboardPage extends ConsumerStatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -21,292 +21,698 @@ class AdminDashboardPage extends ConsumerStatefulWidget {
   ConsumerState<AdminDashboardPage> createState() => _AdminDashboardPageState();
 }
 
-class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
+class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  int _selectedTabIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    // Charger les métriques au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(dashboardProvider.notifier).loadDashboardMetrics();
+    _tabController = TabController(length: 7, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        _selectedTabIndex = _tabController.index;
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final dashboardState = ref.watch(dashboardProvider);
-    final dashboardNotifier = ref.read(dashboardProvider.notifier);
+    final metricsState = ref.watch(dashboardProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.adminDashboard),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => dashboardNotifier.refreshMetrics(),
-            tooltip: l10n.refresh,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.go('/admin/settings'),
-            tooltip: l10n.settings,
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => dashboardNotifier.refreshMetrics(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // En-tête avec actions rapides
-              _buildHeader(context, l10n),
-              const SizedBox(height: 24),
-              
-              // Gestion des états
-              if (dashboardState.isLoading)
-                _buildLoadingState(theme)
-              else if (dashboardState.errorMessage != null)
-                _buildErrorState(theme, dashboardState.errorMessage!, l10n)
-              else if (dashboardState.metrics != null)
-                _buildDashboardContent(context, dashboardState.metrics!, l10n)
-              else
-                _buildEmptyState(theme, l10n),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    
-    return CustomAnimatedWidget(
-      config: AnimationConfig(
-        type: AnimationType.slideInFromBottom,
-        duration: AnimationConstants.normal,
-        curve: AnimationConstants.easeOut,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary,
-              theme.colorScheme.primaryContainer,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.welcomeBack,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.dashboardOverview,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onPrimary.withOpacity(0.9),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: _buildAppBar(theme, l10n),
+      drawer: _buildDrawer(theme, l10n),
+      body: Row(
+        children: [
+          // Sidebar pour desktop
+          if (MediaQuery.of(context).size.width > 768)
+            _buildDesktopSidebar(theme, l10n),
+          
+          // Contenu principal
+          Expanded(
+            child: Column(
               children: [
+                // Header avec métriques rapides
+                _buildMetricsHeader(theme, l10n, metricsState),
+                
+                // Contenu des onglets
                 Expanded(
-                  child: SimpleButton(
-                    onPressed: () => context.go('/admin/reservations/new'),
-                    text: l10n.newReservation,
-                    type: ButtonType.outline,
-                    size: ButtonSize.medium,
-                    isFullWidth: true,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SimpleButton(
-                    onPressed: () => context.go('/admin/reservations'),
-                    text: l10n.viewReservations,
-                    type: ButtonType.primary,
-                    size: ButtonSize.medium,
-                    isFullWidth: true,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOverviewTab(theme, l10n, metricsState),
+                      const ReservationManagementPage(),
+                      const TableManagementPage(),
+                      const ScheduleManagementPage(),
+                      const MenuManagementPage(),
+                      const AnalyticsPage(),
+                      const ReportsPage(),
+                    ],
                   ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(ThemeData theme, AppLocalizations l10n) {
+    return AppBar(
+      title: Row(
+        children: [
+          Icon(
+            Icons.restaurant,
+            color: theme.colorScheme.primary,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'TechPlus Admin',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: theme.colorScheme.surface,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      actions: [
+        // Bouton de notification
+        IconButton(
+          icon: Stack(
+            children: [
+              const Icon(Icons.notifications_outlined),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 12,
+                    minHeight: 12,
+                  ),
+                  child: const Text(
+                    '3',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          onPressed: () {},
+        ),
+        
+        // Bouton de profil
+        PopupMenuButton<String>(
+          icon: CircleAvatar(
+            backgroundColor: theme.colorScheme.primary,
+            child: const Icon(Icons.person, color: Colors.white),
+          ),
+          onSelected: (value) {
+            switch (value) {
+              case 'profile':
+                // Navigation vers profil
+                break;
+              case 'settings':
+                context.go('/admin/dashboard/settings');
+                break;
+              case 'logout':
+                // Logout logic
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'profile',
+              child: Row(
+                children: [
+                  Icon(Icons.person),
+                  SizedBox(width: 8),
+                  Text('Profil'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'settings',
+              child: Row(
+                children: [
+                  Icon(Icons.settings),
+                  SizedBox(width: 8),
+                  Text('Paramètres'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  Icon(Icons.logout),
+                  SizedBox(width: 8),
+                  Text('Déconnexion'),
+                ],
+              ),
+            ),
           ],
+        ),
+        
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Widget _buildDrawer(ThemeData theme, AppLocalizations l10n) {
+    return Drawer(
+      child: Column(
+        children: [
+          // Header du drawer
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withValues(alpha: 0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.restaurant,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TechPlus',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Administration',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          // Menu items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  theme,
+                  Icons.dashboard,
+                  'Tableau de bord',
+                  () => _tabController.animateTo(0),
+                  isSelected: _selectedTabIndex == 0,
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.restaurant_menu,
+                  'Réservations',
+                  () => _tabController.animateTo(1),
+                  isSelected: _selectedTabIndex == 1,
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.table_restaurant,
+                  'Gestion des tables',
+                  () => _tabController.animateTo(2),
+                  isSelected: _selectedTabIndex == 2,
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.schedule,
+                  'Horaires',
+                  () => _tabController.animateTo(3),
+                  isSelected: _selectedTabIndex == 3,
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.menu_book,
+                  'Menu',
+                  () => _tabController.animateTo(4),
+                  isSelected: _selectedTabIndex == 4,
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.analytics,
+                  'Analytiques',
+                  () => _tabController.animateTo(5),
+                  isSelected: _selectedTabIndex == 5,
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.assessment,
+                  'Rapports',
+                  () => _tabController.animateTo(6),
+                  isSelected: _selectedTabIndex == 6,
+                ),
+                const Divider(),
+                _buildDrawerItem(
+                  theme,
+                  Icons.settings,
+                  'Paramètres',
+                  () => context.go('/admin/dashboard/settings'),
+                ),
+                _buildDrawerItem(
+                  theme,
+                  Icons.help,
+                  'Aide',
+                  () {},
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    ThemeData theme,
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isSelected = false,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected 
+            ? theme.colorScheme.primary 
+            : theme.colorScheme.onSurfaceVariant,
+      ),
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: isSelected 
+              ? theme.colorScheme.primary 
+              : theme.colorScheme.onSurface,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+      selected: isSelected,
+      selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildDesktopSidebar(ThemeData theme, AppLocalizations l10n) {
+    return Container(
+      width: 280,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          right: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withValues(alpha: 0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    Icons.restaurant,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TechPlus',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Administration',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Navigation
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [
+                _buildSidebarItem(
+                  theme,
+                  Icons.dashboard,
+                  'Tableau de bord',
+                  () => _tabController.animateTo(0),
+                  isSelected: _selectedTabIndex == 0,
+                ),
+                _buildSidebarItem(
+                  theme,
+                  Icons.restaurant_menu,
+                  'Réservations',
+                  () => _tabController.animateTo(1),
+                  isSelected: _selectedTabIndex == 1,
+                ),
+                _buildSidebarItem(
+                  theme,
+                  Icons.table_restaurant,
+                  'Gestion des tables',
+                  () => _tabController.animateTo(2),
+                  isSelected: _selectedTabIndex == 2,
+                ),
+                _buildSidebarItem(
+                  theme,
+                  Icons.schedule,
+                  'Horaires',
+                  () => _tabController.animateTo(3),
+                  isSelected: _selectedTabIndex == 3,
+                ),
+                _buildSidebarItem(
+                  theme,
+                  Icons.menu_book,
+                  'Menu',
+                  () => _tabController.animateTo(4),
+                  isSelected: _selectedTabIndex == 4,
+                ),
+                _buildSidebarItem(
+                  theme,
+                  Icons.analytics,
+                  'Analytiques',
+                  () => _tabController.animateTo(5),
+                  isSelected: _selectedTabIndex == 5,
+                ),
+                _buildSidebarItem(
+                  theme,
+                  Icons.assessment,
+                  'Rapports',
+                  () => _tabController.animateTo(6),
+                  isSelected: _selectedTabIndex == 6,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarItem(
+    ThemeData theme,
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isSelected = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: isSelected 
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isSelected 
+              ? theme.colorScheme.primary 
+              : theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        title: Text(
+          title,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: isSelected 
+                ? theme.colorScheme.primary 
+                : theme.colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     );
   }
 
-  Widget _buildLoadingState(ThemeData theme) {
-    return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 100),
-          CircularProgressIndicator(
-            color: theme.colorScheme.primary,
+  Widget _buildMetricsHeader(ThemeData theme, AppLocalizations l10n, DashboardState metricsState) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+            width: 1,
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Chargement des métriques...',
-            style: theme.textTheme.bodyLarge,
-          ),
-        ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildErrorState(ThemeData theme, String error, AppLocalizations l10n) {
-    return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 100),
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.errorLoadingData,
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+      child: metricsState.isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : metricsState.error != null
+              ? Text('Erreur: ${metricsState.error}')
+              : metricsState.metrics != null
+                  ? Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                theme,
+                'Réservations aujourd\'hui',
+                metricsState.metrics!.todayReservations.toString(),
+                Icons.restaurant_menu,
+                Colors.blue,
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          SimpleButton(
-            onPressed: () => ref.read(dashboardProvider.notifier).refreshMetrics(),
-            text: l10n.retry,
-            type: ButtonType.primary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
-    return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 100),
-          Icon(
-            Icons.dashboard_outlined,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.noDataAvailable,
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.noDataDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMetricCard(
+                theme,
+                'Revenus aujourd\'hui',
+                '${metricsState.metrics!.todayRevenue.toStringAsFixed(2)}\$',
+                Icons.attach_money,
+                Colors.green,
+              ),
             ),
-            textAlign: TextAlign.center,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMetricCard(
+                theme,
+                'Tables occupées',
+                '${metricsState.metrics!.occupiedTables}/${metricsState.metrics!.totalTables}',
+                Icons.table_restaurant,
+                Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMetricCard(
+                theme,
+                'Taux d\'occupation',
+                '${(metricsState.metrics!.occupancyRate * 100).toStringAsFixed(1)}%',
+                Icons.trending_up,
+                Colors.purple,
+              ),
+            ),
+          ],
+        )
+                  : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildMetricCard(ThemeData theme, String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDashboardContent(BuildContext context, DashboardMetrics metrics, AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Métriques principales
-        _buildMainMetrics(metrics, l10n),
-        const SizedBox(height: 24),
-        
-        // Widgets détaillés
-        _buildDetailedWidgets(context, metrics, l10n),
-        const SizedBox(height: 24),
-        
-        // Graphiques et tendances
-        _buildChartsSection(context, metrics, l10n),
-        const SizedBox(height: 24),
-        
-        // Occupation des tables
-        _buildTableOccupancySection(context, metrics, l10n),
-      ],
-    );
-  }
-
-  Widget _buildMainMetrics(DashboardMetrics metrics, AppLocalizations l10n) {
-    return CustomAnimatedWidget(
-      config: AnimationConfig(
-        type: AnimationType.scaleIn,
-        duration: AnimationConstants.normal,
-        curve: AnimationConstants.easeOut,
-      ),
+  Widget _buildOverviewTab(ThemeData theme, AppLocalizations l10n, DashboardState metricsState) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Titre de section
           Text(
-            l10n.mainMetrics,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            'Vue d\'ensemble',
+            style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+          
+          // Grille de cartes d'action
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
+            crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 4 : 
+                          MediaQuery.of(context).size.width > 768 ? 3 : 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 1.5,
+            childAspectRatio: 1.2,
             children: [
-              ReservationMetricsCard(
-                count: metrics.todayReservations,
-                label: l10n.todayReservations,
-                icon: Icons.today,
-                color: Colors.blue,
-                onTap: () => context.go('/admin/reservations?filter=today'),
+              _buildActionCard(
+                theme,
+                'Nouvelle réservation',
+                Icons.add_circle_outline,
+                Colors.blue,
+                () => context.go('/admin/dashboard/reservations/create'),
               ),
-              RevenueMetricsCard(
-                amount: metrics.todayRevenue,
-                label: l10n.todayRevenue,
-                icon: Icons.euro,
-                color: Colors.green,
-                onTap: () => context.go('/admin/analytics/revenue'),
+              _buildActionCard(
+                theme,
+                'Gérer les tables',
+                Icons.table_restaurant,
+                Colors.green,
+                () => _tabController.animateTo(2),
               ),
-              OccupancyMetricsCard(
-                occupied: metrics.occupiedTables,
-                total: metrics.totalTables,
-                label: l10n.tableOccupancy,
-                icon: Icons.table_restaurant,
-                color: Colors.orange,
-                onTap: () => context.go('/admin/tables'),
+              _buildActionCard(
+                theme,
+                'Modifier les horaires',
+                Icons.schedule,
+                Colors.orange,
+                () => _tabController.animateTo(3),
               ),
-              ReservationMetricsCard(
-                count: metrics.pendingReservations,
-                label: l10n.pendingReservations,
-                icon: Icons.pending,
-                color: Colors.amber,
-                onTap: () => context.go('/admin/reservations?filter=pending'),
+              _buildActionCard(
+                theme,
+                'Gérer le menu',
+                Icons.menu_book,
+                Colors.purple,
+                () => _tabController.animateTo(4),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Graphiques et statistiques
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: _buildChartCard(theme, 'Réservations récentes'),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildStatsCard(theme, l10n, metricsState),
               ),
             ],
           ),
@@ -315,86 +721,73 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
     );
   }
 
-  Widget _buildDetailedWidgets(BuildContext context, DashboardMetrics metrics, AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.detailedMetrics,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+  Widget _buildActionCard(ThemeData theme, String title, IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
-        const SizedBox(height: 16),
-        
-        // Première ligne : Réservations du jour et Taux d'occupation
-        Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: TodayReservationsWidget(
-                metrics: metrics,
-                onViewAll: () => context.go('/admin/reservations?filter=today'),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: OccupancyRateWidget(
-                metrics: metrics,
-                onViewAll: () => context.go('/admin/tables'),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-        
-        const SizedBox(height: 16),
-        
-        // Deuxième ligne : Revenus et Top Tables
-        Row(
-          children: [
-            Expanded(
-              child: RevenueWidget(
-                metrics: metrics,
-                onViewAll: () => context.go('/admin/analytics/revenue'),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TopTablesWidget(
-                metrics: metrics,
-                onViewAll: () => context.go('/admin/tables'),
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildChartsSection(BuildContext context, DashboardMetrics metrics, AppLocalizations l10n) {
-    return CustomAnimatedWidget(
-      config: AnimationConfig(
-        type: AnimationType.scaleIn,
-        duration: AnimationConstants.normal,
-        curve: AnimationConstants.easeOut,
+  Widget _buildChartCard(ThemeData theme, String title) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l10n.trendsAndAnalytics,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            title,
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
-          // Placeholder pour les graphiques
+          const SizedBox(height: 20),
+          // Placeholder pour le graphique
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
             child: Center(
@@ -404,13 +797,13 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                   Icon(
                     Icons.bar_chart,
                     size: 48,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.chartsComingSoon,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    'Graphique des réservations',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -422,62 +815,63 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
     );
   }
 
-  Widget _buildTableOccupancySection(BuildContext context, DashboardMetrics metrics, AppLocalizations l10n) {
-    return CustomAnimatedWidget(
-      config: AnimationConfig(
-        type: AnimationType.slideInFromBottom,
-        duration: AnimationConstants.normal,
-        curve: AnimationConstants.easeOut,
+  Widget _buildStatsCard(ThemeData theme, AppLocalizations l10n, DashboardState metricsState) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.tableStatus,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SimpleButton(
-                onPressed: () => context.go('/admin/tables'),
-                text: l10n.viewAll,
-                type: ButtonType.outline,
-                size: ButtonSize.small,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Placeholder pour l'occupation des tables
-          Container(
-            height: 150,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-              ),
+          Text(
+            'Statistiques',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.table_restaurant,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.tableMapComingSoon,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(height: 20),
+          metricsState.isLoading 
+              ? const CircularProgressIndicator()
+              : metricsState.error != null
+                  ? Text('Erreur: ${metricsState.error}')
+                  : metricsState.metrics != null
+                      ? Column(
+                          children: [
+                            _buildStatRow(theme, 'Réservations totales', metricsState.metrics!.totalReservations.toString()),
+                            _buildStatRow(theme, 'Revenus totaux', '${metricsState.metrics!.totalRevenue.toStringAsFixed(2)}\$'),
+                            _buildStatRow(theme, 'Tables disponibles', (metricsState.metrics!.totalTables - metricsState.metrics!.occupiedTables).toString()),
+                            _buildStatRow(theme, 'Taux d\'occupation', '${(metricsState.metrics!.occupancyRate * 100).toStringAsFixed(1)}%'),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(ThemeData theme, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ],

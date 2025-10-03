@@ -455,13 +455,13 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
                   data: (stats) {
                     return Column(
                       children: [
-                        _buildStatRow(theme, l10n.totalItems, stats.totalItems.toString()),
-                        _buildStatRow(theme, l10n.availableItems, stats.availableItems.toString()),
-                        _buildStatRow(theme, l10n.unavailableItems, stats.unavailableItems.toString()),
-                        _buildStatRow(theme, l10n.totalCategories, stats.totalCategories.toString()),
-                        _buildStatRow(theme, l10n.averagePrice, '${stats.averagePrice.toStringAsFixed(2)}€'),
+                        _buildStatRow(theme, 'Total Items', stats.totalItems.toString()),
+                        _buildStatRow(theme, 'Available Items', stats.availableItems.toString()),
+                        _buildStatRow(theme, 'Unavailable Items', stats.unavailableItems.toString()),
+                        _buildStatRow(theme, 'Total Categories', stats.totalCategories.toString()),
+                        _buildStatRow(theme, 'Average Price', '${stats.averagePrice.toStringAsFixed(2)}€'),
                         _buildStatRow(theme, l10n.totalRevenue, '${stats.totalRevenue.toStringAsFixed(2)}€'),
-                        _buildStatRow(theme, l10n.totalOrders, stats.totalOrders.toString()),
+                        _buildStatRow(theme, 'Total Orders', stats.totalOrders.toString()),
                       ],
                     );
                   },
@@ -511,7 +511,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
                       itemCount: items.length,
                       itemBuilder: (context, index) {
                         final item = items[index];
-                        return _buildPopularItemCard(theme, l10n, item);
+                        return _buildPopularItemCard(theme, l10n, item as Map<String, dynamic>);
                       },
                     );
                   },
@@ -561,7 +561,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
                         final category = categories[index];
-                        return _buildPopularCategoryCard(theme, l10n, category);
+                        return _buildPopularCategoryCard(theme, l10n, category as Map<String, dynamic>);
                       },
                     );
                   },
@@ -599,7 +599,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
     );
   }
 
-  Widget _buildPopularItemCard(ThemeData theme, AppLocalizations l10n, PopularMenuItem item) {
+  Widget _buildPopularItemCard(ThemeData theme, AppLocalizations l10n, Map<String, dynamic> item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -613,15 +613,15 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              item.name,
+            child:         Text(
+          item['name'] ?? 'Unknown',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          Text(
-            '${item.orderCount} commandes',
+            Text(
+              '${item['orderCount'] ?? 0} commandes',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -631,7 +631,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
     );
   }
 
-  Widget _buildPopularCategoryCard(ThemeData theme, AppLocalizations l10n, PopularCategory category) {
+  Widget _buildPopularCategoryCard(ThemeData theme, AppLocalizations l10n, Map<String, dynamic> category) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -646,14 +646,14 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
         children: [
           Expanded(
             child: Text(
-              category.name,
+              category['name'] ?? 'Unknown',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           Text(
-            '${category.itemCount} articles',
+            '${category['itemCount'] ?? 0} articles',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

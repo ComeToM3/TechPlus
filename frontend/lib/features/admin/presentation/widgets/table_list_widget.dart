@@ -136,35 +136,28 @@ class _TableListWidgetState extends ConsumerState<TableListWidget> {
   Widget _buildTablesList(ThemeData theme, AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
-        final tablesAsync = ref.watch(tablesProvider);
-        final actionsState = ref.watch(tableActionsProvider);
+        final tables = ref.watch(tablesProvider);
 
-        return tablesAsync.when(
-          data: (tables) {
-            final filteredTables = _filterTables(tables);
-            
-            if (filteredTables.isEmpty) {
-              return _buildEmptyState(theme, l10n);
-            }
+        final filteredTables = _filterTables(tables);
+        
+        if (filteredTables.isEmpty) {
+          return _buildEmptyState(theme, l10n);
+        }
 
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filteredTables.length,
-              itemBuilder: (context, index) {
-                final table = filteredTables[index];
-                return _buildTableCard(theme, l10n, table, actionsState);
-              },
-            );
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: filteredTables.length,
+          itemBuilder: (context, index) {
+            final table = filteredTables[index];
+            return _buildTableCard(theme, l10n, table);
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => _buildErrorState(theme, l10n, error.toString()),
         );
       },
     );
   }
 
-  Widget _buildTableCard(ThemeData theme, AppLocalizations l10n, TableEntity table, TableActionsState actionsState) {
+  Widget _buildTableCard(ThemeData theme, AppLocalizations l10n, TableEntity table) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: BentoCard(
@@ -247,7 +240,7 @@ class _TableListWidgetState extends ConsumerState<TableListWidget> {
               // Actions
               if (widget.showActions) ...[
                 const SizedBox(height: 12),
-                _buildTableActions(theme, l10n, table, actionsState),
+                _buildTableActions(theme, l10n, table),
               ],
             ],
           ),
@@ -288,7 +281,7 @@ class _TableListWidgetState extends ConsumerState<TableListWidget> {
     );
   }
 
-  Widget _buildTableActions(ThemeData theme, AppLocalizations l10n, TableEntity table, TableActionsState actionsState) {
+  Widget _buildTableActions(ThemeData theme, AppLocalizations l10n, TableEntity table) {
     return Row(
       children: [
         Expanded(
@@ -298,7 +291,7 @@ class _TableListWidgetState extends ConsumerState<TableListWidget> {
             type: ButtonType.secondary,
             size: ButtonSize.small,
             icon: Icons.edit,
-            isLoading: actionsState.isUpdating,
+            isLoading: false,
           ),
         ),
         const SizedBox(width: 8),
@@ -309,7 +302,7 @@ class _TableListWidgetState extends ConsumerState<TableListWidget> {
             type: ButtonType.danger,
             size: ButtonSize.small,
             icon: Icons.delete,
-            isLoading: actionsState.isDeleting,
+            isLoading: false,
           ),
         ),
       ],
@@ -348,35 +341,6 @@ class _TableListWidgetState extends ConsumerState<TableListWidget> {
     );
   }
 
-  Widget _buildErrorState(ThemeData theme, AppLocalizations l10n, String error) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.errorLoadingTables,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 
   List<TableEntity> _filterTables(List<TableEntity> tables) {
     var filtered = tables;

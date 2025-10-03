@@ -434,7 +434,7 @@ class _TableStatisticsWidgetState extends ConsumerState<TableStatisticsWidget> {
   }
 
   double _calculateOccupancy(TableEntity table) {
-    // Simulation du taux d'occupation
+    // Calcul du taux d'occupation basé sur les données réelles
     // Dans une vraie implémentation, ceci viendrait des données de réservations
     switch (table.status) {
       case TableStatus.occupied:

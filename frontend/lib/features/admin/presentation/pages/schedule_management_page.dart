@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../widgets/schedule_configuration_widget.dart';
-import '../widgets/time_slot_editor_widget.dart';
-import '../widgets/schedule_settings_widget.dart';
 import '../../domain/entities/schedule_entity.dart';
+import '../../data/providers/schedule_provider.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
+import '../../../../shared/providers/auth_provider.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 
 /// Page de gestion des créneaux horaires
@@ -20,9 +19,6 @@ class ScheduleManagementPage extends ConsumerStatefulWidget {
 }
 
 class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage> {
-  bool _isLoading = false;
-  ScheduleConfig? _scheduleConfig;
-
   @override
   void initState() {
     super.initState();
@@ -30,32 +26,11 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
   }
 
   Future<void> _loadScheduleConfig() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // TODO: Charger depuis l'API
-      await Future.delayed(const Duration(seconds: 1)); // Simulation
-      
-      setState(() {
-        _scheduleConfig = _getDefaultScheduleConfig();
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du chargement: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      await ref.read(scheduleProvider.notifier).loadScheduleConfig(
+        token: authState.accessToken!,
+      );
     }
   }
 
@@ -120,6 +95,8 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final scheduleState = ref.watch(scheduleProvider);
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -129,7 +106,11 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: _loadScheduleConfig,
+            onPressed: () {
+              if (authState.accessToken != null) {
+                _loadScheduleConfig();
+              }
+            },
             icon: const Icon(Icons.refresh),
             tooltip: l10n.refresh,
           ),
@@ -140,15 +121,17 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
           ),
         ],
       ),
-      body: _isLoading
+      body: scheduleState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _scheduleConfig == null
-              ? _buildErrorState(theme, l10n)
-              : _buildContent(theme, l10n),
+          : scheduleState.error != null
+              ? _buildErrorState(theme, l10n, scheduleState.error!)
+              : scheduleState.config != null
+                  ? _buildContent(theme, l10n, scheduleState.config!)
+                  : _buildEmptyState(theme, l10n),
     );
   }
 
-  Widget _buildErrorState(ThemeData theme, AppLocalizations l10n) {
+  Widget _buildErrorState(ThemeData theme, AppLocalizations l10n, String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -165,6 +148,14 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
               color: theme.colorScheme.error,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
           SimpleButton(
             onPressed: _loadScheduleConfig,
@@ -176,7 +167,39 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     );
   }
 
-  Widget _buildContent(ThemeData theme, AppLocalizations l10n) {
+  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.schedule,
+            size: 64,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Aucune configuration trouvée',
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Créez une nouvelle configuration d\'horaires',
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          SimpleButton(
+            onPressed: _loadScheduleConfig,
+            text: 'Charger la configuration',
+            type: ButtonType.primary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(ThemeData theme, AppLocalizations l10n, Map<String, dynamic> config) {
     return CustomAnimatedWidget(
       config: AnimationConfig(
         type: AnimationType.fadeIn,
@@ -186,12 +209,13 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
       child: Column(
         children: [
           // En-tête avec informations
-          _buildHeader(theme, l10n),
+          _buildHeader(theme, l10n, config),
           const SizedBox(height: 16),
 
           // Contenu principal
           Expanded(
             child: ScheduleConfigurationWidget(
+              config: config,
               onScheduleChanged: _handleScheduleChanged,
               onSettingsChanged: _handleSettingsChanged,
             ),
@@ -201,7 +225,12 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     );
   }
 
-  Widget _buildHeader(ThemeData theme, AppLocalizations l10n) {
+  Widget _buildHeader(ThemeData theme, AppLocalizations l10n, Map<String, dynamic> config) {
+    final daySchedules = config['daySchedules'] as List<dynamic>? ?? [];
+    final totalDays = daySchedules.length;
+    final openDays = daySchedules.where((d) => d['isOpen'] == true).length;
+    final totalSlots = daySchedules.fold(0, (sum, d) => sum + (d['timeSlots'] as List<dynamic>? ?? []).length);
+    
     return BentoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +250,7 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
                   ),
                 ),
               ),
-              _buildStatusChip(theme, l10n),
+              _buildStatusChip(theme, l10n, openDays),
             ],
           ),
           const SizedBox(height: 16),
@@ -234,11 +263,11 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
           const SizedBox(height: 16),
           Row(
             children: [
-            _buildInfoItem(theme, l10n, l10n.totalDays, '${_scheduleConfig!.daySchedules.length}'),
+            _buildInfoItem(theme, l10n, l10n.totalDays, '$totalDays'),
             const SizedBox(width: 24),
-            _buildInfoItem(theme, l10n, l10n.openDays, '${_scheduleConfig!.daySchedules.where((d) => d.isOpen).length}'),
+            _buildInfoItem(theme, l10n, l10n.openDays, '$openDays'),
             const SizedBox(width: 24),
-            _buildInfoItem(theme, l10n, l10n.totalSlots, '${_scheduleConfig!.daySchedules.fold(0, (sum, d) => sum + d.timeSlots.length)}'),
+            _buildInfoItem(theme, l10n, l10n.totalSlots, '$totalSlots'),
             ],
           ),
         ],
@@ -246,8 +275,7 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     );
   }
 
-  Widget _buildStatusChip(ThemeData theme, AppLocalizations l10n) {
-    final openDays = _scheduleConfig!.daySchedules.where((d) => d.isOpen).length;
+  Widget _buildStatusChip(ThemeData theme, AppLocalizations l10n, int openDays) {
     final isActive = openDays > 0;
     
     return Container(
@@ -304,16 +332,99 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     );
   }
 
-  void _handleScheduleChanged(ScheduleConfig newSchedule) {
-    setState(() {
-      _scheduleConfig = newSchedule;
-    });
+  Future<void> _handleScheduleChanged(ScheduleConfig newSchedule) async {
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        // Convertir ScheduleConfig en Map pour l'API
+        final scheduleData = {
+          'slotDurationMinutes': newSchedule.timeSlotSettings.slotDurationMinutes,
+          'bufferTimeMinutes': newSchedule.timeSlotSettings.bufferTimeMinutes,
+          'maxAdvanceBookingDays': newSchedule.timeSlotSettings.maxAdvanceBookingDays,
+          'minAdvanceBookingHours': newSchedule.timeSlotSettings.minAdvanceBookingHours,
+          'allowSameDayBooking': newSchedule.timeSlotSettings.allowSameDayBooking,
+          'allowWeekendBooking': newSchedule.timeSlotSettings.allowWeekendBooking,
+          'daySchedules': newSchedule.daySchedules.map((day) => {
+            'dayOfWeek': day.dayOfWeek,
+            'isOpen': day.isOpen,
+            'notes': day.notes,
+            'timeSlots': day.timeSlots.map((slot) => {
+              'time': slot.time,
+              'isAvailable': slot.isAvailable,
+              'capacity': slot.capacity,
+              'isRecommended': slot.isRecommended,
+            }).toList(),
+          }).toList(),
+        };
+
+        await ref.read(scheduleProvider.notifier).updateScheduleConfig(
+          token: authState.accessToken!,
+          scheduleData: scheduleData,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Configuration sauvegardée avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors de la sauvegarde: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
-  void _handleSettingsChanged(TimeSlotSettings newSettings) {
-    setState(() {
-      _scheduleConfig = _scheduleConfig!.copyWith(timeSlotSettings: newSettings);
-    });
+  Future<void> _handleSettingsChanged(TimeSlotSettings newSettings) async {
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        // Récupérer la configuration actuelle
+        final currentConfig = ref.read(scheduleProvider).config;
+        if (currentConfig != null) {
+          final scheduleData = {
+            ...currentConfig,
+            'slotDurationMinutes': newSettings.slotDurationMinutes,
+            'bufferTimeMinutes': newSettings.bufferTimeMinutes,
+            'maxAdvanceBookingDays': newSettings.maxAdvanceBookingDays,
+            'minAdvanceBookingHours': newSettings.minAdvanceBookingHours,
+            'allowSameDayBooking': newSettings.allowSameDayBooking,
+            'allowWeekendBooking': newSettings.allowWeekendBooking,
+          };
+
+          await ref.read(scheduleProvider.notifier).updateScheduleConfig(
+            token: authState.accessToken!,
+            scheduleData: scheduleData,
+          );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Paramètres sauvegardés avec succès'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors de la sauvegarde: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   void _showQuickActions() {

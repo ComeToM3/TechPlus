@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../widgets/table_list_widget.dart';
-import '../widgets/restaurant_layout_widget.dart';
-import '../widgets/interactive_restaurant_layout_widget.dart';
-import '../widgets/table_statistics_widget.dart';
-import '../widgets/table_form_widget.dart';
+
+import '../../data/providers/table_provider.dart' as data;
 import '../../domain/entities/table_entity.dart';
-import '../providers/table_provider.dart';
-import '../../../../shared/widgets/cards/bento_card.dart';
+import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../providers/table_provider.dart';
+import '../widgets/interactive_restaurant_layout_widget.dart';
+import '../widgets/table_form_widget.dart';
+import '../widgets/table_list_widget.dart';
+import '../widgets/table_statistics_widget.dart';
 
 /// Page de gestion des tables
 class TableManagementPage extends ConsumerStatefulWidget {
@@ -34,6 +34,17 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
       setState(() {
         _selectedTabIndex = _tabController.index;
       });
+    });
+    _loadData();
+  }
+
+  void _loadData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = ref.read(authProvider);
+      if (authState.accessToken != null) {
+        ref.read(data.tableProvider.notifier).loadTables(token: authState.accessToken!);
+        ref.read(data.tableProvider.notifier).loadStatistics(token: authState.accessToken!);
+      }
     });
   }
 
@@ -146,18 +157,15 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   Widget _buildStatisticsTab(ThemeData theme, AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
-        final tablesAsync = ref.watch(tablesProvider);
+        final tables = ref.watch(tablesProvider);
+        final tableState = ref.watch(data.tableProvider);
         
-        return tablesAsync.when(
-          data: (tables) => SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: TableStatisticsWidget(
-              tables: tables,
-              onRefresh: _refreshData,
-            ),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
+        if (tableState.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        if (tableState.error != null) {
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -168,7 +176,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Erreur lors du chargement des tables: $error',
+                  'Erreur lors du chargement des tables: ${tableState.error}',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.error,
                   ),
@@ -182,6 +190,14 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
                 ),
               ],
             ),
+          );
+        }
+        
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: TableStatisticsWidget(
+            tables: tables,
+            onRefresh: _refreshData,
           ),
         );
       },
@@ -189,7 +205,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   }
 
   Widget _buildQuickActions(ThemeData theme, AppLocalizations l10n) {
-    return BentoCard(
+    return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -234,7 +250,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   }
 
   Widget _buildLayoutActions(ThemeData theme, AppLocalizations l10n) {
-    return BentoCard(
+    return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -276,183 +292,10 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
     );
   }
 
-  Widget _buildGeneralStats(ThemeData theme, AppLocalizations l10n) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final tablesAsync = ref.watch(tablesProvider);
-        final statsAsync = ref.watch(tableStatsProvider);
 
-        return BentoCard(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.generalStatistics,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                tablesAsync.when(
-                  data: (tables) {
-                    final totalTables = tables.length;
-                    final availableTables = tables.where((t) => t.status == TableStatus.available).length;
-                    final occupiedTables = tables.where((t) => t.status == TableStatus.occupied).length;
-                    final totalCapacity = tables.fold(0, (sum, table) => sum + table.capacity);
 
-                    return Column(
-                      children: [
-                        _buildStatRow(theme, l10n.totalTables, totalTables.toString()),
-                        _buildStatRow(theme, l10n.availableTables, availableTables.toString()),
-                        _buildStatRow(theme, l10n.occupiedTables, occupiedTables.toString()),
-                        _buildStatRow(theme, l10n.totalCapacity, totalCapacity.toString()),
-                      ],
-                    );
-                  },
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Erreur: $error'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
-  Widget _buildTableStats(ThemeData theme, AppLocalizations l10n) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final statsAsync = ref.watch(tableStatsProvider);
 
-        return BentoCard(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.tableStatistics,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                statsAsync.when(
-                  data: (stats) {
-                    if (stats.isEmpty) {
-                      return Text(
-                        l10n.noStatistics,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: stats.length,
-                      itemBuilder: (context, index) {
-                        final stat = stats[index];
-                        return _buildStatCard(theme, l10n, stat);
-                      },
-                    );
-                  },
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Erreur: $error'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatRow(ThemeData theme, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(ThemeData theme, AppLocalizations l10n, TableStats stat) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${l10n.table} ${stat.tableId}',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(theme, l10n.reservations, '${stat.totalReservations}'),
-              ),
-              Expanded(
-                child: _buildStatItem(theme, l10n.occupancy, '${(stat.averageOccupancy * 100).toStringAsFixed(1)}%'),
-              ),
-              Expanded(
-                child: _buildStatItem(theme, l10n.revenue, '${stat.revenue.toStringAsFixed(2)}€'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(ThemeData theme, String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
 
   void _onTableSelected(TableEntity table) {
     // TODO: Naviguer vers les détails de la table
@@ -543,43 +386,65 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
     );
   }
 
-  void _deleteTable(TableEntity table) {
-    ref.read(tableActionsProvider.notifier).deleteTable(table.id);
+  Future<void> _deleteTable(TableEntity table) async {
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        await ref.read(data.tableProvider.notifier).deleteTable(
+          token: authState.accessToken!,
+          tableId: table.id,
+        );
+      } catch (e) {
+        // Gérer l'erreur si nécessaire
+        rethrow;
+      }
+    }
   }
 
   void _refreshData() {
-    ref.invalidate(tablesProvider);
-    ref.invalidate(tableStatsProvider);
-    ref.invalidate(restaurantLayoutProvider);
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      ref.read(data.tableProvider.notifier).refreshTables(token: authState.accessToken!);
+    }
   }
 
   Future<void> _handleCreateTable(TableEntity table) async {
-    try {
-      final createRequest = CreateTableRequest(
-        number: table.number,
-        capacity: table.capacity,
-        position: table.position,
-        description: table.description,
-      );
-      await ref.read(tableActionsProvider.notifier).createTable(createRequest);
-    } catch (e) {
-      rethrow;
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        final tableData = {
+          'number': table.number,
+          'capacity': table.capacity,
+          'position': table.position,
+        };
+        await ref.read(data.tableProvider.notifier).createTable(
+          token: authState.accessToken!,
+          tableData: tableData,
+        );
+      } catch (e) {
+        rethrow;
+      }
     }
   }
 
   Future<void> _handleUpdateTable(TableEntity table) async {
-    try {
-      final updateRequest = UpdateTableRequest(
-        number: table.number,
-        capacity: table.capacity,
-        position: table.position,
-        isActive: table.isActive,
-        status: table.status,
-        description: table.description,
-      );
-      await ref.read(tableActionsProvider.notifier).updateTable(table.id, updateRequest);
-    } catch (e) {
-      rethrow;
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        final tableData = {
+          'number': table.number,
+          'capacity': table.capacity,
+          'position': table.position,
+          'isActive': table.isActive,
+        };
+        await ref.read(data.tableProvider.notifier).updateTable(
+          token: authState.accessToken!,
+          tableId: table.id,
+          tableData: tableData,
+        );
+      } catch (e) {
+        rethrow;
+      }
     }
   }
 }
