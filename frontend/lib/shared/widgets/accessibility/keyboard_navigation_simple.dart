@@ -115,23 +115,23 @@ class _TabNavigationWidgetState extends State<TabNavigationWidget> {
     super.dispose();
   }
 
-  void _navigateToNext() {
-    if (_currentIndex < widget.children.length - 1) {
-      setState(() {
-        _currentIndex++;
-      });
-      _focusNodes[_currentIndex].requestFocus();
-    }
-  }
+  // void _navigateToNext() {
+  //   if (_currentIndex < widget.children.length - 1) {
+  //     setState(() {
+  //       _currentIndex++;
+  //     });
+  //     _focusNodes[_currentIndex].requestFocus();
+  //   }
+  // }
 
-  void _navigateToPrevious() {
-    if (_currentIndex > 0) {
-      setState(() {
-        _currentIndex--;
-      });
-      _focusNodes[_currentIndex].requestFocus();
-    }
-  }
+  // void _navigateToPrevious() {
+  //   if (_currentIndex > 0) {
+  //     setState(() {
+  //       _currentIndex--;
+  //     });
+  //     _focusNodes[_currentIndex].requestFocus();
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

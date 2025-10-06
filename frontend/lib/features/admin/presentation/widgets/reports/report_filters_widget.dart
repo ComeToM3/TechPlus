@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../../shared/widgets/buttons/simple_button.dart';
-import '../../../../../shared/widgets/forms/form_builder.dart';
 import '../../../domain/entities/report_entity.dart';
-import '../../providers/report_provider.dart';
 
 /// Widget pour les filtres de rapport
 class ReportFiltersWidget extends ConsumerStatefulWidget {

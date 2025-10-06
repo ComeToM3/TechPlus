@@ -78,6 +78,7 @@ model Restaurant {
   menuItems   MenuItem[]
   reservations Reservation[]
   analytics   Analytics[]
+  scheduleConfig ScheduleConfig?
 
   @@index([name])
   @@index([email])
@@ -272,4 +273,73 @@ enum NotificationStatus {
   SENT
   FAILED
   RETRYING
+}
+
+// Modèles pour la gestion des horaires
+model ScheduleConfig {
+  id           String @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
+  // Configuration des créneaux
+  slotDurationMinutes    Int @default(30)
+  bufferTimeMinutes      Int @default(15)
+  maxAdvanceBookingDays  Int @default(30)
+  minAdvanceBookingHours Int @default(2)
+  allowSameDayBooking    Boolean @default(true)
+  allowWeekendBooking    Boolean @default(true)
+  
+  // Statut
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relations
+  daySchedules DaySchedule[]
+  
+  @@unique([restaurantId])
+  @@index([restaurantId])
+  @@index([isActive])
+  @@map("schedule_configs")
+}
+
+model DaySchedule {
+  id             String @id @default(cuid())
+  scheduleConfigId String
+  scheduleConfig   ScheduleConfig @relation(fields: [scheduleConfigId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek     String // 'monday', 'tuesday', etc.
+  isOpen        Boolean @default(true)
+  notes         String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  timeSlots     TimeSlot[]
+  
+  @@unique([scheduleConfigId, dayOfWeek])
+  @@index([scheduleConfigId])
+  @@index([dayOfWeek])
+  @@map("day_schedules")
+}
+
+model TimeSlot {
+  id           String @id @default(cuid())
+  dayScheduleId String
+  daySchedule   DaySchedule @relation(fields: [dayScheduleId], references: [id], onDelete: Cascade)
+  
+  time         String // Format HH:MM
+  isAvailable  Boolean @default(true)
+  capacity     Int @default(20)
+  isRecommended Boolean @default(false)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@unique([dayScheduleId, time])
+  @@index([dayScheduleId])
+  @@index([time])
+  @@index([isAvailable])
+  @@map("time_slots")
 }

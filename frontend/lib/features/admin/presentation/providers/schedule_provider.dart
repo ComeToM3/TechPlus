@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_providers.dart';
+import '../../../../core/network/schedule_api.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 /// Provider pour la configuration des créneaux

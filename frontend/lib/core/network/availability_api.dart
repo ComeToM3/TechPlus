@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../config/api_config.dart';
+import '../../features/admin/domain/entities/schedule_entity.dart';
 
 /// API pour la gestion des créneaux de disponibilité
 class AvailabilityApi {
@@ -103,42 +103,7 @@ class AvailabilityApi {
   }
 }
 
-/// Modèle pour un créneau horaire
-class TimeSlot {
-  final String time;
-  final bool isAvailable;
-  final bool isRecommended;
-  final int capacity;
-  final String? note;
-
-  const TimeSlot({
-    required this.time,
-    required this.isAvailable,
-    required this.isRecommended,
-    required this.capacity,
-    this.note,
-  });
-
-  factory TimeSlot.fromJson(Map<String, dynamic> json) {
-    return TimeSlot(
-      time: json['time'] ?? '',
-      isAvailable: json['isAvailable'] ?? false,
-      isRecommended: json['isRecommended'] ?? false,
-      capacity: json['capacity'] ?? 0,
-      note: json['note'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'time': time,
-      'isAvailable': isAvailable,
-      'isRecommended': isRecommended,
-      'capacity': capacity,
-      'note': note,
-    };
-  }
-}
+// TimeSlot est maintenant défini dans schedule_entity.dart
 
 /// Modèle pour les heures d'ouverture du restaurant
 class RestaurantHours {

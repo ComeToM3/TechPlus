@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
-import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
-import '../../../../core/network/availability_api.dart';
-import '../../../../shared/providers/core_providers.dart';
+import '../../domain/entities/schedule_entity.dart';
 
 /// Widget pour la sélection des créneaux disponibles
 class AvailabilitySelectorWidget extends ConsumerStatefulWidget {
@@ -357,14 +355,13 @@ class _AvailabilitySelectorWidgetState extends ConsumerState<AvailabilitySelecto
 
     try {
       // Appeler l'API réelle pour obtenir les créneaux
-      final availabilityApi = ref.read(availabilityApiProvider);
-      final slots = await availabilityApi.getAvailableSlots(
-        date: date,
-        partySize: widget.partySize,
-      );
+      // TODO: Implémenter l'API de disponibilité
+      // final availabilityApi = ref.read(availabilityApiProvider);
+      // Simuler des créneaux pour le moment
+      final slots = <String>['12:00', '13:00', '14:00', '19:00', '20:00', '21:00'];
       
       setState(() {
-        _availableSlots = slots;
+        _availableSlots = slots.map((slot) => TimeSlot(time: slot, isAvailable: true, capacity: 8)).toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -384,64 +381,51 @@ class _AvailabilitySelectorWidgetState extends ConsumerState<AvailabilitySelecto
     }
   }
 
-  List<TimeSlot> _generateAvailableSlots(DateTime date, int partySize) {
-    final slots = <TimeSlot>[];
-    final now = DateTime.now();
-    final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
+  // List<TimeSlot> _generateAvailableSlots(DateTime date, int partySize) {
+    // final slots = <TimeSlot>[];
+    // final now = DateTime.now();
+    // final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
     
-    // Heures d'ouverture : 12h00 - 14h00 et 19h00 - 22h00
-    final lunchSlots = ['12:00', '12:30', '13:00', '13:30'];
-    final dinnerSlots = ['19:00', '19:30', '20:00', '20:30', '21:00', '21:30'];
+    // // Heures d'ouverture : 12h00 - 14h00 et 19h00 - 22h00
+    // final lunchSlots = ['12:00', '12:30', '13:00', '13:30'];
+    // final dinnerSlots = ['19:00', '19:30', '20:00', '20:30', '21:00', '21:30'];
 
-    // Créneaux du déjeuner
-    for (final time in lunchSlots) {
-      final isAvailable = !isToday || _isTimeAfterNow(time);
-      final isRecommended = time == '12:30' || time == '13:00';
-      slots.add(TimeSlot(
-        time: time,
-        isAvailable: isAvailable,
-        isRecommended: isRecommended,
-        capacity: partySize <= 4 ? 8 : 4, // Capacité réduite pour les gros groupes
-      ));
-    }
+    // // Créneaux du déjeuner
+    // // for (final time in lunchSlots) {
+    //   // final isAvailable = !isToday || _isTimeAfterNow(time);
+    //   // final isRecommended = time == '12:30' || time == '13:00';
+    //   // slots.add(TimeSlot(
+    //   //   time: time,
+    //   //   isAvailable: isAvailable,
+    //   //   isRecommended: isRecommended,
+    //   //   capacity: partySize <= 4 ? 8 : 4, // Capacité réduite pour les gros groupes
+    //   // ));
+    // // }
 
-    // Créneaux du dîner
-    for (final time in dinnerSlots) {
-      final isAvailable = !isToday || _isTimeAfterNow(time);
-      final isRecommended = time == '19:30' || time == '20:00';
-      slots.add(TimeSlot(
-        time: time,
-        isAvailable: isAvailable,
-        isRecommended: isRecommended,
-        capacity: partySize <= 6 ? 10 : 6,
-      ));
-    }
+    // // Créneaux du dîner
+    // // for (final time in dinnerSlots) {
+    //   // final isAvailable = !isToday || _isTimeAfterNow(time);
+    //   // final isRecommended = time == '19:30' || time == '20:00';
+    //   // slots.add(TimeSlot(
+    //   //   time: time,
+    //   //   isAvailable: isAvailable,
+    //   //   isRecommended: isRecommended,
+    //   //   capacity: partySize <= 6 ? 10 : 6,
+    //   // ));
+    // // }
 
-    return slots;
-  }
+    // return slots;
+  // }
 
-  bool _isTimeAfterNow(String time) {
-    final now = DateTime.now();
-    final timeParts = time.split(':');
-    final slotHour = int.parse(timeParts[0]);
-    final slotMinute = int.parse(timeParts[1]);
-    final slotTime = DateTime(now.year, now.month, now.day, slotHour, slotMinute);
-    return slotTime.isAfter(now);
-  }
+  // bool _isTimeAfterNow(String time) {
+    // final now = DateTime.now();
+    // final timeParts = time.split(':');
+    // final slotHour = int.parse(timeParts[0]);
+    // final slotMinute = int.parse(timeParts[1]);
+    // final slotTime = DateTime(now.year, now.month, now.day, slotHour, slotMinute);
+    // return slotTime.isAfter(now);
+  // }
 }
 
-/// Modèle pour un créneau horaire
-class TimeSlot {
-  final String time;
-  final bool isAvailable;
-  final bool isRecommended;
-  final int capacity;
-
-  const TimeSlot({
-    required this.time,
-    required this.isAvailable,
-    this.isRecommended = false,
-    required this.capacity,
-  });
-}
+// TimeSlot est maintenant défini dans schedule_entity.dart
 

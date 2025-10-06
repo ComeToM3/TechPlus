@@ -4,7 +4,7 @@ import '../../domain/entities/reservation_calendar.dart';
 
 /// Data source local pour le cache des réservations du calendrier
 class ReservationCalendarLocalDataSource {
-  final SharedPreferences _prefs;
+  final SharedPreferences? _prefs;
 
   const ReservationCalendarLocalDataSource(this._prefs);
 
@@ -14,10 +14,12 @@ class ReservationCalendarLocalDataSource {
 
   /// Sauvegarde les réservations en cache
   Future<void> cacheReservations(List<ReservationCalendar> reservations) async {
+    if (_prefs == null) return;
+    
     try {
       final reservationsJson = reservations.map((r) => r.toJson()).toList();
-      await _prefs.setString(_reservationsKey, jsonEncode(reservationsJson));
-      await _prefs.setString(_lastUpdateKey, DateTime.now().toIso8601String());
+      await _prefs!.setString(_reservationsKey, jsonEncode(reservationsJson));
+      await _prefs!.setString(_lastUpdateKey, DateTime.now().toIso8601String());
     } catch (e) {
       throw Exception('Error caching reservations: $e');
     }
@@ -25,8 +27,10 @@ class ReservationCalendarLocalDataSource {
 
   /// Récupère les réservations du cache
   Future<List<ReservationCalendar>?> getCachedReservations() async {
+    if (_prefs == null) return null;
+    
     try {
-      final reservationsJson = _prefs.getString(_reservationsKey);
+      final reservationsJson = _prefs!.getString(_reservationsKey);
       if (reservationsJson == null) return null;
 
       final List<dynamic> data = jsonDecode(reservationsJson);
@@ -38,8 +42,10 @@ class ReservationCalendarLocalDataSource {
 
   /// Vérifie si le cache est valide (moins de 5 minutes)
   bool isCacheValid() {
+    if (_prefs == null) return false;
+    
     try {
-      final lastUpdateStr = _prefs.getString(_lastUpdateKey);
+      final lastUpdateStr = _prefs!.getString(_lastUpdateKey);
       if (lastUpdateStr == null) return false;
 
       final lastUpdate = DateTime.parse(lastUpdateStr);
@@ -52,8 +58,10 @@ class ReservationCalendarLocalDataSource {
 
   /// Sauvegarde les statistiques en cache
   Future<void> cacheStatistics(Map<String, dynamic> statistics) async {
+    if (_prefs == null) return;
+    
     try {
-      await _prefs.setString(_statisticsKey, jsonEncode(statistics));
+      await _prefs!.setString(_statisticsKey, jsonEncode(statistics));
     } catch (e) {
       throw Exception('Error caching statistics: $e');
     }
@@ -61,8 +69,10 @@ class ReservationCalendarLocalDataSource {
 
   /// Récupère les statistiques du cache
   Future<Map<String, dynamic>?> getCachedStatistics() async {
+    if (_prefs == null) return null;
+    
     try {
-      final statisticsJson = _prefs.getString(_statisticsKey);
+      final statisticsJson = _prefs!.getString(_statisticsKey);
       if (statisticsJson == null) return null;
 
       return jsonDecode(statisticsJson) as Map<String, dynamic>;
@@ -73,10 +83,12 @@ class ReservationCalendarLocalDataSource {
 
   /// Supprime le cache
   Future<void> clearCache() async {
+    if (_prefs == null) return;
+    
     try {
-      await _prefs.remove(_reservationsKey);
-      await _prefs.remove(_lastUpdateKey);
-      await _prefs.remove(_statisticsKey);
+      await _prefs!.remove(_reservationsKey);
+      await _prefs!.remove(_lastUpdateKey);
+      await _prefs!.remove(_statisticsKey);
     } catch (e) {
       throw Exception('Error clearing cache: $e');
     }

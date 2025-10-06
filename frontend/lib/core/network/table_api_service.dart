@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../config/api_config.dart';
 
 /// Service API pour la gestion des tables
 class TableApiService {

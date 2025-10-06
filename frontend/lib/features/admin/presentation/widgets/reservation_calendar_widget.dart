@@ -73,63 +73,141 @@ class _ReservationCalendarWidgetState extends ConsumerState<ReservationCalendarW
     final theme = Theme.of(context);
     final calendarState = ref.watch(reservationCalendarProvider);
 
-    return Row(
-      children: [
-        Icon(
-          Icons.calendar_month,
-          color: theme.colorScheme.primary,
-          size: 24,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          l10n.reservationCalendar,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const Spacer(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 768;
         
-        // Bouton de vue mensuelle
-        _buildViewButton(
-          context,
-          CalendarViewType.monthly,
-          Icons.calendar_view_month,
-          l10n.monthly,
-          calendarState.viewType == CalendarViewType.monthly,
-        ),
-        const SizedBox(width: 8),
-        
-        // Bouton de vue hebdomadaire
-        _buildViewButton(
-          context,
-          CalendarViewType.weekly,
-          Icons.calendar_view_week,
-          l10n.weekly,
-          calendarState.viewType == CalendarViewType.weekly,
-        ),
-        const SizedBox(width: 8),
-        
-        // Bouton de vue quotidienne
-        _buildViewButton(
-          context,
-          CalendarViewType.daily,
-          Icons.calendar_view_day,
-          l10n.daily,
-          calendarState.viewType == CalendarViewType.daily,
-        ),
-        const SizedBox(width: 16),
-        
-        // Bouton de création
-        ElevatedButton.icon(
-          onPressed: widget.onCreateReservation,
-          icon: const Icon(Icons.add),
-          label: Text(l10n.createReservation),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.colorScheme.primary,
-            foregroundColor: theme.colorScheme.onPrimary,
-          ),
-        ),
-      ],
+        if (isMobile) {
+          // Layout mobile : colonnes empilées
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_month,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.reservationCalendar,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Boutons de vue en ligne scrollable
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildViewButton(
+                      context,
+                      CalendarViewType.monthly,
+                      Icons.calendar_view_month,
+                      l10n.monthly,
+                      calendarState.viewType == CalendarViewType.monthly,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildViewButton(
+                      context,
+                      CalendarViewType.weekly,
+                      Icons.calendar_view_week,
+                      l10n.weekly,
+                      calendarState.viewType == CalendarViewType.weekly,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildViewButton(
+                      context,
+                      CalendarViewType.daily,
+                      Icons.calendar_view_day,
+                      l10n.daily,
+                      calendarState.viewType == CalendarViewType.daily,
+                    ),
+                    const SizedBox(width: 16),
+                    // Bouton de création compact
+                    ElevatedButton.icon(
+                      onPressed: widget.onCreateReservation,
+                      icon: const Icon(Icons.add, size: 16),
+                      label: Text(l10n.createReservation, style: const TextStyle(fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        } else {
+          // Layout desktop : ligne horizontale
+          return Row(
+            children: [
+              Icon(
+                Icons.calendar_month,
+                color: theme.colorScheme.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.reservationCalendar,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              
+              // Bouton de vue mensuelle
+              _buildViewButton(
+                context,
+                CalendarViewType.monthly,
+                Icons.calendar_view_month,
+                l10n.monthly,
+                calendarState.viewType == CalendarViewType.monthly,
+              ),
+              const SizedBox(width: 8),
+              
+              // Bouton de vue hebdomadaire
+              _buildViewButton(
+                context,
+                CalendarViewType.weekly,
+                Icons.calendar_view_week,
+                l10n.weekly,
+                calendarState.viewType == CalendarViewType.weekly,
+              ),
+              const SizedBox(width: 8),
+              
+              // Bouton de vue quotidienne
+              _buildViewButton(
+                context,
+                CalendarViewType.daily,
+                Icons.calendar_view_day,
+                l10n.daily,
+                calendarState.viewType == CalendarViewType.daily,
+              ),
+              const SizedBox(width: 16),
+              
+              // Bouton de création
+              ElevatedButton.icon(
+                onPressed: widget.onCreateReservation,
+                icon: const Icon(Icons.add),
+                label: Text(l10n.createReservation),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 

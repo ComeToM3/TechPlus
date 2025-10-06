@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../shared/providers/auth_provider.dart';
-import '../../shared/models/user.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/admin/presentation/pages/reservation_list_page.dart' as admin;
-import '../../features/reservation/presentation/pages/create_reservation_page.dart';
+import '../../features/admin/presentation/pages/create_reservation_page.dart' as admin_create;
 import '../../features/reservation/presentation/pages/reservation_selection_page.dart';
 import '../../features/reservation/presentation/pages/reservation_info_page.dart';
 import '../../features/reservation/presentation/pages/reservation_payment_page.dart';
@@ -30,6 +28,7 @@ import '../../features/admin/presentation/pages/analytics_page.dart';
 import '../../features/admin/presentation/pages/reports_page.dart';
 import '../../features/admin/presentation/pages/table_management_page.dart';
 import '../../features/admin/presentation/pages/schedule_management_page.dart';
+import '../../features/admin/presentation/pages/menu_management_page.dart';
 
 /// Fonction pour créer le routeur (pour les tests)
 GoRouter createRouter(ProviderContainer container) {
@@ -110,8 +109,6 @@ GoRouter createRouter(ProviderContainer container) {
 
 /// Provider pour le routeur de l'application
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
-
   return GoRouter(
     initialLocation: '/admin/dashboard', // Démarrer directement sur le dashboard admin
     redirect: (BuildContext context, GoRouterState state) {
@@ -233,7 +230,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             GoRoute(
               path: 'create',
               name: 'admin-create-reservation',
-              builder: (context, state) => const CreateReservationPage(),
+              builder: (context, state) => const admin_create.CreateReservationPage(),
             ),
             GoRoute(
               path: ':id',
@@ -269,6 +266,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: 'schedule',
               name: 'admin-schedule',
               builder: (context, state) => const ScheduleManagementPage(),
+            ),
+            GoRoute(
+              path: 'menu',
+              name: 'admin-menu',
+              builder: (context, state) => const MenuManagementPage(),
             ),
         ],
       ),

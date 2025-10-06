@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/entities/reservation_calendar.dart';
 import '../providers/reservation_calendar_provider.dart';
-import '../widgets/reservation_filters_widget.dart';
-import '../widgets/bulk_actions_widget.dart';
-import '../widgets/export_widget.dart';
+import '../../domain/entities/reservation_calendar.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
-import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 
-/// Page de gestion des réservations en vue liste
+/// Page de liste complète des réservations
 class ReservationListPage extends ConsumerStatefulWidget {
   const ReservationListPage({super.key});
 
@@ -21,18 +17,23 @@ class ReservationListPage extends ConsumerStatefulWidget {
 }
 
 class _ReservationListPageState extends ConsumerState<ReservationListPage> {
-  final List<String> _selectedReservations = [];
-  bool _showFilters = false;
-  bool _showExport = false;
-  CalendarFilters _currentFilters = const CalendarFilters();
+  String _selectedFilter = 'all';
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Charge les réservations au démarrage
+    // Charger les réservations au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(reservationCalendarProvider.notifier).refresh();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -43,34 +44,11 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.reservationList),
+        title: Text(l10n.reservations),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
         actions: [
-          // Bouton de filtres
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _showFilters = !_showFilters;
-                if (_showFilters) _showExport = false;
-              });
-            },
-            icon: Icon(_showFilters ? Icons.filter_list_off : Icons.filter_list),
-            tooltip: l10n.filters,
-          ),
-          // Bouton d'export
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _showExport = !_showExport;
-                if (_showExport) _showFilters = false;
-              });
-            },
-            icon: Icon(_showExport ? Icons.close : Icons.download),
-            tooltip: l10n.export,
-          ),
-          // Bouton de rafraîchissement
           IconButton(
             onPressed: () {
               ref.read(reservationCalendarProvider.notifier).refresh();
@@ -88,60 +66,108 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
         ),
         child: Column(
           children: [
-            // Filtres
-            if (_showFilters)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ReservationFiltersWidget(
-                  initialFilters: _currentFilters,
-                  onFiltersChanged: _onFiltersChanged,
-                  onClearFilters: _onClearFilters,
-                ),
-              ),
-
-            // Export
-            if (_showExport)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ExportWidget(
-                  reservations: calendarState.reservations,
-                  filters: _currentFilters,
-                  onExport: _onExport,
-                ),
-              ),
-
-            // Actions en lot
-            if (_selectedReservations.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: BulkActionsWidget(
-                  selectedReservations: _selectedReservations,
-                  onBulkAction: _onBulkAction,
-                  onClearSelection: _clearSelection,
-                ),
-              ),
+            // Barre de recherche et filtres
+            _buildSearchAndFilters(theme, l10n),
 
             // Liste des réservations
             Expanded(
-              child: _buildReservationsList(context, calendarState, l10n),
+              child: _buildReservationsList(theme, l10n, calendarState),
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go('/admin/dashboard/reservations/create');
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
-  Widget _buildReservationsList(
-    BuildContext context,
-    dynamic calendarState,
-    AppLocalizations l10n,
-  ) {
-    final theme = Theme.of(context);
+  Widget _buildSearchAndFilters(ThemeData theme, AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Barre de recherche
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: l10n.searchReservations,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                      },
+                      icon: const Icon(Icons.clear),
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          
+          // Filtres
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(theme, l10n, 'all', l10n.all),
+                const SizedBox(width: 8),
+                _buildFilterChip(theme, l10n, 'pending', l10n.pending),
+                const SizedBox(width: 8),
+                _buildFilterChip(theme, l10n, 'confirmed', l10n.confirmed),
+                const SizedBox(width: 8),
+                _buildFilterChip(theme, l10n, 'cancelled', l10n.cancelled),
+                const SizedBox(width: 8),
+                _buildFilterChip(theme, l10n, 'completed', l10n.completed),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildFilterChip(ThemeData theme, AppLocalizations l10n, String value, String label) {
+    final isSelected = _selectedFilter == value;
+    
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _selectedFilter = value;
+        });
+      },
+      selectedColor: theme.colorScheme.primaryContainer,
+      checkmarkColor: theme.colorScheme.onPrimaryContainer,
+    );
+  }
+
+  Widget _buildReservationsList(ThemeData theme, AppLocalizations l10n, dynamic calendarState) {
     if (calendarState.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (calendarState.error != null) {
@@ -156,16 +182,10 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.errorLoadingReservations,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              calendarState.error!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              'Erreur: ${calendarState.error}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.error,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             SimpleButton(
@@ -174,15 +194,15 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
               },
               text: l10n.retry,
               type: ButtonType.primary,
-              size: ButtonSize.medium,
-              icon: Icons.refresh,
             ),
           ],
         ),
       );
     }
 
-    if (calendarState.reservations.isEmpty) {
+    final reservations = _filterReservations(calendarState.reservations);
+
+    if (reservations.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -190,30 +210,22 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
             Icon(
               Icons.event_available,
               size: 64,
-              color: theme.colorScheme.onSurfaceVariant,
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.noReservations,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.noReservationsDescription,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              _getEmptyMessage(l10n),
+              style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             SimpleButton(
               onPressed: () {
-                // TODO: Naviguer vers la création de réservation
-                _showCreateReservationDialog();
+                context.go('/admin/dashboard/reservations/create');
               },
               text: l10n.createReservation,
               type: ButtonType.primary,
-              size: ButtonSize.medium,
               icon: Icons.add,
             ),
           ],
@@ -223,50 +235,73 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: calendarState.reservations.length,
+      itemCount: reservations.length,
       itemBuilder: (context, index) {
-        final reservation = calendarState.reservations[index];
-        return _buildReservationCard(context, reservation, l10n);
+        final reservation = reservations[index];
+        return _buildReservationCard(theme, l10n, reservation);
       },
     );
   }
 
-  Widget _buildReservationCard(
-    BuildContext context,
-    ReservationCalendar reservation,
-    AppLocalizations l10n,
-  ) {
-    final theme = Theme.of(context);
-    final status = ReservationStatus.fromString(reservation.status);
-    final isSelected = _selectedReservations.contains(reservation.id);
+  List<dynamic> _filterReservations(List<dynamic> reservations) {
+    var filtered = reservations;
+
+    // Filtrer par statut
+    if (_selectedFilter != 'all') {
+      filtered = filtered.where((reservation) {
+        return reservation.status.toLowerCase() == _selectedFilter;
+      }).toList();
+    }
+
+    // Filtrer par recherche
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((reservation) {
+        return reservation.clientName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+               reservation.clientEmail.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+               reservation.clientPhone.contains(_searchQuery);
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  String _getEmptyMessage(AppLocalizations l10n) {
+    if (_selectedFilter != 'all') {
+      return 'Aucune réservation ${_selectedFilter}';
+    }
+    if (_searchQuery.isNotEmpty) {
+      return 'Aucune réservation trouvée pour "$_searchQuery"';
+    }
+    return 'Aucune réservation';
+  }
+
+  Widget _buildReservationCard(ThemeData theme, AppLocalizations l10n, dynamic reservation) {
+    final status = reservation.status.toLowerCase();
     final statusColor = _getStatusColor(status, theme);
 
-    return Container(
+    return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: BentoCard(
-        onTap: () => _toggleSelection(reservation.id),
-        child: Container(
-          decoration: BoxDecoration(
-            border: isSelected 
-                ? Border.all(color: theme.colorScheme.primary, width: 2)
-                : null,
-            borderRadius: BorderRadius.circular(8),
-          ),
+      elevation: 2,
+      child: InkWell(
+        onTap: () {
+          context.go('/admin/dashboard/reservations/${reservation.id}');
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Checkbox de sélection
-              Checkbox(
-                value: isSelected,
-                onChanged: (value) => _toggleSelection(reservation.id),
-              ),
-              
-              // Indicateur de statut
-              Container(
-                width: 4,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(2),
+              // Avatar du client
+              CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: Text(
+                  reservation.clientName.isNotEmpty 
+                      ? reservation.clientName[0].toUpperCase()
+                      : '?',
+                  style: TextStyle(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -275,57 +310,82 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
                       children: [
                         Text(
-                          reservation.clientName,
+                      reservation.clientName.isNotEmpty 
+                          ? reservation.clientName 
+                          : 'Client anonyme',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            status.label,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: statusColor,
                               fontWeight: FontWeight.w600,
                             ),
-                          ),
-                        ),
-                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${reservation.date.day}/${reservation.date.month}/${reservation.date.year} à ${reservation.time}',
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.group,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
                     Text(
                       '${reservation.partySize} ${l10n.people}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    if (reservation.tableNumber != null)
+                        if (reservation.tableNumber != null) ...[
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.table_restaurant,
+                            size: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
                       Text(
                         '${l10n.table} ${reservation.tableNumber}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
+                          ),
+                        ],
+                      ],
                       ),
                   ],
                 ),
               ),
               
-              // Actions
+              // Statut et actions
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: statusColor),
+                    ),
+                    child: Text(
+                      _getStatusLabel(status, l10n),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
               PopupMenuButton<String>(
-                onSelected: (value) => _handleReservationAction(value, reservation),
+                    onSelected: (value) {
+                      _handleQuickAction(value, reservation);
+                    },
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 'view',
@@ -347,32 +407,47 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
                       ],
                     ),
                   ),
+                      if (status == 'pending') ...[
                   PopupMenuItem(
-                    value: 'duplicate',
+                          value: 'confirm',
                     child: Row(
                       children: [
-                        const Icon(Icons.copy),
+                              const Icon(Icons.check_circle, color: Colors.green),
                         const SizedBox(width: 8),
-                        Text(l10n.duplicate),
+                              Text(l10n.confirm),
                       ],
                     ),
                   ),
-                  const PopupMenuDivider(),
                   PopupMenuItem(
-                    value: 'delete',
+                          value: 'cancel',
                     child: Row(
                       children: [
-                        const Icon(Icons.delete, color: Colors.red),
+                              const Icon(Icons.cancel, color: Colors.red),
                         const SizedBox(width: 8),
-                        Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+                              Text(l10n.cancel),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (status == 'confirmed') ...[
+                        PopupMenuItem(
+                          value: 'complete',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.done, color: Colors.blue),
+                              const SizedBox(width: 8),
+                              Text(l10n.markCompleted),
                       ],
                     ),
                   ),
+                      ],
                 ],
                 child: Icon(
                   Icons.more_vert,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -381,165 +456,101 @@ class _ReservationListPageState extends ConsumerState<ReservationListPage> {
     );
   }
 
-  Color _getStatusColor(ReservationStatus status, ThemeData theme) {
-    switch (status) {
-      case ReservationStatus.pending:
-        return Colors.orange;
-      case ReservationStatus.confirmed:
-        return Colors.green;
-      case ReservationStatus.cancelled:
-        return Colors.red;
-      case ReservationStatus.completed:
-        return Colors.blue;
-      case ReservationStatus.noShow:
-        return Colors.grey;
-    }
-  }
-
-  void _toggleSelection(String reservationId) {
-    setState(() {
-      if (_selectedReservations.contains(reservationId)) {
-        _selectedReservations.remove(reservationId);
-      } else {
-        _selectedReservations.add(reservationId);
-      }
-    });
-  }
-
-  void _clearSelection() {
-    setState(() {
-      _selectedReservations.clear();
-    });
-  }
-
-  void _onFiltersChanged(CalendarFilters filters) {
-    setState(() {
-      _currentFilters = filters;
-    });
-    ref.read(reservationCalendarProvider.notifier).applyFilters(filters);
-  }
-
-  void _onClearFilters() {
-    setState(() {
-      _currentFilters = const CalendarFilters();
-    });
-    ref.read(reservationCalendarProvider.notifier).applyFilters(_currentFilters);
-  }
-
-  void _onExport(ExportOptions options) {
-    // TODO: Implémenter l'export des données
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Export en ${options.format.name} en cours...'),
-      ),
-    );
-  }
-
-  void _onBulkAction(List<String> reservationIds, BulkAction action) {
-    // TODO: Implémenter les actions en lot
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Action ${action.name} sur ${reservationIds.length} réservations'),
-      ),
-    );
-    _clearSelection();
-  }
-
-  void _handleReservationAction(String action, ReservationCalendar reservation) {
+  void _handleQuickAction(String action, dynamic reservation) {
     switch (action) {
       case 'view':
-        _showReservationDetails(reservation);
+        context.go('/admin/dashboard/reservations/${reservation.id}');
         break;
       case 'edit':
-        _showEditReservation(reservation);
+        // TODO: Implémenter l'édition rapide
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Édition rapide à implémenter')),
+        );
         break;
-      case 'duplicate':
-        _duplicateReservation(reservation);
+      case 'confirm':
+        _updateReservationStatus(reservation.id, 'confirmed', 'Réservation confirmée');
         break;
-      case 'delete':
-        _deleteReservation(reservation);
+      case 'cancel':
+        _updateReservationStatus(reservation.id, 'cancelled', 'Réservation annulée');
+        break;
+      case 'complete':
+        _updateReservationStatus(reservation.id, 'completed', 'Réservation terminée');
         break;
     }
   }
 
-  void _showReservationDetails(ReservationCalendar reservation) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.reservationDetails),
-        content: Text('Détails de la réservation ${reservation.id}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
+  void _updateReservationStatus(String reservationId, String status, String message) async {
+    try {
+      final calendarNotifier = ref.read(reservationCalendarProvider.notifier);
+      
+      final result = await calendarNotifier.updateReservationStatus(
+        id: reservationId,
+        status: _stringToReservationStatus(status),
+        notes: message,
+      );
+      
+      if (mounted && result != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.green,
           ),
-        ],
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la mise à jour'),
+            backgroundColor: Colors.red,
       ),
     );
   }
-
-  void _showEditReservation(ReservationCalendar reservation) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.editReservation),
-        content: Text('Modification de la réservation ${reservation.id}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
           ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 
-  void _duplicateReservation(ReservationCalendar reservation) {
-    // TODO: Implémenter la duplication
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Duplication de réservation')),
-    );
+  Color _getStatusColor(String status, ThemeData theme) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'confirmed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      case 'completed':
+        return Colors.blue;
+      case 'no_show':
+        return Colors.grey;
+      default:
+        return theme.colorScheme.primary;
+    }
   }
 
-  void _deleteReservation(ReservationCalendar reservation) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteReservation),
-        content: Text(AppLocalizations.of(context)!.deleteConfirmation),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implémenter la suppression
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Réservation supprimée')),
-              );
-            },
-            child: Text(AppLocalizations.of(context)!.delete),
-          ),
-        ],
-      ),
-    );
+  String _getStatusLabel(String status, AppLocalizations l10n) {
+    switch (status) {
+      case 'pending':
+        return l10n.pending;
+      case 'confirmed':
+        return l10n.confirmed;
+      case 'cancelled':
+        return l10n.cancelled;
+      case 'completed':
+        return l10n.completed;
+      case 'no_show':
+        return l10n.noShow;
+      default:
+        return status;
+    }
   }
 
-  void _showCreateReservationDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.createReservation),
-        content: const Text('Création de réservation à implémenter'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      ),
-    );
+  ReservationStatus _stringToReservationStatus(String status) {
+    return ReservationStatus.fromString(status);
   }
 }

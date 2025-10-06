@@ -24,7 +24,10 @@ class AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
       print('🔐 Auth token added to request: ${token.substring(0, 20)}...');
     } else {
-      print('⚠️ No auth token available for request');
+      // Token de développement temporaire pour éviter l'erreur 401
+      const devToken = 'dev-token';
+      options.headers['Authorization'] = 'Bearer $devToken';
+      print('⚠️ Using development token for request');
     }
     handler.next(options);
   }

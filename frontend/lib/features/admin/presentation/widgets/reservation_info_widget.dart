@@ -149,7 +149,6 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
             Expanded(
               child: CustomTextField(
                 controller: _clientNameController,
-                label: l10n.clientName,
                 hintText: l10n.clientNameHint,
                 prefixIcon: Icons.person,
                 validator: (value) {
@@ -165,7 +164,6 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
             Expanded(
               child: CustomTextField(
                 controller: _partySizeController,
-                label: l10n.partySize,
                 hintText: l10n.partySizeHint,
                 prefixIcon: Icons.group,
                 keyboardType: TextInputType.number,
@@ -190,7 +188,6 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
             Expanded(
               child: CustomTextField(
                 controller: _clientEmailController,
-                label: l10n.email,
                 hintText: l10n.emailHint,
                 prefixIcon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
@@ -209,7 +206,6 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
             Expanded(
               child: CustomTextField(
                 controller: _clientPhoneController,
-                label: l10n.phone,
                 hintText: l10n.phoneHint,
                 prefixIcon: Icons.phone,
                 keyboardType: TextInputType.phone,
@@ -247,7 +243,7 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
             children: [
               _buildInfoRow(theme, l10n.date, _formatDate(widget.formData.date)),
               const SizedBox(height: 8),
-              _buildInfoRow(theme, l10n.time, widget.formData.time ?? l10n.notSelected),
+              _buildInfoRow(theme, l10n.time, widget.formData.time ?? 'Non sélectionné'),
               const SizedBox(height: 8),
               _buildInfoRow(theme, l10n.partySize, '${widget.formData.partySize} ${l10n.people}'),
               if (widget.formData.tableNumber != null) ...[
@@ -298,7 +294,6 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
         const SizedBox(height: 8),
         CustomTextField(
           controller: _specialRequestsController,
-          label: l10n.specialRequests,
           hintText: l10n.specialRequestsHint,
           prefixIcon: Icons.star,
           maxLines: 3,
@@ -322,7 +317,6 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
         const SizedBox(height: 8),
         CustomTextField(
           controller: _adminNotesController,
-          label: l10n.adminNotes,
           hintText: l10n.adminNotesHint,
           prefixIcon: Icons.note,
           maxLines: 2,
@@ -384,14 +378,14 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
       widget.onValidate?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.formValidated),
+          content: Text('Formulaire validé'),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.formValidationFailed),
+          content: Text('Validation du formulaire échouée'),
           backgroundColor: Colors.red,
         ),
       );
@@ -428,7 +422,7 @@ class _ReservationInfoWidgetState extends ConsumerState<ReservationInfoWidget> {
   }
 
   String _formatDate(DateTime? date) {
-    if (date == null) return AppLocalizations.of(context)!.notSelected;
+    if (date == null) return 'Non sélectionné';
     return '${date.day}/${date.month}/${date.year}';
   }
 }

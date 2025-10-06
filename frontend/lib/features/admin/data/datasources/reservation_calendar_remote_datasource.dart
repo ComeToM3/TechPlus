@@ -32,7 +32,7 @@ class ReservationCalendarRemoteDataSource {
       }
 
       final response = await _apiClient.get(
-        '/api/admin/reservations',
+        '/api/reservations',
         queryParameters: queryParams,
       );
 
@@ -51,7 +51,7 @@ class ReservationCalendarRemoteDataSource {
   Future<List<ReservationCalendar>> getReservationsForDate(DateTime date) async {
     try {
       final response = await _apiClient.get(
-        '/api/admin/reservations',
+        '/api/reservations',
         queryParameters: {
           'date': date.toIso8601String(),
         },
@@ -71,7 +71,7 @@ class ReservationCalendarRemoteDataSource {
   /// Récupère une réservation par son ID
   Future<ReservationCalendar?> getReservationById(String id) async {
     try {
-      final response = await _apiClient.get('/api/admin/reservations/$id');
+      final response = await _apiClient.get('/api/reservations/$id');
 
       if (response.statusCode == 200) {
         return ReservationCalendar.fromJson(response.data['data']);
@@ -89,7 +89,7 @@ class ReservationCalendarRemoteDataSource {
   Future<ReservationCalendar> createReservation(ReservationCalendar reservation) async {
     try {
       final response = await _apiClient.post(
-        '/api/admin/reservations',
+        '/api/reservations',
         data: reservation.toJson(),
       );
 
@@ -124,7 +124,7 @@ class ReservationCalendarRemoteDataSource {
   /// Supprime une réservation
   Future<void> deleteReservation(String id) async {
     try {
-      final response = await _apiClient.delete('/api/admin/reservations/$id');
+      final response = await _apiClient.delete('/api/reservations/$id');
 
       if (response.statusCode != 204) {
         throw Exception('Failed to delete reservation: ${response.statusCode}');
@@ -142,7 +142,7 @@ class ReservationCalendarRemoteDataSource {
   }) async {
     try {
       final response = await _apiClient.patch(
-        '/api/admin/reservations/$id/status',
+        '/api/reservations/$id',
         data: {
           'status': status.value,
           if (notes != null) 'notes': notes,
@@ -166,7 +166,7 @@ class ReservationCalendarRemoteDataSource {
   }) async {
     try {
       final response = await _apiClient.patch(
-        '/api/admin/reservations/$id/table',
+        '/api/reservations/$id',
         data: {
           'tableNumber': tableNumber,
         },
@@ -223,7 +223,7 @@ class ReservationCalendarRemoteDataSource {
   }) async {
     try {
       final response = await _apiClient.get(
-        '/api/admin/reservations/statistics',
+        '/api/admin/dashboard/metrics',
         queryParameters: {
           'startDate': startDate.toIso8601String(),
           'endDate': endDate.toIso8601String(),

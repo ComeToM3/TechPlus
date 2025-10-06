@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../config/api_config.dart';
 import '../../features/admin/domain/entities/table_entity.dart';
 
 /// API pour la gestion des tables

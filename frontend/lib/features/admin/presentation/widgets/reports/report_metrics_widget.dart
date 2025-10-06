@@ -59,10 +59,10 @@ class ReportMetricsWidget extends ConsumerWidget {
             ),
             _buildMetricCard(
               context,
-              l10n.totalRevenue,
-              '${metrics.totalRevenue.toStringAsFixed(2)} €',
-              Icons.euro,
-              Colors.green,
+              'Réservations totales',
+              '${metrics.totalReservations?.toString() ?? '0'}',
+              Icons.event,
+              Colors.blue,
             ),
             _buildMetricCard(
               context,

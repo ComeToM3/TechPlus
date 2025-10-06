@@ -40,10 +40,10 @@ class KPIsWidget extends ConsumerWidget {
             Expanded(
               child: _buildKPICard(
                 context,
-                l10n.totalRevenue,
-                '${kpis.totalRevenue.toStringAsFixed(2)} €',
-                Icons.euro,
-                Colors.green,
+                'Réservations',
+                '${kpis.totalReservations?.toString() ?? '0'}',
+                Icons.event,
+                Colors.blue,
               ),
             ),
             const SizedBox(width: 16),

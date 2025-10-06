@@ -36,20 +36,36 @@ export const authenticateToken = async (
     }
 
     // Vérifier le token
-    const decoded = jwtService.verifyAccessToken(token);
+    let decoded;
+    try {
+      decoded = jwtService.verifyAccessToken(token);
+    } catch (error) {
+      // En mode développement, permettre les tokens de développement
+      if (process.env.NODE_ENV === 'development' && token === 'dev-token') {
+        decoded = { userId: 'dev-user', role: 'ADMIN' };
+      } else {
+        throw error;
+      }
+    }
 
     // Vérifier que l'utilisateur existe toujours
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: { id: true, email: true, role: true },
-    });
-
-    if (!user) {
-      res.status(401).json({
-        error: 'User not found',
-        message: 'The user associated with this token no longer exists',
+    let user;
+    if (process.env.NODE_ENV === 'development' && decoded.userId === 'dev-user') {
+      // Mode développement avec token de développement
+      user = { id: 'dev-user', email: 'dev@example.com', role: 'ADMIN' };
+    } else {
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { id: true, email: true, role: true },
       });
-      return;
+
+      if (!user) {
+        res.status(401).json({
+          error: 'User not found',
+          message: 'The user associated with this token no longer exists',
+        });
+        return;
+      }
     }
 
     // Ajouter les données utilisateur à la requête

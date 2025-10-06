@@ -26,76 +26,103 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.reports),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshReports,
-            tooltip: l10n.refresh,
+    return Column(
+      children: [
+        // En-tête avec actions
+        _buildPageHeader(context, theme, l10n),
+        const SizedBox(height: 16),
+        
+        // Contenu principal
+        Expanded(
+          child: ResponsiveLayout(
+            mobile: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Filtres de rapport
+                  ReportFiltersWidget(
+                    initialFilters: _currentFilters,
+                    onFiltersChanged: _onFiltersChanged,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Contenu du rapport
+                  _buildReportContent(l10n),
+                ],
+              ),
+            ),
+            tablet: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Filtres de rapport
+                  ReportFiltersWidget(
+                    initialFilters: _currentFilters,
+                    onFiltersChanged: _onFiltersChanged,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Contenu du rapport
+                  _buildReportContent(l10n),
+                ],
+              ),
+            ),
+            desktop: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Filtres de rapport
+                  ReportFiltersWidget(
+                    initialFilters: _currentFilters,
+                    onFiltersChanged: _onFiltersChanged,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Contenu du rapport
+                  _buildReportContent(l10n),
+                ],
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: _exportCurrentReport,
-            tooltip: l10n.export,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPageHeader(BuildContext context, ThemeData theme, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            l10n.reports,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _refreshReports,
+                tooltip: l10n.refresh,
+              ),
+              IconButton(
+                icon: const Icon(Icons.download),
+                onPressed: _exportCurrentReport,
+                tooltip: l10n.export,
+              ),
+            ],
           ),
         ],
-      ),
-      body: ResponsiveLayout(
-        mobile: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Filtres de rapport
-              ReportFiltersWidget(
-                initialFilters: _currentFilters,
-                onFiltersChanged: _onFiltersChanged,
-              ),
-              const SizedBox(height: 24),
-              
-              // Contenu du rapport
-              _buildReportContent(l10n),
-            ],
-          ),
-        ),
-        tablet: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Filtres de rapport
-              ReportFiltersWidget(
-                initialFilters: _currentFilters,
-                onFiltersChanged: _onFiltersChanged,
-              ),
-              const SizedBox(height: 24),
-              
-              // Contenu du rapport
-              _buildReportContent(l10n),
-            ],
-          ),
-        ),
-        desktop: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Filtres de rapport
-              ReportFiltersWidget(
-                initialFilters: _currentFilters,
-                onFiltersChanged: _onFiltersChanged,
-              ),
-              const SizedBox(height: 24),
-              
-              // Contenu du rapport
-              _buildReportContent(l10n),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -142,7 +169,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   Widget _buildReportHeader(Report report, AppLocalizations l10n) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -244,7 +271,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   Widget _buildReportActions(Report report, AppLocalizations l10n) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

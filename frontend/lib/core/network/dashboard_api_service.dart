@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../config/api_config.dart';
 
 /// Service API générique pour les appels HTTP
 class DashboardApiService {

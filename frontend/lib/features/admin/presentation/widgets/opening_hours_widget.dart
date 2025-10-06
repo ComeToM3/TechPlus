@@ -86,7 +86,7 @@ class _OpeningHoursWidgetState extends ConsumerState<OpeningHoursWidget> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -192,7 +192,7 @@ class _DayHoursWidgetState extends State<_DayHoursWidget> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -207,7 +207,7 @@ class _DayHoursWidgetState extends State<_DayHoursWidget> {
                 Expanded(
                   child: Text(
                     _getDayName(widget.day),
-                    style: theme.textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 Switch(

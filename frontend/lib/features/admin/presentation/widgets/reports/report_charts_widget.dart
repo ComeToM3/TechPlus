@@ -25,10 +25,6 @@ class ReportChartsWidget extends ConsumerWidget {
         _buildReservationsChart(context, l10n),
         const SizedBox(height: 24),
         
-        // Graphique des revenus par période
-        _buildRevenueChart(context, l10n),
-        const SizedBox(height: 24),
-        
         // Graphique des tables
         _buildTablesChart(context, l10n),
       ],
@@ -52,22 +48,6 @@ class ReportChartsWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildRevenueChart(BuildContext context, AppLocalizations l10n) {
-    return BentoCard(
-      title: l10n.revenueChart,
-      subtitle: l10n.revenueChartDescription,
-      child: SizedBox(
-        height: 200,
-        child: _buildLineChart(
-          context,
-          periodData,
-          (data) => data.revenue,
-          l10n.revenue,
-          Colors.green,
-        ),
-      ),
-    );
-  }
 
   Widget _buildTablesChart(BuildContext context, AppLocalizations l10n) {
     return BentoCard(

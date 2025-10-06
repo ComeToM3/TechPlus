@@ -34,69 +34,86 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.analytics),
-        actions: [
-          // Bouton de refresh
-          IconButton(
-            onPressed: _refreshAnalytics,
-            icon: const Icon(Icons.refresh),
-            tooltip: l10n.refresh,
-          ),
-          // Bouton d'export
-          IconButton(
-            onPressed: _exportAnalytics,
-            icon: const Icon(Icons.download),
-            tooltip: l10n.export,
-          ),
-          // Bouton de filtres
-          IconButton(
-            onPressed: _showFilters,
-            icon: const Icon(Icons.filter_list),
-            tooltip: l10n.filters,
-          ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // En-tête avec actions
+          _buildPageHeader(context, theme, l10n),
+          const SizedBox(height: 24),
+          
+          // En-tête avec filtres
+          _buildHeader(context, l10n),
+          const SizedBox(height: 24),
+          
+          // KPIs principaux
+          KPIsWidget(filters: _filters),
+          const SizedBox(height: 24),
+          
+          // Graphiques d'évolution
+          EvolutionChartWidget(filters: _filters),
+          const SizedBox(height: 24),
+          
+          // Données de comparaison
+          ComparisonWidget(filters: _filters),
+          const SizedBox(height: 24),
+          
+          // Prédictions
+          PredictionsWidget(filters: _filters),
+          const SizedBox(height: 24),
+          
+          // Actions rapides
+          _buildQuickActions(context, l10n),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildPageHeader(BuildContext context, ThemeData theme, AppLocalizations l10n) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          l10n.analytics,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        Row(
           children: [
-            // En-tête avec filtres
-            _buildHeader(context, l10n),
-            const SizedBox(height: 24),
-            
-            // KPIs principaux
-            KPIsWidget(filters: _filters),
-            const SizedBox(height: 24),
-            
-            // Graphiques d'évolution
-            EvolutionChartWidget(filters: _filters),
-            const SizedBox(height: 24),
-            
-            // Données de comparaison
-            ComparisonWidget(filters: _filters),
-            const SizedBox(height: 24),
-            
-            // Prédictions
-            PredictionsWidget(filters: _filters),
-            const SizedBox(height: 24),
-            
-            // Actions rapides
-            _buildQuickActions(context, l10n),
+            // Bouton de refresh
+            IconButton(
+              onPressed: _refreshAnalytics,
+              icon: const Icon(Icons.refresh),
+              tooltip: l10n.refresh,
+            ),
+            // Bouton d'export
+            IconButton(
+              onPressed: _exportAnalytics,
+              icon: const Icon(Icons.download),
+              tooltip: l10n.export,
+            ),
+            // Bouton de filtres
+            IconButton(
+              onPressed: _showFilters,
+              icon: const Icon(Icons.filter_list),
+              tooltip: l10n.filters,
+            ),
           ],
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -172,7 +189,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   Widget _buildQuickActions(BuildContext context, AppLocalizations l10n) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -267,7 +284,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     final l10n = AppLocalizations.of(context)!;
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,9 +296,9 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          // TODO: Implémenter les filtres
+          // Fonctionnalité de filtres - à implémenter
           Text(
-            'Filtres à implémenter',
+            'Fonctionnalité en développement',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
@@ -300,7 +317,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                 child: SimpleButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    // TODO: Appliquer les filtres
+                    // Appliquer les filtres - à implémenter
                   },
                   text: l10n.apply,
                   type: ButtonType.primary,

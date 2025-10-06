@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../data/providers/table_provider.dart' as data;
 import '../../domain/entities/table_entity.dart';
@@ -8,6 +9,7 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/navigation/unified_navigation.dart';
 import '../providers/table_provider.dart';
 import '../widgets/interactive_restaurant_layout_widget.dart';
 import '../widgets/table_form_widget.dart';
@@ -24,7 +26,7 @@ class TableManagementPage extends ConsumerStatefulWidget {
 
 class _TableManagementPageState extends ConsumerState<TableManagementPage> with TickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedTabIndex = 0;
+  // int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -32,7 +34,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {
-        _selectedTabIndex = _tabController.index;
+        // _selectedTabIndex = _tabController.index;
       });
     });
     _loadData();
@@ -61,39 +63,38 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.tableManagement),
+        title: Text(l10n.tables),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _showCreateTableDialog,
-            icon: const Icon(Icons.add),
-            tooltip: l10n.createTable,
-          ),
-          IconButton(
-            onPressed: _refreshData,
-            icon: const Icon(Icons.refresh),
-            tooltip: l10n.refresh,
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(
-              icon: const Icon(Icons.list),
-              text: l10n.list,
-            ),
-            Tab(
-              icon: const Icon(Icons.restaurant),
-              text: l10n.layout,
-            ),
-            Tab(
-              icon: const Icon(Icons.analytics),
-              text: l10n.statistics,
-            ),
-          ],
-        ),
+      ),
+      bottomNavigationBar: UnifiedBottomNavigation(
+        currentIndex: 2, // Tables est l'index 2
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              context.go('/admin/dashboard');
+              break;
+            case 1:
+              context.go('/admin/dashboard/reservations');
+              break;
+            case 2:
+              context.go('/admin/dashboard/tables');
+              break;
+            case 3:
+              context.go('/admin/dashboard/schedule');
+              break;
+            case 4:
+              context.go('/admin/dashboard/menu');
+              break;
+            case 5:
+              context.go('/admin/dashboard/analytics');
+              break;
+            case 6:
+              context.go('/admin/dashboard/reports');
+              break;
+          }
+        },
       ),
       body: CustomAnimatedWidget(
         config: AnimationConfig(
@@ -101,21 +102,83 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
           duration: AnimationConstants.normal,
           curve: AnimationConstants.easeOut,
         ),
-        child: TabBarView(
-          controller: _tabController,
+        child: Column(
           children: [
-            _buildTablesListTab(theme, l10n),
-            _buildLayoutTab(theme, l10n),
-            _buildStatisticsTab(theme, l10n),
-          ],
-        ),
+            // En-tête avec actions
+            _buildPageHeader(context, theme, l10n),
+            const SizedBox(height: 16),
+          
+          // TabBar pour la navigation
+          TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.list),
+                text: l10n.list,
+              ),
+              Tab(
+                icon: const Icon(Icons.restaurant),
+                text: l10n.layout,
+              ),
+              Tab(
+                icon: const Icon(Icons.analytics),
+                text: l10n.statistics,
+              ),
+            ],
+          ),
+          
+          // Contenu des onglets
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildTablesListTab(theme, l10n),
+                _buildLayoutTab(theme, l10n),
+                _buildStatisticsTab(theme, l10n),
+              ],
+            ),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+
+  Widget _buildPageHeader(BuildContext context, ThemeData theme, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            l10n.tableManagement,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: _showCreateTableDialog,
+                icon: const Icon(Icons.add),
+                tooltip: l10n.createTable,
+              ),
+              IconButton(
+                onPressed: _refreshData,
+                icon: const Icon(Icons.refresh),
+                tooltip: l10n.refresh,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTablesListTab(ThemeData theme, AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
           // Actions rapides
@@ -135,7 +198,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
 
   Widget _buildLayoutTab(ThemeData theme, AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
           // Plan interactif du restaurant
@@ -194,7 +257,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
         }
         
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: TableStatisticsWidget(
             tables: tables,
             onRefresh: _refreshData,
@@ -207,7 +270,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   Widget _buildQuickActions(ThemeData theme, AppLocalizations l10n) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -252,7 +315,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   Widget _buildLayoutActions(ThemeData theme, AppLocalizations l10n) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -373,16 +436,16 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   }
 
   void _editLayout() {
-    // TODO: Implémenter l'édition du plan
+    // Fonctionnalité d'édition du plan - à implémenter
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Édition du plan à implémenter')),
+      const SnackBar(content: Text('Fonctionnalité en développement')),
     );
   }
 
   void _resetLayout() {
-    // TODO: Implémenter la réinitialisation du plan
+    // Fonctionnalité de réinitialisation du plan - à implémenter
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Réinitialisation du plan à implémenter')),
+      const SnackBar(content: Text('Fonctionnalité en développement')),
     );
   }
 

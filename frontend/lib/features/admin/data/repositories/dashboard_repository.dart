@@ -56,7 +56,7 @@ class DashboardRepository {
     DateTime? endDate,
   }) async {
     try {
-      String endpoint = '/api/admin/reservations';
+      String endpoint = '/api/reservations';
       final Map<String, dynamic> queryParams = {};
       
       if (status != null) queryParams['status'] = status;
@@ -90,7 +90,7 @@ class DashboardRepository {
   }) async {
     try {
       final response = await _apiService.put(
-        '/api/admin/reservations/$reservationId/status',
+        '/api/reservations/$reservationId',
         {'status': status},
         token: token,
       );

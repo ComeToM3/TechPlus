@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/reservation_calendar.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/animations/animated_widget.dart';

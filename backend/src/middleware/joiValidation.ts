@@ -116,13 +116,12 @@ export const commonSchemas = {
       'any.required': 'is required',
     }),
 
-  // Validation des numéros de téléphone
+  // Validation des numéros de téléphone (Québec/Canada)
   phone: Joi.string()
-    .pattern(/^(\+33|0)[1-9](\d{8})$/)
-    .required()
+    .pattern(/^(\+1|1)?[2-9]\d{2}[2-9]\d{2}\d{4}$/)
+    .optional()
     .messages({
-      'string.pattern.base': 'must be a valid French phone number',
-      'any.required': 'is required',
+      'string.pattern.base': 'must be a valid Quebec/Canadian phone number (e.g., 514-777-1269)',
     }),
 
   // Validation des noms
@@ -246,12 +245,15 @@ export const validationSchemas = {
       date: commonSchemas.date,
       time: commonSchemas.time,
       partySize: commonSchemas.partySize,
-      specialRequests: Joi.string().max(500).optional().messages({
+      specialRequests: Joi.string().max(500).allow('').optional().messages({
         'string.max': 'must not exceed 500 characters',
       }),
       clientName: commonSchemas.name.optional(),
       clientEmail: commonSchemas.email.optional(),
       clientPhone: commonSchemas.phone.optional(),
+      tableNumber: Joi.string().max(10).optional().messages({
+        'string.max': 'must not exceed 10 characters',
+      }),
     }),
 
     update: Joi.object({

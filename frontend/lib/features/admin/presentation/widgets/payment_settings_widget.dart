@@ -130,7 +130,7 @@ class _PaymentSettingsWidgetState extends ConsumerState<PaymentSettingsWidget> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),

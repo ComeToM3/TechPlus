@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../config/api_config.dart';
 
 /// API pour les métriques du dashboard
 class DashboardApi {

@@ -206,10 +206,6 @@
   "@todayReservations": {
     "description": "Réservations du jour"
   },
-  "todayRevenue": "Revenus du jour",
-  "@todayRevenue": {
-    "description": "Revenus du jour"
-  },
   "tableOccupancy": "Occupation des tables",
   "@tableOccupancy": {
     "description": "Occupation des tables"
@@ -225,10 +221,6 @@
   "totalReservations": "Total réservations",
   "@totalReservations": {
     "description": "Total des réservations"
-  },
-  "totalRevenue": "Revenus totaux",
-  "@totalRevenue": {
-    "description": "Revenus totaux"
   },
   "totalCustomers": "Total clients",
   "@totalCustomers": {
@@ -302,32 +294,6 @@
   "@lowOccupancy": {
     "description": "Message occupation faible"
   },
-  "revenue": "Revenus",
-  "@revenue": {
-    "description": "Titre revenus"
-  },
-  "revenueGrowthPositive": "Croissance de {percentage}% par rapport à la moyenne",
-  "@revenueGrowthPositive": {
-    "description": "Message croissance positive des revenus",
-    "placeholders": {
-      "percentage": {
-        "type": "String"
-      }
-    }
-  },
-  "revenueGrowthNegative": "Baisse de {percentage}% par rapport à la moyenne",
-  "@revenueGrowthNegative": {
-    "description": "Message baisse des revenus",
-    "placeholders": {
-      "percentage": {
-        "type": "String"
-      }
-    }
-  },
-  "revenueSummary": "Analyse des revenus et tendances",
-  "@revenueSummary": {
-    "description": "Résumé des revenus"
-  },
   "topTables": "Tables populaires",
   "@topTables": {
     "description": "Titre tables populaires"
@@ -351,10 +317,6 @@
   "totalTables": "Tables totales",
   "@totalTables": {
     "description": "Nombre total de tables"
-  },
-  "averageRevenue": "Revenus moyens",
-  "@averageRevenue": {
-    "description": "Revenus moyens"
   },
   "reservationCalendar": "Calendrier des réservations",
   "@reservationCalendar": {
@@ -1347,10 +1309,6 @@
   "@occupancy": {
     "description": "Occupation"
   },
-  "revenue": "Revenus",
-  "@revenue": {
-    "description": "Revenus"
-  },
   "noStatistics": "Aucune statistique disponible",
   "@noStatistics": {
     "description": "Aucune statistique"
@@ -1606,7 +1564,6 @@
   "analytics": "Analytics",
   "mainKPIs": "KPIs Principaux",
   "mainKPIsDescription": "Métriques clés de performance",
-  "totalRevenue": "Chiffre d'affaires total",
   "totalReservations": "Total des réservations",
   "averageOrderValue": "Valeur moyenne des commandes",
   "occupancyRate": "Taux d'occupation",
@@ -1920,14 +1877,6 @@
   "reservationsChartDescription": "Évolution du nombre de réservations",
   "@reservationsChartDescription": {
     "description": "Description du graphique des réservations"
-  },
-  "revenueChart": "Graphique des revenus",
-  "@revenueChart": {
-    "description": "Graphique des revenus"
-  },
-  "revenueChartDescription": "Évolution des revenus",
-  "@revenueChartDescription": {
-    "description": "Description du graphique des revenus"
   },
   "tablesChart": "Graphique des tables",
   "@tablesChart": {

@@ -15,7 +15,13 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 /// Provider central pour SharedPreferences
 /// Utilisé dans toute l'application pour éviter les duplications
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
-  return await SharedPreferences.getInstance();
+  try {
+    return await SharedPreferences.getInstance();
+  } catch (e) {
+    // En cas d'erreur, retourner une instance vide
+    print('⚠️ SharedPreferences initialization failed: $e');
+    rethrow;
+  }
 });
 
 /// Provider pour l'instance Dio (si nécessaire pour des cas spécifiques)

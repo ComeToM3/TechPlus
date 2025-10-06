@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/client_selection_widget.dart';
-import '../widgets/availability_selector_widget.dart';
-import '../widgets/reservation_info_widget.dart';
+import '../providers/reservation_calendar_provider.dart';
+import '../../domain/entities/reservation_calendar.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/network/api_service_provider.dart';
+import '../providers/schedule_provider.dart';
+import '../providers/table_provider.dart';
+import '../../domain/entities/schedule_entity.dart';
+import '../../domain/entities/table_entity.dart';
+import '../../../../core/navigation/unified_navigation.dart';
 
-/// Page de création de réservation par l'admin
+/// Page de création de réservation moderne et ergonomique
 class CreateReservationPage extends ConsumerStatefulWidget {
   const CreateReservationPage({super.key});
 
@@ -19,12 +25,52 @@ class CreateReservationPage extends ConsumerStatefulWidget {
 }
 
 class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
-  String? _selectedClientId;
+  final _formKey = GlobalKey<FormState>();
+  final _clientSearchController = TextEditingController();
+  final _specialRequestsController = TextEditingController();
+  
   DateTime? _selectedDate;
   String? _selectedTime;
-  int _partySize = 1;
-  ReservationFormData _formData = const ReservationFormData(partySize: 1);
+  int _partySize = 2;
   bool _isCreating = false;
+  
+  // Données sélectionnées
+  List<Map<String, dynamic>> _availableSlots = [];
+  Map<String, dynamic>? _selectedTable;
+  
+  // Contrôleurs pour nouveau client
+  final _newClientNameController = TextEditingController();
+  final _newClientEmailController = TextEditingController();
+  final _newClientPhoneController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+    _clientSearchController.addListener(_onClientSearchChanged);
+    _loadInitialData();
+  }
+  
+  Future<void> _loadInitialData() async {
+    // Charger la configuration des créneaux
+    // Note: scheduleConfigProvider est un FutureProvider, pas besoin de le charger manuellement
+    
+    // Charger les tables
+    // Note: tableProvider est un FutureProvider, pas besoin de le charger manuellement
+  }
+  
+  void _onClientSearchChanged() {
+    // Recherche de clients via l'API - à implémenter selon les besoins
+  }
+
+  @override
+  void dispose() {
+    _clientSearchController.dispose();
+    _specialRequestsController.dispose();
+    _newClientNameController.dispose();
+    _newClientEmailController.dispose();
+    _newClientPhoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +83,12 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _saveDraft,
-            icon: const Icon(Icons.save),
-            tooltip: l10n.saveDraft,
-          ),
-        ],
+        leading: IconButton(
+          onPressed: () => context.go('/admin/dashboard/reservations'),
+          icon: const Icon(Icons.arrow_back),
+        ),
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(theme, l10n),
       body: CustomAnimatedWidget(
         config: AnimationConfig(
           type: AnimationType.fadeIn,
@@ -53,40 +97,26 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
           child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // En-tête
               _buildHeader(theme, l10n),
-              const SizedBox(height: 16),
-
-              // Sélection client
-              ClientSelectionWidget(
-                selectedClientId: _selectedClientId,
-                onClientSelected: _onClientSelected,
-                onNewClient: _createNewClient,
-              ),
-              const SizedBox(height: 16),
-
-              // Sélection disponibilité
-              AvailabilitySelectorWidget(
-                selectedDate: _selectedDate,
-                selectedTime: _selectedTime,
-                partySize: _partySize,
-                onAvailabilityChanged: _onAvailabilityChanged,
-              ),
-              const SizedBox(height: 16),
-
-              // Informations réservation
-              ReservationInfoWidget(
-                formData: _formData,
-                onFormDataChanged: _onFormDataChanged,
-                onValidate: _validateForm,
-              ),
-              const SizedBox(height: 16),
-
-              // Actions finales
-              _buildFinalActions(theme, l10n),
-            ],
+                const SizedBox(height: 24),
+                _buildClientSearchSection(theme, l10n),
+                const SizedBox(height: 24),
+                      _buildDateTimeSection(theme, l10n),
+                      const SizedBox(height: 24),
+                      _buildTableSelectionSection(theme, l10n),
+                      const SizedBox(height: 24),
+                      _buildPartySizeSection(theme, l10n),
+                const SizedBox(height: 24),
+                _buildSpecialRequestsSection(theme, l10n),
+                const SizedBox(height: 32),
+                _buildActionButtons(theme, l10n),
+              ],
+            ),
           ),
         ),
       ),
@@ -94,253 +124,494 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
   }
 
   Widget _buildHeader(ThemeData theme, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Nouvelle réservation',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Créez une réservation pour un client existant',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildClientSearchSection(ThemeData theme, AppLocalizations l10n) {
     return BentoCard(
+      title: 'Sélection du client',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+                  // Seulement l'option nouveau client
+                  _buildNewClientForm(theme),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildNewClientForm(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Informations du nouveau client',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _newClientNameController,
+          decoration: InputDecoration(
+            labelText: 'Nom complet *',
+            hintText: 'Ex: Jean Dupont',
+            prefixIcon: const Icon(Icons.person),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Le nom est obligatoire';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _newClientEmailController,
+          decoration: InputDecoration(
+            labelText: 'Email *',
+            hintText: 'jean@example.com',
+            prefixIcon: const Icon(Icons.email),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'L\'email est obligatoire';
+            }
+            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              return 'Format d\'email invalide';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _newClientPhoneController,
+          decoration: InputDecoration(
+            labelText: 'Téléphone',
+            hintText: '06 12 34 56 78',
+            prefixIcon: const Icon(Icons.phone),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          keyboardType: TextInputType.phone,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateTimeSection(ThemeData theme, AppLocalizations l10n) {
+    return BentoCard(
+      title: 'Date et créneaux',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+            Text(
+            'Sélectionnez la date et le créneau de la réservation',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildDateSelector(theme),
+          if (_selectedDate != null) ...[
+            const SizedBox(height: 16),
+            _buildAvailableSlots(theme),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateSelector(ThemeData theme) {
+    return InkWell(
+      onTap: _selectDate,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.3),
-            width: 2,
-          ),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.colorScheme.outline),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.add_circle,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  l10n.createReservation,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _isFormComplete() 
-                        ? Colors.green.withOpacity(0.2) 
-                        : Colors.orange.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _isFormComplete() ? l10n.ready : l10n.incomplete,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: _isFormComplete() ? Colors.green : Colors.orange,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.createReservationDescription,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Icon(Icons.calendar_today, color: theme.colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _selectedDate != null
+                    ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
+                    : 'Sélectionner une date',
+                style: theme.textTheme.bodyLarge,
               ),
             ),
-            const SizedBox(height: 8),
-            _buildProgressIndicator(theme, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProgressIndicator(ThemeData theme, AppLocalizations l10n) {
-    final steps = [
-      l10n.selectClient,
-      l10n.selectAvailability,
-      l10n.fillInformation,
-    ];
+
+  Widget _buildAvailableSlots(ThemeData theme) {
+    // Si aucun créneau n'est configuré, afficher un message
+    if (_availableSlots.isEmpty) {
+      return _buildNoSlotsMessage(theme);
+    }
     
-    final completedSteps = [
-      _selectedClientId != null,
-      _selectedDate != null && _selectedTime != null,
-      _formData.clientName != null && _formData.clientName!.isNotEmpty,
-    ];
-
-    return Row(
-      children: steps.asMap().entries.map((entry) {
-        final index = entry.key;
-        final step = entry.value;
-        final isCompleted = completedSteps[index];
-        final isLast = index == steps.length - 1;
-
-        return Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Créneaux disponibles',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _availableSlots.map((slot) {
+            final isSelected = _selectedTime == slot['time'];
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedTime = slot['time'];
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isCompleted 
+                  color: isSelected
                       ? theme.colorScheme.primary 
-                      : theme.colorScheme.surfaceContainerHighest,
-                  shape: BoxShape.circle,
+                      : theme.colorScheme.surface,
                   border: Border.all(
-                    color: isCompleted 
+                    color: isSelected
                         ? theme.colorScheme.primary 
                         : theme.colorScheme.outline,
                   ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  isCompleted ? Icons.check : Icons.circle,
-                  size: 12,
-                  color: isCompleted 
+                child: Text(
+                  slot['time'],
+                  style: TextStyle(
+                    color: isSelected
                       ? theme.colorScheme.onPrimary 
-                      : theme.colorScheme.onSurfaceVariant,
+                        : theme.colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
                 ),
               ),
-              if (!isLast) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    color: isCompleted 
-                        ? theme.colorScheme.primary 
-                        : theme.colorScheme.outline.withOpacity(0.3),
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildFinalActions(ThemeData theme, AppLocalizations l10n) {
-    return BentoCard(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.finalActions,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: SimpleButton(
-                    onPressed: _isFormComplete() ? _createReservation : null,
-                    text: l10n.createReservation,
-                    type: ButtonType.primary,
-                    size: ButtonSize.large,
-                    icon: Icons.add,
-                    isLoading: _isCreating,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SimpleButton(
-                    onPressed: _previewReservation,
-                    text: l10n.preview,
-                    type: ButtonType.secondary,
-                    size: ButtonSize.large,
-                    icon: Icons.visibility,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: SimpleButton(
-                    onPressed: _saveDraft,
-                    text: l10n.saveDraft,
-                    type: ButtonType.secondary,
-                    size: ButtonSize.medium,
-                    icon: Icons.save,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SimpleButton(
-                    onPressed: _cancel,
-                    text: l10n.cancel,
-                    type: ButtonType.danger,
-                    size: ButtonSize.medium,
-                    icon: Icons.cancel,
-                  ),
-                ),
-              ],
-            ),
-          ],
+            );
+          }).toList(),
         ),
-      ),
+      ],
     );
   }
 
-  void _onClientSelected(String? clientId) {
-    setState(() {
-      _selectedClientId = clientId;
-    });
-  }
-
-  void _onAvailabilityChanged(DateTime? date, String? time) {
-    setState(() {
-      _selectedDate = date;
-      _selectedTime = time;
-      _formData = _formData.copyWith(
-        date: date,
-        time: time,
-      );
-    });
-  }
-
-  void _onFormDataChanged(ReservationFormData formData) {
-    setState(() {
-      _formData = formData;
-      _partySize = formData.partySize;
-    });
-  }
-
-  void _createNewClient() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.newClient),
-        content: const Text('Création de nouveau client à implémenter'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
+  Widget _buildNoSlotsMessage(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outline),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.schedule_outlined,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Aucun créneau configuré',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vous devez d\'abord configurer les créneaux horaires de votre restaurant avant de pouvoir créer des réservations.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              context.go('/admin/dashboard/schedule');
+            },
+            icon: const Icon(Icons.schedule),
+            label: const Text('Configurer les créneaux'),
           ),
         ],
       ),
     );
   }
 
-  void _validateForm() {
-    // TODO: Implémenter la validation complète
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Validation du formulaire')),
+  Widget _buildTableSelectionSection(ThemeData theme, AppLocalizations l10n) {
+    return BentoCard(
+      title: 'Sélection de table',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Choisissez une table pour cette réservation',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildTableGrid(theme),
+        ],
+      ),
     );
   }
 
-  void _createReservation() async {
-    if (!_isFormComplete()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.formIncomplete),
-          backgroundColor: Colors.orange,
+  Widget _buildTableGrid(ThemeData theme) {
+    // Charger les tables depuis l'API
+    // TODO: Intégrer avec tableProvider pour charger les vraies tables
+    return _buildNoTablesMessage(theme);
+  }
+
+  Widget _buildNoTablesMessage(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outline),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.table_restaurant_outlined,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Aucune table configurée',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vous devez d\'abord configurer les tables de votre restaurant avant de pouvoir créer des réservations.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              context.go('/admin/dashboard/tables');
+            },
+            icon: const Icon(Icons.settings),
+            label: const Text('Configurer les tables'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPartySizeSection(ThemeData theme, AppLocalizations l10n) {
+    return BentoCard(
+      title: 'Nombre de personnes',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+            'Combien de personnes pour cette réservation ?',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+              IconButton(
+                onPressed: _partySize > 1 ? () => setState(() => _partySize--) : null,
+                icon: const Icon(Icons.remove),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$_partySize',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: _partySize < 20 ? () => setState(() => _partySize++) : null,
+                icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          ],
         ),
+    );
+  }
+
+  Widget _buildSpecialRequestsSection(ThemeData theme, AppLocalizations l10n) {
+    return BentoCard(
+      title: 'Demandes spéciales',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Y a-t-il des demandes particulières pour cette réservation ?',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _specialRequestsController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'Ex: Table près de la fenêtre, anniversaire, allergie...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(ThemeData theme, AppLocalizations l10n) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => context.go('/admin/dashboard/reservations'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Annuler'),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child:           Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SimpleButton(
+              onPressed: _isCreating ? null : _createReservation,
+              text: _isCreating ? 'Création...' : 'Créer la réservation',
+              type: ButtonType.primary,
+              isLoading: _isCreating,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 90)),
+    );
+    
+    if (date != null) {
+      setState(() {
+        _selectedDate = date;
+        _selectedTime = null;
+        _availableSlots = [];
+      });
+      await _loadAvailableSlots();
+    }
+  }
+
+
+  Future<void> _loadAvailableSlots() async {
+    if (_selectedDate == null) return;
+    
+    try {
+      // Récupérer la configuration des créneaux depuis l'API
+      // TODO: Intégrer avec scheduleConfigProvider pour charger les vrais créneaux
+      setState(() {
+        _availableSlots = [];
+      });
+    } catch (e) {
+      setState(() {
+        _availableSlots = [];
+      });
+    }
+  }
+  
+
+  void _createReservation() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    // Vérifier les informations du nouveau client
+    if (_newClientNameController.text.trim().isEmpty ||
+        _newClientEmailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez remplir les informations du client')),
+      );
+      return;
+    }
+    
+    if (_selectedDate == null || _selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner une date et un créneau')),
+      );
+      return;
+    }
+    
+    if (_selectedTable == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner une table')),
       );
       return;
     }
@@ -350,34 +621,59 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     });
 
     try {
-      // Créer la réservation via l'API
-      final reservation = Reservation(
+      final calendarNotifier = ref.read(reservationCalendarProvider.notifier);
+      
+      // Préparer les données du client
+      final clientName = _newClientNameController.text.trim();
+      final clientEmail = _newClientEmailController.text.trim();
+      final clientPhone = _newClientPhoneController.text.trim().isNotEmpty
+          ? _newClientPhoneController.text.trim()
+          : null;
+      
+      // Extraire l'heure de début du créneau sélectionné
+      String timeForBackend = _selectedTime!;
+      if (_selectedTime!.contains(' - ')) {
+        timeForBackend = _selectedTime!.split(' - ')[0]; // Prendre l'heure de début
+      }
+      
+      // Gérer les demandes spéciales vides
+      String specialRequests = _specialRequestsController.text.trim();
+      if (specialRequests.isEmpty) {
+        specialRequests = ''; // Envoyer une chaîne vide au lieu de null
+      }
+      
+      final reservation = ReservationCalendar(
         id: '', // Sera généré par le backend
+        clientName: clientName,
+        clientEmail: clientEmail,
+        clientPhone: clientPhone,
         date: _selectedDate!,
-        time: _selectedTime!,
-        duration: 90, // Durée par défaut
+        time: timeForBackend, // Utiliser l'heure de début seulement
         partySize: _partySize,
-        specialRequests: _specialRequestsController.text,
-        clientName: _clientNameController.text,
-        clientEmail: _clientEmailController.text,
-        clientPhone: _clientPhoneController.text,
-        status: 'PENDING',
-        restaurantId: 'restaurant_1', // À récupérer depuis la configuration
+        status: 'pending',
+        tableNumber: _selectedTable!['number'], // Ajouter le numéro de table
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        specialRequests: specialRequests,
       );
 
-      // Appeler l'API backend pour créer la réservation
-      final createdReservation = await _apiService.createReservation(reservation);
+      final createdReservation = await calendarNotifier.createReservation(reservation);
 
-      if (mounted) {
+      if (mounted && createdReservation != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.reservationCreated),
+          const SnackBar(
+            content: Text('Réservation créée avec succès'),
             backgroundColor: Colors.green,
           ),
         );
-        
-        // Rediriger vers la liste des réservations
         context.go('/admin/dashboard/reservations');
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors de la création de la réservation'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -397,69 +693,35 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     }
   }
 
-  void _previewReservation() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.preview),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Client: ${_formData.clientName ?? 'Non sélectionné'}'),
-            Text('Date: ${_selectedDate?.day}/${_selectedDate?.month}/${_selectedDate?.year}'),
-            Text('Heure: ${_selectedTime ?? 'Non sélectionnée'}'),
-            Text('Personnes: ${_formData.partySize}'),
-            if (_formData.specialRequests?.isNotEmpty == true)
-              Text('Demandes: ${_formData.specialRequests}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      ),
+  Widget _buildBottomNavigationBar(ThemeData theme, AppLocalizations l10n) {
+    return UnifiedBottomNavigation(
+      currentIndex: 1, // Réservations est l'index 1
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            context.go('/admin/dashboard');
+            break;
+          case 1:
+            context.go('/admin/dashboard/reservations');
+            break;
+          case 2:
+            context.go('/admin/dashboard/tables');
+            break;
+          case 3:
+            context.go('/admin/dashboard/schedule');
+            break;
+          case 4:
+            context.go('/admin/dashboard/menu');
+            break;
+          case 5:
+            context.go('/admin/dashboard/analytics');
+            break;
+          case 6:
+            context.go('/admin/dashboard/reports');
+            break;
+        }
+      },
     );
   }
 
-  void _saveDraft() {
-    // TODO: Implémenter la sauvegarde de brouillon
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Brouillon sauvegardé')),
-    );
-  }
-
-  void _cancel() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.cancel),
-        content: Text(AppLocalizations.of(context)!.cancelConfirmation),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.no),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/admin/dashboard/reservations');
-            },
-            child: Text(AppLocalizations.of(context)!.yes),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool _isFormComplete() {
-    return _selectedClientId != null &&
-           _selectedDate != null &&
-           _selectedTime != null &&
-           _formData.clientName != null &&
-           _formData.clientName!.isNotEmpty;
-  }
 }
-

@@ -392,12 +392,6 @@ abstract class AppLocalizations {
   /// **'Réservations du jour'**
   String get todayReservations;
 
-  /// Revenus du jour
-  ///
-  /// In fr, this message translates to:
-  /// **'Revenus du jour'**
-  String get todayRevenue;
-
   /// Occupation des tables
   ///
   /// In fr, this message translates to:
@@ -421,12 +415,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Total des réservations'**
   String get totalReservations;
-
-  /// Revenus totaux
-  ///
-  /// In fr, this message translates to:
-  /// **'Chiffre d\'affaires total'**
-  String get totalRevenue;
 
   /// Total des clients
   ///
@@ -536,30 +524,6 @@ abstract class AppLocalizations {
   /// **'Occupation faible - Actions marketing recommandées'**
   String get lowOccupancy;
 
-  /// Revenus
-  ///
-  /// In fr, this message translates to:
-  /// **'Revenus'**
-  String get revenue;
-
-  /// Message croissance positive des revenus
-  ///
-  /// In fr, this message translates to:
-  /// **'Croissance de {percentage}% par rapport à la moyenne'**
-  String revenueGrowthPositive(String percentage);
-
-  /// Message baisse des revenus
-  ///
-  /// In fr, this message translates to:
-  /// **'Baisse de {percentage}% par rapport à la moyenne'**
-  String revenueGrowthNegative(String percentage);
-
-  /// Résumé des revenus
-  ///
-  /// In fr, this message translates to:
-  /// **'Analyse des revenus et tendances'**
-  String get revenueSummary;
-
   /// Titre tables populaires
   ///
   /// In fr, this message translates to:
@@ -589,12 +553,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Total des Tables'**
   String get totalTables;
-
-  /// Revenus moyens
-  ///
-  /// In fr, this message translates to:
-  /// **'Revenus moyens'**
-  String get averageRevenue;
 
   /// Titre calendrier des réservations
   ///
@@ -3097,18 +3055,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Évolution du nombre de réservations'**
   String get reservationsChartDescription;
-
-  /// Graphique des revenus
-  ///
-  /// In fr, this message translates to:
-  /// **'Graphique des revenus'**
-  String get revenueChart;
-
-  /// Description du graphique des revenus
-  ///
-  /// In fr, this message translates to:
-  /// **'Évolution des revenus'**
-  String get revenueChartDescription;
 
   /// Graphique des tables
   ///

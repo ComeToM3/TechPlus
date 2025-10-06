@@ -164,9 +164,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todayReservations => 'Today\'s reservations';
 
   @override
-  String get todayRevenue => 'Today\'s revenue';
-
-  @override
   String get tableOccupancy => 'Table occupancy';
 
   @override
@@ -177,9 +174,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalReservations => 'Total Reservations';
-
-  @override
-  String get totalRevenue => 'Total Revenue';
 
   @override
   String get totalCustomers => 'Total customers';
@@ -236,22 +230,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lowOccupancy => 'Low occupancy - Marketing actions recommended';
 
   @override
-  String get revenue => 'Revenue';
-
-  @override
-  String revenueGrowthPositive(String percentage) {
-    return 'Growth of $percentage% compared to average';
-  }
-
-  @override
-  String revenueGrowthNegative(String percentage) {
-    return 'Decrease of $percentage% compared to average';
-  }
-
-  @override
-  String get revenueSummary => 'Revenue analysis and trends';
-
-  @override
   String get topTables => 'Popular tables';
 
   @override
@@ -265,9 +243,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalTables => 'Total Tables';
-
-  @override
-  String get averageRevenue => 'Average revenue';
 
   @override
   String get reservationCalendar => 'Reservation Calendar';
@@ -1546,12 +1521,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reservationsChartDescription => 'Evolution of reservation count';
-
-  @override
-  String get revenueChart => 'Revenue Chart';
-
-  @override
-  String get revenueChartDescription => 'Revenue evolution';
 
   @override
   String get tablesChart => 'Tables Chart';

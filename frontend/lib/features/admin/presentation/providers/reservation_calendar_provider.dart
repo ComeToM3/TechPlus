@@ -12,14 +12,27 @@ final reservationCalendarRemoteDataSourceProvider = Provider<ReservationCalendar
   return ReservationCalendarRemoteDataSource(apiClient);
 });
 
-/// Provider pour la data source locale
+/// Provider pour la data source locale avec gestion d'erreur robuste
 final reservationCalendarLocalDataSourceProvider = Provider<ReservationCalendarLocalDataSource>((ref) {
-  final prefsAsync = ref.watch(sharedPreferencesProvider);
-  return prefsAsync.when(
-    data: (prefs) => ReservationCalendarLocalDataSource(prefs),
-    loading: () => throw Exception('SharedPreferences not ready'),
-    error: (error, stack) => throw Exception('Failed to load SharedPreferences: $error'),
-  );
+  try {
+    final prefsAsync = ref.watch(sharedPreferencesProvider);
+    return prefsAsync.when(
+      data: (prefs) => ReservationCalendarLocalDataSource(prefs),
+      loading: () {
+        // Retourner une instance temporaire pour éviter l'erreur
+        return ReservationCalendarLocalDataSource(null);
+      },
+      error: (error, stack) {
+        // Retourner une instance temporaire pour éviter l'erreur
+        print('⚠️ SharedPreferences error in reservation provider: $error');
+        return ReservationCalendarLocalDataSource(null);
+      },
+    );
+  } catch (e) {
+    // Fallback en cas d'erreur critique
+    print('⚠️ Critical error in reservation provider: $e');
+    return ReservationCalendarLocalDataSource(null);
+  }
 });
 
 /// Provider pour le repository
@@ -82,6 +95,8 @@ class ReservationCalendarNotifier extends StateNotifier<ReservationCalendarState
 
   /// Charge les réservations pour la période actuelle
   Future<void> _loadReservations() async {
+    if (!mounted) return;
+    
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -94,38 +109,49 @@ class ReservationCalendarNotifier extends StateNotifier<ReservationCalendarState
         filters: state.filters,
       );
 
-      state = state.copyWith(
-        reservations: reservations,
-        isLoading: false,
-      );
+      if (mounted) {
+        state = state.copyWith(
+          reservations: reservations,
+          isLoading: false,
+        );
+      }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      if (mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
   }
 
   /// Change le type de vue du calendrier
   Future<void> changeViewType(CalendarViewType viewType) async {
+    if (!mounted) return;
+    
     state = state.copyWith(viewType: viewType);
     await _loadReservations();
   }
 
   /// Change la date sélectionnée
   Future<void> changeSelectedDate(DateTime date) async {
+    if (!mounted) return;
+    
     state = state.copyWith(selectedDate: date);
     await _loadReservations();
   }
 
   /// Applique des filtres
   Future<void> applyFilters(CalendarFilters filters) async {
+    if (!mounted) return;
+    
     state = state.copyWith(filters: filters);
     await _loadReservations();
   }
 
   /// Actualise les réservations
   Future<void> refresh() async {
+    if (!mounted) return;
     await _loadReservations();
   }
 
@@ -240,6 +266,8 @@ class ReservationCalendarNotifier extends StateNotifier<ReservationCalendarState
 
   /// Charge les statistiques
   Future<void> loadStatistics() async {
+    if (!mounted) return;
+    
     try {
       final startDate = _getStartDateForView();
       final endDate = _getEndDateForView();
@@ -249,9 +277,13 @@ class ReservationCalendarNotifier extends StateNotifier<ReservationCalendarState
         endDate: endDate,
       );
 
-      state = state.copyWith(statistics: statistics);
+      if (mounted) {
+        state = state.copyWith(statistics: statistics);
+      }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      if (mounted) {
+        state = state.copyWith(error: e.toString());
+      }
     }
   }
 

@@ -156,6 +156,8 @@ import paymentRoutes from '@/routes/payments';
 import notificationRoutes from '@/routes/notifications';
 import healthRoutes from '@/routes/health';
 import adminRoutes from '@/routes/admin';
+import scheduleRoutes from '@/routes/schedule';
+import tableRoutes from '@/routes/tables';
 
 // API routes
 app.get('/', (req, res) => {
@@ -170,6 +172,8 @@ app.get('/', (req, res) => {
       payments: '/api/payments',
       notifications: '/api/notifications',
       admin: '/api/admin',
+      schedule: '/api/admin/schedule',
+      tables: '/api/admin/tables',
       health: '/health',
     },
   });
@@ -183,6 +187,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/health', healthCheckMonitoringMiddleware, databaseConnectionMonitoring, healthRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/schedule', scheduleRoutes);
+app.use('/api/admin/tables', tableRoutes);
 
 // Test session endpoint
 app.get('/api/test-session', (req, res) => {

@@ -3,15 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/providers/dashboard_provider.dart';
-import '../../data/models/dashboard_metrics_model.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/navigation/unified_navigation.dart';
 
-import 'reservation_management_page.dart';
-import 'table_management_page.dart';
-import 'schedule_management_page.dart';
-import 'analytics_page.dart';
-import 'reports_page.dart';
-import 'menu_management_page.dart';
+// Imports supprimés car non utilisés directement dans cette page
+// La navigation se fait via GoRouter
 
 /// Dashboard principal moderne et responsive pour l'administration
 class AdminDashboardPage extends ConsumerStatefulWidget {
@@ -21,26 +17,10 @@ class AdminDashboardPage extends ConsumerStatefulWidget {
   ConsumerState<AdminDashboardPage> createState() => _AdminDashboardPageState();
 }
 
-class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage>
-    with TickerProviderStateMixin {
-  late TabController _tabController;
-  int _selectedTabIndex = 0;
-
+class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 7, vsync: this);
-    _tabController.addListener(() {
-      setState(() {
-        _selectedTabIndex = _tabController.index;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -52,62 +32,27 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage>
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: _buildAppBar(theme, l10n),
-      drawer: _buildDrawer(theme, l10n),
-      body: Row(
-        children: [
-          // Sidebar pour desktop
-          if (MediaQuery.of(context).size.width > 768)
-            _buildDesktopSidebar(theme, l10n),
-          
-          // Contenu principal
-          Expanded(
-            child: Column(
-              children: [
-                // Header avec métriques rapides
-                _buildMetricsHeader(theme, l10n, metricsState),
-                
-                // Contenu des onglets
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildOverviewTab(theme, l10n, metricsState),
-                      const ReservationManagementPage(),
-                      const TableManagementPage(),
-                      const ScheduleManagementPage(),
-                      const MenuManagementPage(),
-                      const AnalyticsPage(),
-                      const ReportsPage(),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: _buildLayout(theme, l10n, metricsState),
+      bottomNavigationBar: _buildBottomNavigationBar(theme, l10n),
     );
   }
 
+
   PreferredSizeWidget _buildAppBar(ThemeData theme, AppLocalizations l10n) {
     return AppBar(
-      title: Row(
-        children: [
-          Icon(
-            Icons.restaurant,
-            color: theme.colorScheme.primary,
-            size: 28,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'TechPlus Admin',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-        ],
+      leading: Icon(
+        Icons.restaurant,
+        color: theme.colorScheme.primary,
+        size: 28,
       ),
+      title: Text(
+        'TechPlus Admin',
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
+      centerTitle: true,
       backgroundColor: theme.colorScheme.surface,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
@@ -203,338 +148,57 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage>
     );
   }
 
-  Widget _buildDrawer(ThemeData theme, AppLocalizations l10n) {
-    return Drawer(
-      child: Column(
-        children: [
-          // Header du drawer
-          Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(alpha: 0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.restaurant,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'TechPlus',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Administration',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          
-          // Menu items
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildDrawerItem(
-                  theme,
-                  Icons.dashboard,
-                  'Tableau de bord',
-                  () => _tabController.animateTo(0),
-                  isSelected: _selectedTabIndex == 0,
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.restaurant_menu,
-                  'Réservations',
-                  () => _tabController.animateTo(1),
-                  isSelected: _selectedTabIndex == 1,
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.table_restaurant,
-                  'Gestion des tables',
-                  () => _tabController.animateTo(2),
-                  isSelected: _selectedTabIndex == 2,
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.schedule,
-                  'Horaires',
-                  () => _tabController.animateTo(3),
-                  isSelected: _selectedTabIndex == 3,
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.menu_book,
-                  'Menu',
-                  () => _tabController.animateTo(4),
-                  isSelected: _selectedTabIndex == 4,
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.analytics,
-                  'Analytiques',
-                  () => _tabController.animateTo(5),
-                  isSelected: _selectedTabIndex == 5,
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.assessment,
-                  'Rapports',
-                  () => _tabController.animateTo(6),
-                  isSelected: _selectedTabIndex == 6,
-                ),
-                const Divider(),
-                _buildDrawerItem(
-                  theme,
-                  Icons.settings,
-                  'Paramètres',
-                  () => context.go('/admin/dashboard/settings'),
-                ),
-                _buildDrawerItem(
-                  theme,
-                  Icons.help,
-                  'Aide',
-                  () {},
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget _buildLayout(ThemeData theme, AppLocalizations l10n, DashboardState metricsState) {
+    return Column(
+      children: [
+        // Header avec métriques rapides
+        _buildMetricsHeader(theme, l10n, metricsState),
+        
+        // Contenu principal - seulement l'overview
+        Expanded(
+          child: _buildOverviewTab(theme, l10n, metricsState),
+        ),
+      ],
     );
   }
 
-  Widget _buildDrawerItem(
-    ThemeData theme,
-    IconData icon,
-    String title,
-    VoidCallback onTap, {
-    bool isSelected = false,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isSelected 
-            ? theme.colorScheme.primary 
-            : theme.colorScheme.onSurfaceVariant,
-      ),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: isSelected 
-              ? theme.colorScheme.primary 
-              : theme.colorScheme.onSurface,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        ),
-      ),
-      selected: isSelected,
-      selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-      onTap: onTap,
+  Widget _buildBottomNavigationBar(ThemeData theme, AppLocalizations l10n) {
+    return UnifiedBottomNavigation(
+      currentIndex: 0, // Dashboard est l'index 0
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            context.go('/admin/dashboard');
+            break;
+          case 1:
+            context.go('/admin/dashboard/reservations');
+            break;
+          case 2:
+            context.go('/admin/dashboard/tables');
+            break;
+          case 3:
+            context.go('/admin/dashboard/schedule');
+            break;
+          case 4:
+            context.go('/admin/dashboard/menu');
+            break;
+          case 5:
+            context.go('/admin/dashboard/analytics');
+            break;
+          case 6:
+            context.go('/admin/dashboard/reports');
+            break;
+        }
+      },
     );
   }
 
-  Widget _buildDesktopSidebar(ThemeData theme, AppLocalizations l10n) {
-    return Container(
-      width: 280,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          right: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(alpha: 0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.restaurant,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'TechPlus',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Administration',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Navigation
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                _buildSidebarItem(
-                  theme,
-                  Icons.dashboard,
-                  'Tableau de bord',
-                  () => _tabController.animateTo(0),
-                  isSelected: _selectedTabIndex == 0,
-                ),
-                _buildSidebarItem(
-                  theme,
-                  Icons.restaurant_menu,
-                  'Réservations',
-                  () => _tabController.animateTo(1),
-                  isSelected: _selectedTabIndex == 1,
-                ),
-                _buildSidebarItem(
-                  theme,
-                  Icons.table_restaurant,
-                  'Gestion des tables',
-                  () => _tabController.animateTo(2),
-                  isSelected: _selectedTabIndex == 2,
-                ),
-                _buildSidebarItem(
-                  theme,
-                  Icons.schedule,
-                  'Horaires',
-                  () => _tabController.animateTo(3),
-                  isSelected: _selectedTabIndex == 3,
-                ),
-                _buildSidebarItem(
-                  theme,
-                  Icons.menu_book,
-                  'Menu',
-                  () => _tabController.animateTo(4),
-                  isSelected: _selectedTabIndex == 4,
-                ),
-                _buildSidebarItem(
-                  theme,
-                  Icons.analytics,
-                  'Analytiques',
-                  () => _tabController.animateTo(5),
-                  isSelected: _selectedTabIndex == 5,
-                ),
-                _buildSidebarItem(
-                  theme,
-                  Icons.assessment,
-                  'Rapports',
-                  () => _tabController.animateTo(6),
-                  isSelected: _selectedTabIndex == 6,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildSidebarItem(
-    ThemeData theme,
-    IconData icon,
-    String title,
-    VoidCallback onTap, {
-    bool isSelected = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: isSelected 
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: isSelected 
-              ? theme.colorScheme.primary 
-              : theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: isSelected 
-                ? theme.colorScheme.primary 
-                : theme.colorScheme.onSurface,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildMetricsHeader(ThemeData theme, AppLocalizations l10n, DashboardState metricsState) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
@@ -549,213 +213,449 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage>
           : metricsState.error != null
               ? Text('Erreur: ${metricsState.error}')
               : metricsState.metrics != null
-                  ? Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                theme,
-                'Réservations aujourd\'hui',
-                metricsState.metrics!.todayReservations.toString(),
-                Icons.restaurant_menu,
-                Colors.blue,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMetricCard(
-                theme,
-                'Revenus aujourd\'hui',
-                '${metricsState.metrics!.todayRevenue.toStringAsFixed(2)}\$',
-                Icons.attach_money,
-                Colors.green,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMetricCard(
-                theme,
-                'Tables occupées',
-                '${metricsState.metrics!.occupiedTables}/${metricsState.metrics!.totalTables}',
-                Icons.table_restaurant,
-                Colors.orange,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMetricCard(
-                theme,
-                'Taux d\'occupation',
-                '${(metricsState.metrics!.occupancyRate * 100).toStringAsFixed(1)}%',
-                Icons.trending_up,
-                Colors.purple,
-              ),
-            ),
-          ],
-        )
+                  ? LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isMobile = constraints.maxWidth < 768;
+                        final isTablet = constraints.maxWidth < 1024;
+                        
+                        if (isMobile) {
+                          // Layout mobile : 2 colonnes
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'Réservations aujourd\'hui',
+                                      metricsState.metrics!.todayReservations.toString(),
+                                      Icons.restaurant_menu,
+                                      Colors.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'En attente',
+                                      metricsState.metrics!.pendingReservations.toString(),
+                                      Icons.schedule,
+                                      Colors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'Confirmées',
+                                      metricsState.metrics!.confirmedReservations.toString(),
+                                      Icons.check_circle,
+                                      Colors.green,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'Tables occupées',
+                                      '${metricsState.metrics!.occupiedTables}/${metricsState.metrics!.totalTables}',
+                                      Icons.table_restaurant,
+                                      Colors.purple,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        } else if (isTablet) {
+                          // Layout tablette : 2 lignes de 2 colonnes
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'Réservations aujourd\'hui',
+                                      metricsState.metrics!.todayReservations.toString(),
+                                      Icons.restaurant_menu,
+                                      Colors.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'En attente',
+                                      metricsState.metrics!.pendingReservations.toString(),
+                                      Icons.schedule,
+                                      Colors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'Confirmées',
+                                      metricsState.metrics!.confirmedReservations.toString(),
+                                      Icons.check_circle,
+                                      Colors.green,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildMetricCard(
+                                      theme,
+                                      'Tables occupées',
+                                      '${metricsState.metrics!.occupiedTables}/${metricsState.metrics!.totalTables}',
+                                      Icons.table_restaurant,
+                                      Colors.purple,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        } else {
+                          // Layout desktop : 4 colonnes
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: _buildMetricCard(
+                                  theme,
+                                  'Réservations aujourd\'hui',
+                                  metricsState.metrics!.todayReservations.toString(),
+                                  Icons.restaurant_menu,
+                                  Colors.blue,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildMetricCard(
+                                  theme,
+                                  'En attente',
+                                  metricsState.metrics!.pendingReservations.toString(),
+                                  Icons.schedule,
+                                  Colors.orange,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildMetricCard(
+                                  theme,
+                                  'Confirmées',
+                                  metricsState.metrics!.confirmedReservations.toString(),
+                                  Icons.check_circle,
+                                  Colors.green,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildMetricCard(
+                                  theme,
+                                  'Tables occupées',
+                                  '${metricsState.metrics!.occupiedTables}/${metricsState.metrics!.totalTables}',
+                                  Icons.table_restaurant,
+                                  Colors.purple,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    )
                   : const SizedBox.shrink(),
     );
   }
 
   Widget _buildMetricCard(ThemeData theme, String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 768;
+        
+        return Container(
+          padding: EdgeInsets.all(isMobile ? 12 : 16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
-        ],
-      ),
+          child: isMobile 
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, color: color, size: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      value,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            value,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 
   Widget _buildOverviewTab(ThemeData theme, AppLocalizations l10n, DashboardState metricsState) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Titre de section
-          Text(
-            'Vue d\'ensemble',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Grille de cartes d'action
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 4 : 
-                          MediaQuery.of(context).size.width > 768 ? 3 : 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.2,
-            children: [
-              _buildActionCard(
-                theme,
-                'Nouvelle réservation',
-                Icons.add_circle_outline,
-                Colors.blue,
-                () => context.go('/admin/dashboard/reservations/create'),
-              ),
-              _buildActionCard(
-                theme,
-                'Gérer les tables',
-                Icons.table_restaurant,
-                Colors.green,
-                () => _tabController.animateTo(2),
-              ),
-              _buildActionCard(
-                theme,
-                'Modifier les horaires',
-                Icons.schedule,
-                Colors.orange,
-                () => _tabController.animateTo(3),
-              ),
-              _buildActionCard(
-                theme,
-                'Gérer le menu',
-                Icons.menu_book,
-                Colors.purple,
-                () => _tabController.animateTo(4),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Graphiques et statistiques
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 768;
+        
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 2,
-                child: _buildChartCard(theme, 'Réservations récentes'),
+              // Titre de section
+              Text(
+                'Vue d\'ensemble',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatsCard(theme, l10n, metricsState),
+              const SizedBox(height: 24),
+          
+              // Grille de cartes d'action responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 768;
+                  final isTablet = constraints.maxWidth < 1024;
+                  
+                  int crossAxisCount;
+                  double childAspectRatio;
+                  
+                  if (isMobile) {
+                    crossAxisCount = 4; // 4 colonnes sur mobile
+                    childAspectRatio = 1.0; // Carré pour les bulles
+                  } else if (isTablet) {
+                    crossAxisCount = 4;
+                    childAspectRatio = 2.5; // Plus horizontal
+                  } else {
+                    crossAxisCount = constraints.maxWidth > 1200 ? 4 : 4;
+                    childAspectRatio = 2.0; // Plus horizontal
+                  }
+                  
+                  return GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: isMobile ? 2 : 8,
+                    mainAxisSpacing: isMobile ? 2 : 8,
+                    childAspectRatio: childAspectRatio,
+                    children: [
+                      _buildActionCard(
+                        theme,
+                        'Nouvelle réservation',
+                        Icons.add_circle_outline,
+                        Colors.blue,
+                        () => context.go('/admin/dashboard/reservations/create'),
+                      ),
+                      _buildActionCard(
+                        theme,
+                        'Gérer les tables',
+                        Icons.table_restaurant,
+                        Colors.green,
+                        () => context.go('/admin/dashboard/tables'),
+                      ),
+                      _buildActionCard(
+                        theme,
+                        'Modifier les horaires',
+                        Icons.schedule,
+                        Colors.orange,
+                        () => context.go('/admin/dashboard/schedule'),
+                      ),
+                      _buildActionCard(
+                        theme,
+                        'Gérer le menu',
+                        Icons.menu_book,
+                        Colors.purple,
+                        () => context.go('/admin/dashboard/menu'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Graphiques et statistiques responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 768;
+                  
+                  if (isMobile) {
+                    // Layout mobile : colonnes empilées
+                    return Column(
+                      children: [
+                        _buildChartCard(theme, 'Réservations récentes'),
+                        const SizedBox(height: 16),
+                        _buildStatsCard(theme, l10n, metricsState),
+                      ],
+                    );
+                  } else {
+                    // Layout desktop/tablette : côte à côte
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: _buildChartCard(theme, 'Réservations récentes'),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildStatsCard(theme, l10n, metricsState),
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildActionCard(ThemeData theme, String title, IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 768;
+        
+        return GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 8 : 12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+            child: isMobile 
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4), // Moins de padding pour agrandir l'icône
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Icon(icon, color: color, size: 24), // Icône encore plus grande
+                      ),
+                      const SizedBox(height: 2),
+                      SizedBox(
+                        width: 60, // Largeur fixe pour forcer le texte sur deux lignes
+                        child: Text(
+                          title,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 8, // Texte plus petit pour les bulles carrées
+                            height: 1.0, // Hauteur de ligne très réduite
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(icon, color: color, size: 18),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -844,9 +744,9 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage>
                       ? Column(
                           children: [
                             _buildStatRow(theme, 'Réservations totales', metricsState.metrics!.totalReservations.toString()),
-                            _buildStatRow(theme, 'Revenus totaux', '${metricsState.metrics!.totalRevenue.toStringAsFixed(2)}\$'),
+                            _buildStatRow(theme, 'Confirmées', metricsState.metrics!.confirmedReservations.toString()),
+                            _buildStatRow(theme, 'En attente', metricsState.metrics!.pendingReservations.toString()),
                             _buildStatRow(theme, 'Tables disponibles', (metricsState.metrics!.totalTables - metricsState.metrics!.occupiedTables).toString()),
-                            _buildStatRow(theme, 'Taux d\'occupation', '${(metricsState.metrics!.occupancyRate * 100).toStringAsFixed(1)}%'),
                           ],
                         )
                       : const SizedBox.shrink(),

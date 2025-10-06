@@ -5,7 +5,6 @@ import '../../domain/repositories/dashboard_repository.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../data/datasources/dashboard_remote_datasource.dart';
 import '../../data/datasources/dashboard_local_datasource.dart';
-import '../../../../core/di/injection_container.dart';
 
 /// État du dashboard
 class DashboardState {
@@ -62,7 +61,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      final metrics = await _repository!.getDashboardMetrics(
+      final metrics = await _repository.getDashboardMetrics(
         startDate: startDate,
         endDate: endDate,
       );
@@ -93,7 +92,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      await _repository!.refreshMetrics();
+      await _repository.refreshMetrics();
       await loadDashboardMetrics();
     } catch (e) {
       state = state.copyWith(
@@ -114,7 +113,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
     
     try {
-      return await _repository!.getReservationTrends(
+      return await _repository.getReservationTrends(
         startDate: startDate,
         endDate: endDate,
         period: period,
@@ -135,7 +134,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
     
     try {
-      return await _repository!.getRevenueTrends(
+      return await _repository.getRevenueTrends(
         startDate: startDate,
         endDate: endDate,
         period: period,
@@ -152,7 +151,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
     
     try {
-      return await _repository!.getTableOccupancy();
+      return await _repository.getTableOccupancy();
     } catch (e) {
       throw Exception('Failed to load table occupancy: $e');
     }
@@ -168,7 +167,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
     
     try {
-      return await _repository!.getPopularTimeSlots(
+      return await _repository.getPopularTimeSlots(
         startDate: startDate,
         endDate: endDate,
       );
@@ -187,7 +186,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
     
     try {
-      return await _repository!.getCustomerSegments(
+      return await _repository.getCustomerSegments(
         startDate: startDate,
         endDate: endDate,
       );

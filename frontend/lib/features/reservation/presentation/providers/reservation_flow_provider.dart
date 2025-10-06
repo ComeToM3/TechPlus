@@ -4,6 +4,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/network/api_service_provider.dart';
 import '../../../../core/network/api_providers.dart';
 import '../../../../shared/models/reservation.dart';
+import '../../../admin/domain/entities/schedule_entity.dart';
 
 /// État du flux de réservation
 class ReservationFlowState {

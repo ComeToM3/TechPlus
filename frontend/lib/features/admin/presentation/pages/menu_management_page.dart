@@ -9,6 +9,7 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/navigation/unified_navigation.dart';
 
 /// Page de gestion du menu
 class MenuManagementPage extends ConsumerStatefulWidget {
@@ -20,7 +21,7 @@ class MenuManagementPage extends ConsumerStatefulWidget {
 
 class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with TickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedTabIndex = 0;
+  // int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -28,7 +29,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       setState(() {
-        _selectedTabIndex = _tabController.index;
+        // _selectedTabIndex = _tabController.index;
       });
     });
   }
@@ -46,43 +47,38 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.menuManagement),
+        title: Text(l10n.menu),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _showCreateItemDialog,
-            icon: const Icon(Icons.add),
-            tooltip: l10n.createMenuItem,
-          ),
-          IconButton(
-            onPressed: _refreshData,
-            icon: const Icon(Icons.refresh),
-            tooltip: l10n.refresh,
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(
-              icon: const Icon(Icons.restaurant_menu),
-              text: l10n.menuItems,
-            ),
-            Tab(
-              icon: const Icon(Icons.category),
-              text: l10n.categories,
-            ),
-            Tab(
-              icon: const Icon(Icons.image),
-              text: l10n.images,
-            ),
-            Tab(
-              icon: const Icon(Icons.analytics),
-              text: l10n.statistics,
-            ),
-          ],
-        ),
+      ),
+      bottomNavigationBar: UnifiedBottomNavigation(
+        currentIndex: 4, // Menu est l'index 4
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              context.go('/admin/dashboard');
+              break;
+            case 1:
+              context.go('/admin/dashboard/reservations');
+              break;
+            case 2:
+              context.go('/admin/dashboard/tables');
+              break;
+            case 3:
+              context.go('/admin/dashboard/schedule');
+              break;
+            case 4:
+              context.go('/admin/dashboard/menu');
+              break;
+            case 5:
+              context.go('/admin/dashboard/analytics');
+              break;
+            case 6:
+              context.go('/admin/dashboard/reports');
+              break;
+          }
+        },
       ),
       body: CustomAnimatedWidget(
         config: AnimationConfig(
@@ -90,22 +86,88 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
           duration: AnimationConstants.normal,
           curve: AnimationConstants.easeOut,
         ),
-        child: TabBarView(
-          controller: _tabController,
+        child: Column(
           children: [
-            _buildMenuItemsTab(theme, l10n),
-            _buildCategoriesTab(theme, l10n),
-            _buildImagesTab(theme, l10n),
-            _buildStatisticsTab(theme, l10n),
-          ],
-        ),
+            // En-tête avec actions
+            _buildPageHeader(context, theme, l10n),
+            const SizedBox(height: 16),
+          
+          // TabBar pour la navigation
+          TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.restaurant_menu),
+                text: l10n.menuItems,
+              ),
+              Tab(
+                icon: const Icon(Icons.category),
+                text: l10n.categories,
+              ),
+              Tab(
+                icon: const Icon(Icons.image),
+                text: l10n.images,
+              ),
+              Tab(
+                icon: const Icon(Icons.analytics),
+                text: l10n.statistics,
+              ),
+            ],
+          ),
+          
+          // Contenu des onglets
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildMenuItemsTab(theme, l10n),
+                _buildCategoriesTab(theme, l10n),
+                _buildImagesTab(theme, l10n),
+                _buildStatisticsTab(theme, l10n),
+              ],
+            ),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+
+  Widget _buildPageHeader(BuildContext context, ThemeData theme, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            l10n.menuManagement,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: _showCreateItemDialog,
+                icon: const Icon(Icons.add),
+                tooltip: l10n.createMenuItem,
+              ),
+              IconButton(
+                onPressed: _refreshData,
+                icon: const Icon(Icons.refresh),
+                tooltip: l10n.refresh,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildMenuItemsTab(ThemeData theme, AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
           // Actions rapides
@@ -125,7 +187,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
   Widget _buildCategoriesTab(ThemeData theme, AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
           // Actions rapides pour les catégories
@@ -141,7 +203,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
   Widget _buildImagesTab(ThemeData theme, AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
           // Gestion des images
@@ -153,7 +215,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
   Widget _buildStatisticsTab(ThemeData theme, AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
           // Statistiques générales
@@ -174,7 +236,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
   Widget _buildQuickActions(ThemeData theme, AppLocalizations l10n) {
     return BentoCard(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -217,7 +279,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
   Widget _buildCategoryActions(ThemeData theme, AppLocalizations l10n) {
     return BentoCard(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -291,7 +353,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
       margin: const EdgeInsets.only(bottom: 8),
       child: BentoCard(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Row(
             children: [
               // Image de la catégorie
@@ -386,7 +448,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
   Widget _buildImageManagement(ThemeData theme, AppLocalizations l10n) {
     return BentoCard(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -440,7 +502,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
         return BentoCard(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -460,7 +522,6 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
                         _buildStatRow(theme, 'Unavailable Items', stats.unavailableItems.toString()),
                         _buildStatRow(theme, 'Total Categories', stats.totalCategories.toString()),
                         _buildStatRow(theme, 'Average Price', '${stats.averagePrice.toStringAsFixed(2)}€'),
-                        _buildStatRow(theme, l10n.totalRevenue, '${stats.totalRevenue.toStringAsFixed(2)}€'),
                         _buildStatRow(theme, 'Total Orders', stats.totalOrders.toString()),
                       ],
                     );
@@ -483,7 +544,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
         return BentoCard(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -533,7 +594,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
         return BentoCard(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -838,23 +899,23 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
   }
 
   void _reorderCategories() {
-    // TODO: Implémenter la réorganisation des catégories
+    // Fonctionnalité de réorganisation des catégories - à implémenter
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Réorganisation des catégories à implémenter')),
+      const SnackBar(content: Text('Fonctionnalité en développement')),
     );
   }
 
   void _uploadImage() {
-    // TODO: Implémenter l'upload d'image
+    // Fonctionnalité d'upload d'image - à implémenter
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Upload d\'image à implémenter')),
+      const SnackBar(content: Text('Fonctionnalité en développement')),
     );
   }
 
   void _optimizeImages() {
-    // TODO: Implémenter l'optimisation des images
+    // Fonctionnalité d'optimisation des images - à implémenter
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Optimisation des images à implémenter')),
+      const SnackBar(content: Text('Fonctionnalité en développement')),
     );
   }
 

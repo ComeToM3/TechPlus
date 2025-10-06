@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/schedule_configuration_widget.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../data/providers/schedule_provider.dart';
@@ -9,6 +10,7 @@ import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../core/navigation/unified_navigation.dart';
 
 /// Page de gestion des créneaux horaires
 class ScheduleManagementPage extends ConsumerStatefulWidget {
@@ -34,62 +36,62 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     }
   }
 
-  ScheduleConfig _getDefaultScheduleConfig() {
-    return ScheduleConfig(
-      id: 'schedule_1',
-      restaurantId: 'restaurant_1',
-      daySchedules: DayOfWeek.values.map((day) {
-        return DaySchedule(
-          dayOfWeek: day.english,
-          isOpen: day != DayOfWeek.sunday,
-          timeSlots: _generateDefaultTimeSlots(day),
-          notes: '',
-        );
-      }).toList(),
-      timeSlotSettings: const TimeSlotSettings(
-        slotDurationMinutes: 30,
-        bufferTimeMinutes: 15,
-        maxAdvanceBookingDays: 30,
-        minAdvanceBookingHours: 2,
-        allowSameDayBooking: true,
-        allowWeekendBooking: true,
-      ),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  // ScheduleConfig _getDefaultScheduleConfig() {
+    // return ScheduleConfig(
+    //   id: 'schedule_1',
+    //   restaurantId: 'restaurant_1',
+    //   daySchedules: DayOfWeek.values.map((day) {
+    //     return DaySchedule(
+    //       dayOfWeek: day.english,
+    //       isOpen: day != DayOfWeek.sunday,
+    //       timeSlots: _generateDefaultTimeSlots(day),
+    //       notes: '',
+    //     );
+    //   }).toList(),
+    //   timeSlotSettings: const TimeSlotSettings(
+    //     slotDurationMinutes: 30,
+    //     bufferTimeMinutes: 15,
+    //     maxAdvanceBookingDays: 30,
+    //     minAdvanceBookingHours: 2,
+    //     allowSameDayBooking: true,
+    //     allowWeekendBooking: true,
+    //   ),
+    //   createdAt: DateTime.now(),
+    //   updatedAt: DateTime.now(),
+    // );
+  // }
 
-  List<TimeSlot> _generateDefaultTimeSlots(DayOfWeek day) {
-    if (day == DayOfWeek.sunday) return [];
+  // List<TimeSlot> _generateDefaultTimeSlots(DayOfWeek day) {
+    // if (day == DayOfWeek.sunday) return [];
     
-    final slots = <TimeSlot>[];
+    // final slots = <TimeSlot>[];
     
-    // Créneaux du déjeuner (12h-14h)
-    for (int hour = 12; hour < 14; hour++) {
-      for (int minute = 0; minute < 60; minute += 30) {
-        slots.add(TimeSlot(
-          time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-          isAvailable: true,
-          capacity: 20,
-          isRecommended: hour == 12 && minute == 30,
-        ));
-      }
-    }
+    // // Créneaux du déjeuner (12h-14h)
+    // for (int hour = 12; hour < 14; hour++) {
+    //   for (int minute = 0; minute < 60; minute += 30) {
+    //     slots.add(TimeSlot(
+    //       time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+    //       isAvailable: true,
+    //       capacity: 20,
+    //       isRecommended: hour == 12 && minute == 30,
+    //     ));
+    //   }
+    // }
     
-    // Créneaux du dîner (19h-22h)
-    for (int hour = 19; hour < 22; hour++) {
-      for (int minute = 0; minute < 60; minute += 30) {
-        slots.add(TimeSlot(
-          time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-          isAvailable: true,
-          capacity: 20,
-          isRecommended: hour == 19 && minute == 30,
-        ));
-      }
-    }
+    // // Créneaux du dîner (19h-22h)
+    // for (int hour = 19; hour < 22; hour++) {
+    //   for (int minute = 0; minute < 60; minute += 30) {
+    //     slots.add(TimeSlot(
+    //       time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+    //       isAvailable: true,
+    //       capacity: 20,
+    //       isRecommended: hour == 19 && minute == 30,
+    //     ));
+    //   }
+    // }
     
-    return slots;
-  }
+    // return slots;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -100,34 +102,93 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.scheduleManagement),
+        title: Text(l10n.schedule),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () {
-              if (authState.accessToken != null) {
-                _loadScheduleConfig();
-              }
-            },
-            icon: const Icon(Icons.refresh),
-            tooltip: l10n.refresh,
-          ),
-          IconButton(
-            onPressed: _showQuickActions,
-            icon: const Icon(Icons.more_vert),
-            tooltip: l10n.actions,
+      ),
+      bottomNavigationBar: UnifiedBottomNavigation(
+        currentIndex: 3, // Horaires est l'index 3
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              context.go('/admin/dashboard');
+              break;
+            case 1:
+              context.go('/admin/dashboard/reservations');
+              break;
+            case 2:
+              context.go('/admin/dashboard/tables');
+              break;
+            case 3:
+              context.go('/admin/dashboard/schedule');
+              break;
+            case 4:
+              context.go('/admin/dashboard/menu');
+              break;
+            case 5:
+              context.go('/admin/dashboard/analytics');
+              break;
+            case 6:
+              context.go('/admin/dashboard/reports');
+              break;
+          }
+        },
+      ),
+      body: Column(
+        children: [
+          // En-tête avec actions
+          _buildPageHeader(context, theme, l10n, authState),
+          const SizedBox(height: 16),
+          
+          // Contenu principal
+          Expanded(
+            child: scheduleState.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : scheduleState.error != null
+                    ? _buildErrorState(theme, l10n, scheduleState.error!)
+                    : scheduleState.config != null
+                        ? _buildContent(theme, l10n, scheduleState.config!)
+                        : _buildEmptyState(theme, l10n),
           ),
         ],
       ),
-      body: scheduleState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : scheduleState.error != null
-              ? _buildErrorState(theme, l10n, scheduleState.error!)
-              : scheduleState.config != null
-                  ? _buildContent(theme, l10n, scheduleState.config!)
-                  : _buildEmptyState(theme, l10n),
+    );
+  }
+
+  Widget _buildPageHeader(BuildContext context, ThemeData theme, AppLocalizations l10n, dynamic authState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            l10n.scheduleManagement,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  if (authState.accessToken != null) {
+                    _loadScheduleConfig();
+                  }
+                },
+                icon: const Icon(Icons.refresh),
+                tooltip: l10n.refresh,
+              ),
+              IconButton(
+                onPressed: _showQuickActions,
+                icon: const Icon(Icons.more_vert),
+                tooltip: l10n.actions,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
