@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/providers/table_provider.dart' as data;
+import '../../../../shared/providers/table_provider.dart' as data;
 import '../../domain/entities/table_entity.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
@@ -10,6 +10,7 @@ import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
+import '../widgets/public_navigation_button.dart';
 import '../providers/table_provider.dart';
 import '../widgets/interactive_restaurant_layout_widget.dart';
 import '../widgets/table_form_widget.dart';
@@ -63,6 +64,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
 
     return Scaffold(
       appBar: AppBar(
+        leading: const PublicNavigationButton(),
         title: Text(l10n.tables),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
@@ -482,7 +484,10 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
         };
         await ref.read(data.tableProvider.notifier).createTable(
           token: authState.accessToken!,
-          tableData: tableData,
+          name: table.number.toString(),
+          capacity: table.capacity,
+          status: table.isActive ? 'available' : 'unavailable',
+          description: table.position,
         );
       } catch (e) {
         rethrow;
@@ -503,7 +508,10 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
         await ref.read(data.tableProvider.notifier).updateTable(
           token: authState.accessToken!,
           tableId: table.id,
-          tableData: tableData,
+          name: table.number.toString(),
+          capacity: table.capacity,
+          status: table.isActive ? 'available' : 'unavailable',
+          description: table.position,
         );
       } catch (e) {
         rethrow;

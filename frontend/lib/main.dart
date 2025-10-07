@@ -7,7 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/network/api_client.dart';
 import 'core/navigation/app_router.dart';
-import 'core/theme/theme_provider.dart';
+import 'core/providers/theme_provider.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/security/security_service.dart';
 import 'core/services/stripe_service.dart';

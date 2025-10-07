@@ -197,6 +197,7 @@ export class ReservationService {
 
   /**
    * Obtenir les disponibilités pour une date donnée
+   * Utilise maintenant la configuration ScheduleConfig au lieu d'openingHours
    */
   static async getDayAvailability(
     date: string | Date,
@@ -204,60 +205,122 @@ export class ReservationService {
     partySize: number = 1
   ): Promise<DayAvailability> {
     try {
+      console.log('📅 [ReservationService] getDayAvailability - Début');
+      console.log('📅 [ReservationService] Paramètres:', { date, restaurantId, partySize });
+
       const restaurant = await prisma.restaurant.findUnique({
         where: { id: restaurantId },
-        select: { openingHours: true },
+        select: { id: true },
       });
 
       if (!restaurant) {
+        console.log('❌ [ReservationService] Restaurant non trouvé:', restaurantId);
         throw new CustomError('Restaurant not found', 404);
       }
 
-      // Récupérer les heures d'ouverture (par défaut si non configurées)
-      const openingHours = (restaurant.openingHours as any) || this.getDefaultOpeningHours();
-      const dayNames = [
-        'sunday',
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-      ];
-      const dayOfWeek = dayNames[new Date(date).getDay()] as string;
-
       const dateStr = new Date(date).toISOString().split('T')[0] as string;
+      const dayOfWeek = this.getDayOfWeekName(new Date(date));
+      console.log('📅 [ReservationService] Jour de la semaine:', dayOfWeek);
 
-      if (!dayOfWeek) {
+      // Récupérer la configuration des créneaux depuis ScheduleConfig
+      console.log('📅 [ReservationService] Récupération de la configuration ScheduleConfig');
+      const scheduleConfig = await prisma.scheduleConfig.findUnique({
+        where: { restaurantId: restaurant.id },
+        include: {
+          daySchedules: {
+            where: { dayOfWeek: dayOfWeek },
+            include: {
+              timeSlots: {
+                where: { isAvailable: true },
+                orderBy: { time: 'asc' },
+              },
+            },
+          },
+        },
+      });
+
+      console.log('📅 [ReservationService] Configuration trouvée:', {
+        configExists: !!scheduleConfig,
+        daySchedulesCount: scheduleConfig?.daySchedules.length || 0
+      });
+
+      if (!scheduleConfig || scheduleConfig.daySchedules.length === 0) {
+        console.log('📅 [ReservationService] Aucune configuration ou horaires pour ce jour');
         return {
           date: dateStr,
           slots: [],
         };
       }
 
-      const dayHours = openingHours[dayOfWeek];
-      if (!dayHours || dayHours.closed) {
+      const daySchedule = scheduleConfig.daySchedules[0];
+      console.log('📅 [ReservationService] Horaires du jour:', {
+        isOpen: daySchedule?.isOpen,
+        timeSlotsCount: daySchedule?.timeSlots.length || 0
+      });
+      
+      if (!daySchedule || !daySchedule.isOpen) {
+        console.log('📅 [ReservationService] Restaurant fermé ce jour');
         return {
           date: dateStr,
           slots: [],
         };
       }
 
-      // Générer les créneaux horaires
-      const slots = await this.generateTimeSlots(date, restaurantId, dayHours, partySize);
+      // Générer les créneaux horaires à partir de la configuration
+      console.log('📅 [ReservationService] Génération des créneaux');
+      const slots = await this.generateTimeSlotsFromConfig(date, restaurantId, daySchedule, partySize);
+      console.log('📅 [ReservationService] Créneaux générés:', slots.length);
 
       return {
         date: dateStr,
         slots,
       };
     } catch (error) {
-      console.error('Error getting day availability:', error);
+      console.error('❌ [ReservationService] Erreur getDayAvailability:', error);
       throw new CustomError('Failed to get availability', 500);
     }
   }
 
   /**
-   * Générer les créneaux horaires pour une journée
+   * Générer les créneaux horaires à partir de la configuration ScheduleConfig
+   */
+  private static async generateTimeSlotsFromConfig(
+    date: string | Date,
+    restaurantId: string,
+    daySchedule: any,
+    partySize: number
+  ): Promise<TimeSlot[]> {
+    const slots: TimeSlot[] = [];
+    const reservationDate = new Date(date);
+
+    // Utiliser les créneaux configurés dans daySchedule.timeSlots
+    for (const timeSlot of daySchedule.timeSlots) {
+      const isAvailable = await this.checkAvailability({
+        date: reservationDate,
+        time: timeSlot.time,
+        partySize,
+        restaurantId,
+      });
+
+      const availableTables = await this.countAvailableTables({
+        date: reservationDate,
+        time: timeSlot.time,
+        partySize,
+        restaurantId,
+      });
+
+      slots.push({
+        time: timeSlot.time,
+        available: isAvailable,
+        availableTables,
+      });
+    }
+
+    return slots;
+  }
+
+  /**
+   * Générer les créneaux horaires pour une journée (méthode legacy)
    */
   private static async generateTimeSlots(
     date: string | Date,
@@ -396,6 +459,14 @@ export class ReservationService {
    */
   private static calculateTokenExpiry(): Date {
     return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  }
+
+  /**
+   * Obtenir le nom du jour de la semaine en anglais
+   */
+  private static getDayOfWeekName(date: Date): string {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[date.getDay()] || 'sunday';
   }
 
   /**

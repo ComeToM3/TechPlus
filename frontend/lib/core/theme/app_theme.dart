@@ -26,11 +26,13 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.dark,
       ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
       appBarTheme: const AppBarTheme(
         elevation: appBarElevation,
         centerTitle: true,
         backgroundColor: Color(0xFF1E1E1E),
         foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -43,6 +45,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(borderRadius),
         ),
         color: const Color(0xFF2D2D2D),
+        surfaceTintColor: Colors.transparent,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -60,6 +63,14 @@ class AppTheme {
           borderRadius: BorderRadius.circular(borderRadius),
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
+        filled: true,
+        fillColor: const Color(0xFF2D2D2D),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF1E1E1E),
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Color(0xFF9E9E9E),
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }

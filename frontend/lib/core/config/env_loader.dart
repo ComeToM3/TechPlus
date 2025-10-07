@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// Chargeur de variables d'environnement depuis le fichier .env
 class EnvLoader {
@@ -7,6 +8,12 @@ class EnvLoader {
   /// Charger les variables d'environnement depuis le fichier .env
   static Future<void> loadEnv() async {
     try {
+      // Vérifier si on est sur le web
+      if (kIsWeb) {
+        print('⚠️ .env file loading skipped on web platform');
+        return;
+      }
+      
       final envFile = File('.env');
       if (await envFile.exists()) {
         final lines = await envFile.readAsLines();

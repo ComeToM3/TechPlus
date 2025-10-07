@@ -151,49 +151,72 @@ export const checkSlotAvailability = asyncHandler(async (req: Request, res: Resp
 
 /**
  * Fonction utilitaire pour générer les créneaux disponibles
+ * Utilise maintenant la configuration des créneaux sauvegardée
  */
 async function generateAvailableSlots(
   date: Date,
   daySchedule: any,
   partySize: number
 ): Promise<string[]> {
-  const slots: string[] = [];
-  const bufferTime = 30; // 30 minutes entre les réservations
-  const slotDuration = partySize <= 4 ? 90 : 120; // 1h30 ou 2h selon le nombre de personnes
+  try {
+    // Récupérer la configuration des créneaux depuis la base de données
+    const restaurant = await prisma.restaurant.findFirst({
+      where: { isActive: true },
+    });
 
-  // Heures d'ouverture du midi
-  if (daySchedule.open && daySchedule.close) {
-    const lunchSlots = generateTimeSlots(
-      daySchedule.open,
-      daySchedule.close,
-      slotDuration,
-      bufferTime
-    );
-    slots.push(...lunchSlots);
-  }
-
-  // Heures d'ouverture du soir
-  if (daySchedule.evening?.open && daySchedule.evening?.close) {
-    const eveningSlots = generateTimeSlots(
-      daySchedule.evening.open,
-      daySchedule.evening.close,
-      slotDuration,
-      bufferTime
-    );
-    slots.push(...eveningSlots);
-  }
-
-  // Vérifier la disponibilité réelle de chaque créneau
-  const availableSlots: string[] = [];
-
-  for (const slot of slots) {
-    const isAvailable = await checkSlotAvailabilityInDB(date, slot, partySize);
-    if (isAvailable) {
-      availableSlots.push(slot);
+    if (!restaurant) {
+      return [];
     }
-  }
 
-  return availableSlots;
+    const scheduleConfig = await prisma.scheduleConfig.findUnique({
+      where: { restaurantId: restaurant.id },
+      include: {
+        daySchedules: {
+          where: { dayOfWeek: getDayOfWeek(date) },
+          include: {
+            timeSlots: {
+              where: { isAvailable: true },
+              orderBy: { time: 'asc' },
+            },
+          },
+        },
+      },
+    });
+
+    if (!scheduleConfig || scheduleConfig.daySchedules.length === 0) {
+      return [];
+    }
+
+    const dayScheduleConfig = scheduleConfig.daySchedules[0];
+    
+    if (!dayScheduleConfig || !dayScheduleConfig.isOpen) {
+      return [];
+    }
+
+    // Utiliser les créneaux configurés
+    const availableSlots: string[] = [];
+    
+    for (const timeSlot of dayScheduleConfig.timeSlots) {
+      // Vérifier la disponibilité réelle de chaque créneau
+      const isAvailable = await checkSlotAvailabilityInDB(date, timeSlot.time, partySize);
+      if (isAvailable) {
+        availableSlots.push(timeSlot.time);
+      }
+    }
+
+    return availableSlots;
+  } catch (error) {
+    console.error('Error generating available slots:', error);
+    return [];
+  }
+}
+
+/**
+ * Obtenir le jour de la semaine en français
+ */
+function getDayOfWeek(date: Date): string {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[date.getDay()] || 'sunday';
 }
 
 /**

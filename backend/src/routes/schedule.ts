@@ -5,6 +5,8 @@ import {
   getScheduleConfig,
   createOrUpdateScheduleConfig,
   deleteScheduleConfig,
+  getAvailableSlots,
+  validateReservation,
 } from '@/controllers/scheduleController';
 
 const router = Router();
@@ -55,6 +57,30 @@ router.delete(
   adminLimiter,
   authenticateToken,
   deleteScheduleConfig
+);
+
+/**
+ * @route GET /api/admin/schedule/availability
+ * @description Get available time slots for a specific date
+ * @access Admin only
+ */
+router.get(
+  '/availability',
+  adminLimiter,
+  authenticateToken,
+  getAvailableSlots
+);
+
+/**
+ * @route POST /api/admin/schedule/validate
+ * @description Validate if a reservation is possible
+ * @access Admin only
+ */
+router.post(
+  '/validate',
+  adminLimiter,
+  authenticateToken,
+  validateReservation
 );
 
 export default router;

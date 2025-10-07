@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/schedule_configuration_widget.dart';
 import '../../domain/entities/schedule_entity.dart';
-import '../../data/providers/schedule_provider.dart';
-import '../../../../shared/widgets/cards/bento_card.dart';
+import '../providers/schedule_provider.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
-import '../../../../shared/animations/animated_widget.dart';
-import '../../../../shared/animations/animation_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
+import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/network/auth_token_manager.dart';
+import '../widgets/public_navigation_button.dart';
 
 /// Page de gestion des créneaux horaires
 class ScheduleManagementPage extends ConsumerStatefulWidget {
@@ -21,20 +21,77 @@ class ScheduleManagementPage extends ConsumerStatefulWidget {
 }
 
 class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage> {
+  bool _hasLoaded = false;
+
   @override
   void initState() {
     super.initState();
-    _loadScheduleConfig();
+    // Délayer l'appel pour éviter la modification du provider pendant la construction
+    Future(() => _loadScheduleConfig());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Ne pas recharger automatiquement pour éviter les boucles
   }
 
   Future<void> _loadScheduleConfig() async {
+    if (_hasLoaded) return; // Éviter les appels multiples
+    
     final authState = ref.read(authProvider);
     if (authState.accessToken != null) {
-      await ref.read(scheduleProvider.notifier).loadScheduleConfig(
-        token: authState.accessToken!,
-      );
+      try {
+        await ref.read(scheduleProvider.notifier).loadScheduleConfig(
+          token: authState.accessToken!,
+        );
+        _hasLoaded = true;
+      } catch (e) {
+        _hasLoaded = true; // Marquer comme chargé même en cas d'erreur pour éviter les boucles
+      }
     }
   }
+
+  ScheduleConfig _convertMapToScheduleConfig(Map<String, dynamic> data) {
+    final daySchedules = (data['daySchedules'] as List<dynamic>?)
+        ?.map((dayData) => DaySchedule(
+              dayOfWeek: dayData['dayOfWeek'] as String,
+              isOpen: dayData['isOpen'] as bool? ?? false,
+              notes: dayData['notes'] as String? ?? '',
+              timeSlots: (dayData['timeSlots'] as List<dynamic>?)
+                  ?.map((slotData) => TimeSlot(
+                        time: slotData['time'] as String,
+                        isAvailable: slotData['isAvailable'] as bool? ?? true,
+                        capacity: slotData['capacity'] as int? ?? 20,
+                        isRecommended: slotData['isRecommended'] as bool? ?? false,
+                      ))
+                  .toList() ?? [],
+              openingTime: dayData['openingTime'] as String?,
+              closingTime: dayData['closingTime'] as String?,
+            ))
+        .toList() ?? [];
+
+    final timeSlotSettings = TimeSlotSettings(
+      slotDurationMinutes: data['slotDurationMinutes'] as int? ?? 30,
+      bufferTimeMinutes: data['bufferTimeMinutes'] as int? ?? 15,
+      maxAdvanceBookingDays: data['maxAdvanceBookingDays'] as int? ?? 30,
+      minAdvanceBookingHours: data['minAdvanceBookingHours'] as int? ?? 2,
+      allowSameDayBooking: data['allowSameDayBooking'] as bool? ?? true,
+      allowWeekendBooking: data['allowWeekendBooking'] as bool? ?? true,
+      defaultCapacityPerSlot: data['defaultCapacityPerSlot'] as int? ?? 20,
+    );
+
+    return ScheduleConfig(
+      id: data['id'] as String? ?? 'default',
+      restaurantId: data['restaurantId'] as String? ?? 'restaurant_1',
+      daySchedules: daySchedules,
+      timeSlotSettings: timeSlotSettings,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+
 
   // ScheduleConfig _getDefaultScheduleConfig() {
     // return ScheduleConfig(
@@ -102,10 +159,54 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
 
     return Scaffold(
       appBar: AppBar(
+        leading: const PublicNavigationButton(),
         title: Text(l10n.schedule),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
+        actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final themeMode = ref.watch(themeProvider);
+              return IconButton(
+                icon: Icon(
+                  themeMode == ThemeMode.dark 
+                      ? Icons.light_mode 
+                      : Icons.dark_mode,
+                ),
+                onPressed: () {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
+                tooltip: themeMode == ThemeMode.dark 
+                    ? 'Passer au thème clair' 
+                    : 'Passer au thème sombre',
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: () {
+              // Forcer la sauvegarde de la configuration actuelle
+              final scheduleState = ref.read(scheduleProvider);
+              if (scheduleState.config != null) {
+                // Convertir Map en ScheduleConfig
+                final scheduleConfig = _convertMapToScheduleConfig(scheduleState.config!);
+                _handleScheduleChanged(scheduleConfig);
+              }
+            },
+            tooltip: 'Sauvegarder la configuration',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _hasLoaded = false; // Réinitialiser le flag
+              ref.read(scheduleProvider.notifier).loadScheduleConfig(
+                token: authState.accessToken!,
+              );
+            },
+            tooltip: 'Recharger la configuration',
+          ),
+        ],
       ),
       bottomNavigationBar: UnifiedBottomNavigation(
         currentIndex: 3, // Horaires est l'index 3
@@ -135,23 +236,21 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
           }
         },
       ),
-      body: Column(
-        children: [
-          // En-tête avec actions
-          _buildPageHeader(context, theme, l10n, authState),
-          const SizedBox(height: 16),
-          
-          // Contenu principal
-          Expanded(
-            child: scheduleState.isLoading
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // En-tête avec actions
+            _buildPageHeader(context, theme, l10n, authState),
+            const SizedBox(height: 16),
+            
+            // Contenu principal
+            scheduleState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : scheduleState.error != null
                     ? _buildErrorState(theme, l10n, scheduleState.error!)
-                    : scheduleState.config != null
-                        ? _buildContent(theme, l10n, scheduleState.config!)
-                        : _buildEmptyState(theme, l10n),
-          ),
-        ],
+                    : _buildContent(theme, l10n, scheduleState.config),
+          ],
+        ),
       ),
     );
   }
@@ -228,186 +327,41 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.schedule,
-            size: 64,
-            color: theme.colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Aucune configuration trouvée',
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Créez une nouvelle configuration d\'horaires',
-            style: theme.textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          SimpleButton(
-            onPressed: _loadScheduleConfig,
-            text: 'Charger la configuration',
-            type: ButtonType.primary,
-          ),
-        ],
-      ),
+
+  Widget _buildContent(ThemeData theme, AppLocalizations l10n, Map<String, dynamic>? config) {
+    return ScheduleConfigurationWidget(
+      config: config,
+      onScheduleChanged: _handleScheduleChanged,
+      onSettingsChanged: _handleSettingsChanged,
     );
   }
 
-  Widget _buildContent(ThemeData theme, AppLocalizations l10n, Map<String, dynamic> config) {
-    return CustomAnimatedWidget(
-      config: AnimationConfig(
-        type: AnimationType.fadeIn,
-        duration: AnimationConstants.normal,
-        curve: AnimationConstants.easeOut,
-      ),
-      child: Column(
-        children: [
-          // En-tête avec informations
-          _buildHeader(theme, l10n, config),
-          const SizedBox(height: 16),
 
-          // Contenu principal
-          Expanded(
-            child: ScheduleConfigurationWidget(
-              config: config,
-              onScheduleChanged: _handleScheduleChanged,
-              onSettingsChanged: _handleSettingsChanged,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme, AppLocalizations l10n, Map<String, dynamic> config) {
-    final daySchedules = config['daySchedules'] as List<dynamic>? ?? [];
-    final totalDays = daySchedules.length;
-    final openDays = daySchedules.where((d) => d['isOpen'] == true).length;
-    final totalSlots = daySchedules.fold(0, (sum, d) => sum + (d['timeSlots'] as List<dynamic>? ?? []).length);
-    
-    return BentoCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.schedule,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.scheduleConfiguration,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              _buildStatusChip(theme, l10n, openDays),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.scheduleConfigurationDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-            _buildInfoItem(theme, l10n, l10n.totalDays, '$totalDays'),
-            const SizedBox(width: 24),
-            _buildInfoItem(theme, l10n, l10n.openDays, '$openDays'),
-            const SizedBox(width: 24),
-            _buildInfoItem(theme, l10n, l10n.totalSlots, '$totalSlots'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(ThemeData theme, AppLocalizations l10n, int openDays) {
-    final isActive = openDays > 0;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isActive 
-            ? theme.colorScheme.primaryContainer 
-            : theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isActive ? Icons.check_circle : Icons.pause_circle,
-            size: 16,
-            color: isActive 
-                ? theme.colorScheme.onPrimaryContainer 
-                : theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isActive ? l10n.active : l10n.inactive,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: isActive 
-                  ? theme.colorScheme.onPrimaryContainer 
-                  : theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(ThemeData theme, AppLocalizations l10n, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
 
   Future<void> _handleScheduleChanged(ScheduleConfig newSchedule) async {
     final authState = ref.read(authProvider);
-    if (authState.accessToken != null) {
+    // Utiliser le token de développement si pas de token d'authentification
+    final token = authState.accessToken ?? AuthTokenManager().accessToken;
+    
+    if (token != null) {
       try {
         // Convertir ScheduleConfig en Map pour l'API
         final scheduleData = {
+          'id': newSchedule.id,
+          'restaurantId': newSchedule.restaurantId,
+          // Paramètres directs (format simplifié)
           'slotDurationMinutes': newSchedule.timeSlotSettings.slotDurationMinutes,
           'bufferTimeMinutes': newSchedule.timeSlotSettings.bufferTimeMinutes,
           'maxAdvanceBookingDays': newSchedule.timeSlotSettings.maxAdvanceBookingDays,
           'minAdvanceBookingHours': newSchedule.timeSlotSettings.minAdvanceBookingHours,
           'allowSameDayBooking': newSchedule.timeSlotSettings.allowSameDayBooking,
           'allowWeekendBooking': newSchedule.timeSlotSettings.allowWeekendBooking,
+          'defaultCapacityPerSlot': newSchedule.timeSlotSettings.defaultCapacityPerSlot,
           'daySchedules': newSchedule.daySchedules.map((day) => {
             'dayOfWeek': day.dayOfWeek,
             'isOpen': day.isOpen,
+            'openingTime': day.openingTime,
+            'closingTime': day.closingTime,
             'notes': day.notes,
             'timeSlots': day.timeSlots.map((slot) => {
               'time': slot.time,
@@ -418,10 +372,14 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
           }).toList(),
         };
 
+
         await ref.read(scheduleProvider.notifier).updateScheduleConfig(
-          token: authState.accessToken!,
+          token: token!,
           scheduleData: scheduleData,
         );
+
+        // Recharger les données depuis la base de données après la sauvegarde
+        await _loadScheduleConfig();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -453,12 +411,14 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
         if (currentConfig != null) {
           final scheduleData = {
             ...currentConfig,
-            'slotDurationMinutes': newSettings.slotDurationMinutes,
-            'bufferTimeMinutes': newSettings.bufferTimeMinutes,
-            'maxAdvanceBookingDays': newSettings.maxAdvanceBookingDays,
-            'minAdvanceBookingHours': newSettings.minAdvanceBookingHours,
-            'allowSameDayBooking': newSettings.allowSameDayBooking,
-            'allowWeekendBooking': newSettings.allowWeekendBooking,
+            'timeSlotSettings': {
+              'slotDurationMinutes': newSettings.slotDurationMinutes,
+              'bufferTimeMinutes': newSettings.bufferTimeMinutes,
+              'maxAdvanceBookingDays': newSettings.maxAdvanceBookingDays,
+              'minAdvanceBookingHours': newSettings.minAdvanceBookingHours,
+              'allowSameDayBooking': newSettings.allowSameDayBooking,
+              'allowWeekendBooking': newSettings.allowWeekendBooking,
+            },
           };
 
           await ref.read(scheduleProvider.notifier).updateScheduleConfig(

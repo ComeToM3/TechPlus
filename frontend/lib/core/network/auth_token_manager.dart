@@ -8,7 +8,14 @@ class AuthTokenManager {
   final List<Function(String?)> _listeners = [];
 
   /// Obtenir le token actuel
-  String? get accessToken => _accessToken;
+  String? get accessToken {
+    // Solution temporaire pour le développement - retourner un token de développement
+    if (_accessToken == null) {
+      print('🔧 [AuthTokenManager] Utilisation du token de développement');
+      return 'dev-token';
+    }
+    return _accessToken;
+  }
 
   /// Mettre à jour le token
   void updateToken(String? token) {

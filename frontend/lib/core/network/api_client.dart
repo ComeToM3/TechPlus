@@ -22,7 +22,7 @@ class AuthInterceptor extends Interceptor {
     final token = _tokenManager.accessToken;
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
-      print('🔐 Auth token added to request: ${token.substring(0, 20)}...');
+      print('🔐 Auth token added to request: ${token.length > 20 ? token.substring(0, 20) + '...' : token}');
     } else {
       // Token de développement temporaire pour éviter l'erreur 401
       const devToken = 'dev-token';

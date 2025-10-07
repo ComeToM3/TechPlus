@@ -82,12 +82,21 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 
 /// Provider pour obtenir le thème actuel
 final currentThemeProvider = Provider<ThemeData>((ref) {
-  // Ce provider sera utilisé dans le contexte de l'application
-  return AppTheme.lightTheme; // Valeur par défaut
+  final themeMode = ref.watch(themeProvider);
+  switch (themeMode) {
+    case ThemeMode.light:
+      return AppTheme.lightTheme;
+    case ThemeMode.dark:
+      return AppTheme.darkTheme;
+    case ThemeMode.system:
+      // Pour le mode système, on retourne le thème clair par défaut
+      // Le MaterialApp gérera automatiquement le changement
+      return AppTheme.lightTheme;
+  }
 });
 
 /// Provider pour vérifier le mode sombre
 final isDarkModeProvider = Provider<bool>((ref) {
-  // Ce provider sera utilisé dans le contexte de l'application
-  return false; // Valeur par défaut
+  final themeMode = ref.watch(themeProvider);
+  return themeMode == ThemeMode.dark;
 });

@@ -1,7 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_providers.dart';
-import '../../../../core/network/schedule_api.dart';
+import '../../../../core/network/standard_schedule_api.dart';
 import '../../domain/entities/schedule_entity.dart';
+
+/// Provider principal pour la gestion des horaires
+final scheduleProvider = StateNotifierProvider<ScheduleNotifier, ScheduleState>((ref) {
+  final scheduleApi = ref.watch(scheduleApiProvider);
+  return ScheduleNotifier(scheduleApi);
+});
 
 /// Provider pour la configuration des créneaux
 final scheduleConfigProvider = FutureProvider.family<ScheduleConfig?, String>((ref, restaurantId) async {
@@ -15,196 +21,151 @@ final availableSlotsProvider = FutureProvider.family<List<TimeSlot>, AvailableSl
   return await scheduleApi.getAvailableSlots(params.restaurantId, params.date, params.partySize);
 });
 
-/// Provider pour les statistiques des créneaux
-final scheduleStatsProvider = FutureProvider.family<Map<String, dynamic>, ScheduleStatsParams>((ref, params) async {
+/// Provider pour valider une réservation
+final validateReservationProvider = FutureProvider.family<Map<String, dynamic>, ValidateReservationParams>((ref, params) async {
   final scheduleApi = ref.watch(scheduleApiProvider);
-  return await scheduleApi.getScheduleStats(params.restaurantId, startDate: params.startDate, endDate: params.endDate);
+  return await scheduleApi.validateReservation(params.restaurantId, params.date, params.time, params.partySize);
 });
 
-/// Provider pour l'état de chargement des créneaux
-final scheduleLoadingProvider = StateProvider<bool>((ref) => false);
+// NOTE: scheduleStatsProvider supprimé car la méthode getScheduleStats n'existe plus
 
-/// Provider pour l'état d'erreur des créneaux
-final scheduleErrorProvider = StateProvider<String?>((ref) => null);
-
-/// Provider pour les actions sur les créneaux
-final scheduleActionsProvider = StateNotifierProvider<ScheduleActionsNotifier, ScheduleActionsState>((ref) {
-  final scheduleApi = ref.watch(scheduleApiProvider);
-  return ScheduleActionsNotifier(scheduleApi);
-});
-
-/// État des actions sur les créneaux
-class ScheduleActionsState {
-  final bool isSaving;
-  final bool isUpdating;
-  final bool isDeleting;
+/// État principal des horaires
+class ScheduleState {
+  final Map<String, dynamic>? config;
+  final bool isLoading;
   final String? error;
-  final String? successMessage;
+  final DateTime? lastUpdated;
 
-  const ScheduleActionsState({
-    this.isSaving = false,
-    this.isUpdating = false,
-    this.isDeleting = false,
+  const ScheduleState({
+    this.config,
+    this.isLoading = false,
     this.error,
-    this.successMessage,
+    this.lastUpdated,
   });
 
-  ScheduleActionsState copyWith({
-    bool? isSaving,
-    bool? isUpdating,
-    bool? isDeleting,
+  ScheduleState copyWith({
+    Map<String, dynamic>? config,
+    bool? isLoading,
     String? error,
-    String? successMessage,
+    DateTime? lastUpdated,
   }) {
-    return ScheduleActionsState(
-      isSaving: isSaving ?? this.isSaving,
-      isUpdating: isUpdating ?? this.isUpdating,
-      isDeleting: isDeleting ?? this.isDeleting,
+    return ScheduleState(
+      config: config ?? this.config,
+      isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      successMessage: successMessage ?? this.successMessage,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
 }
 
-/// Notifier pour les actions sur les créneaux
-class ScheduleActionsNotifier extends StateNotifier<ScheduleActionsState> {
-  final ScheduleApi _scheduleApi;
+/// Notifier principal pour la gestion des horaires
+class ScheduleNotifier extends StateNotifier<ScheduleState> {
+  final StandardScheduleApi _scheduleApi;
+  bool _isLoading = false;
 
-  ScheduleActionsNotifier(this._scheduleApi) : super(const ScheduleActionsState());
+  ScheduleNotifier(this._scheduleApi) : super(const ScheduleState());
 
-  /// Sauvegarder la configuration des créneaux
-  Future<ScheduleConfig?> saveScheduleConfig(String restaurantId, ScheduleConfig config) async {
-    state = state.copyWith(isSaving: true, error: null);
+  /// Charge la configuration des horaires
+  Future<void> loadScheduleConfig({String? token}) async {
+    if (_isLoading) return; // Éviter les appels multiples
+    
+    _isLoading = true;
+    state = state.copyWith(isLoading: true, error: null);
     
     try {
-      final savedConfig = await _scheduleApi.saveScheduleConfig(restaurantId, config);
+      final config = await _scheduleApi.getScheduleConfig('restaurant_1');
+      
       state = state.copyWith(
-        isSaving: false,
-        successMessage: 'Configuration des créneaux sauvegardée',
+        config: config?.toJson(),
+        isLoading: false,
+        lastUpdated: DateTime.now(),
       );
-      return savedConfig;
     } catch (e) {
       state = state.copyWith(
-        isSaving: false,
-        error: 'Erreur lors de la sauvegarde: $e',
+        isLoading: false,
+        error: e.toString(),
       );
-      return null;
+    } finally {
+      _isLoading = false;
     }
   }
 
-  /// Mettre à jour les créneaux d'un jour
-  Future<DaySchedule?> updateDaySchedule(String restaurantId, String dayOfWeek, DaySchedule daySchedule) async {
-    state = state.copyWith(isUpdating: true, error: null);
+  /// Sauvegarde la configuration des horaires
+  Future<void> saveScheduleConfig({
+    String? token,
+    required Map<String, dynamic> scheduleData,
+  }) async {
+    if (_isLoading) return; // Éviter les appels multiples
+    
+    _isLoading = true;
+    state = state.copyWith(isLoading: true, error: null);
     
     try {
-      final updatedDaySchedule = await _scheduleApi.updateDaySchedule(restaurantId, dayOfWeek, daySchedule);
+      final scheduleConfig = ScheduleConfig.fromJson(scheduleData);
+      final config = await _scheduleApi.saveScheduleConfig('restaurant_1', scheduleConfig);
       state = state.copyWith(
-        isUpdating: false,
-        successMessage: 'Créneaux du $dayOfWeek mis à jour',
+        config: config.toJson(),
+        isLoading: false,
+        lastUpdated: DateTime.now(),
       );
-      return updatedDaySchedule;
     } catch (e) {
       state = state.copyWith(
-        isUpdating: false,
-        error: 'Erreur lors de la mise à jour: $e',
+        isLoading: false,
+        error: e.toString(),
       );
-      return null;
+    } finally {
+      _isLoading = false;
     }
   }
 
-  /// Ajouter un créneau horaire
-  Future<TimeSlot?> addTimeSlot(String restaurantId, String dayOfWeek, TimeSlot timeSlot) async {
-    state = state.copyWith(isUpdating: true, error: null);
+  /// Met à jour la configuration des horaires
+  Future<void> updateScheduleConfig({
+    String? token,
+    required Map<String, dynamic> scheduleData,
+  }) async {
+    if (_isLoading) return; // Éviter les appels multiples
+    
+    _isLoading = true;
+    state = state.copyWith(isLoading: true, error: null);
     
     try {
-      final newTimeSlot = await _scheduleApi.addTimeSlot(restaurantId, dayOfWeek, timeSlot);
+      // Mettre à jour l'état local immédiatement pour un feedback visuel
       state = state.copyWith(
-        isUpdating: false,
-        successMessage: 'Créneau horaire ajouté',
+        config: scheduleData,
+        isLoading: false,
+        lastUpdated: DateTime.now(),
       );
-      return newTimeSlot;
+      
+      // Ensuite sauvegarder sur le serveur
+      final scheduleConfig = ScheduleConfig.fromJson(scheduleData);
+      final config = await _scheduleApi.saveScheduleConfig('restaurant_1', scheduleConfig);
+      
+      // Mettre à jour avec la réponse du serveur
+      state = state.copyWith(
+        config: config.toJson(),
+        isLoading: false,
+        lastUpdated: DateTime.now(),
+      );
     } catch (e) {
+      // En cas d'erreur, recharger depuis le serveur pour restaurer l'état
+      await loadScheduleConfig(token: token);
       state = state.copyWith(
-        isUpdating: false,
-        error: 'Erreur lors de l\'ajout du créneau: $e',
+        isLoading: false,
+        error: e.toString(),
       );
-      return null;
+    } finally {
+      _isLoading = false;
     }
   }
 
-  /// Mettre à jour un créneau horaire
-  Future<TimeSlot?> updateTimeSlot(String restaurantId, String dayOfWeek, String time, TimeSlot timeSlot) async {
-    state = state.copyWith(isUpdating: true, error: null);
-    
-    try {
-      final updatedTimeSlot = await _scheduleApi.updateTimeSlot(restaurantId, dayOfWeek, time, timeSlot);
-      state = state.copyWith(
-        isUpdating: false,
-        successMessage: 'Créneau horaire mis à jour',
-      );
-      return updatedTimeSlot;
-    } catch (e) {
-      state = state.copyWith(
-        isUpdating: false,
-        error: 'Erreur lors de la mise à jour du créneau: $e',
-      );
-      return null;
-    }
+  /// Rafraîchit la configuration
+  Future<void> refreshScheduleConfig({required String token}) async {
+    await loadScheduleConfig(token: token);
   }
 
-  /// Supprimer un créneau horaire
-  Future<bool> deleteTimeSlot(String restaurantId, String dayOfWeek, String time) async {
-    state = state.copyWith(isDeleting: true, error: null);
-    
-    try {
-      await _scheduleApi.deleteTimeSlot(restaurantId, dayOfWeek, time);
-      state = state.copyWith(
-        isDeleting: false,
-        successMessage: 'Créneau horaire supprimé',
-      );
-      return true;
-    } catch (e) {
-      state = state.copyWith(
-        isDeleting: false,
-        error: 'Erreur lors de la suppression: $e',
-      );
-      return false;
-    }
-  }
-
-  /// Mettre à jour les paramètres des créneaux
-  Future<TimeSlotSettings?> updateTimeSlotSettings(String restaurantId, TimeSlotSettings settings) async {
-    state = state.copyWith(isUpdating: true, error: null);
-    
-    try {
-      final updatedSettings = await _scheduleApi.updateTimeSlotSettings(restaurantId, settings);
-      state = state.copyWith(
-        isUpdating: false,
-        successMessage: 'Paramètres mis à jour',
-      );
-      return updatedSettings;
-    } catch (e) {
-      state = state.copyWith(
-        isUpdating: false,
-        error: 'Erreur lors de la mise à jour des paramètres: $e',
-      );
-      return null;
-    }
-  }
-
-  /// Valider la configuration
-  Future<Map<String, dynamic>?> validateScheduleConfig(String restaurantId, ScheduleConfig config) async {
-    try {
-      return await _scheduleApi.validateScheduleConfig(restaurantId, config);
-    } catch (e) {
-      state = state.copyWith(error: 'Erreur de validation: $e');
-      return null;
-    }
-  }
-
-  /// Effacer les messages
-  void clearMessages() {
-    state = state.copyWith(error: null, successMessage: null);
+  /// Efface l'erreur
+  void clearError() {
+    state = state.copyWith(error: null);
   }
 }
 
@@ -221,15 +182,19 @@ class AvailableSlotsParams {
   });
 }
 
-/// Paramètres pour les statistiques des créneaux
-class ScheduleStatsParams {
+/// Paramètres pour valider une réservation
+class ValidateReservationParams {
   final String restaurantId;
-  final DateTime? startDate;
-  final DateTime? endDate;
+  final DateTime date;
+  final String time;
+  final int partySize;
 
-  const ScheduleStatsParams({
+  const ValidateReservationParams({
     required this.restaurantId,
-    this.startDate,
-    this.endDate,
+    required this.date,
+    required this.time,
+    required this.partySize,
   });
 }
+
+// NOTE: ScheduleStatsParams supprimé car scheduleStatsProvider n'existe plus

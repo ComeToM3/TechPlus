@@ -289,10 +289,16 @@ model ScheduleConfig {
   allowSameDayBooking    Boolean @default(true)
   allowWeekendBooking    Boolean @default(true)
   
+  // Capacité par défaut
+  defaultCapacityPerSlot Int @default(20)
+  
   // Statut
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  
+  // Notes administratives
+  adminNotes String?
   
   // Relations
   daySchedules DaySchedule[]
@@ -310,6 +316,8 @@ model DaySchedule {
   
   dayOfWeek     String // 'monday', 'tuesday', etc.
   isOpen        Boolean @default(true)
+  openingTime   String? // Format HH:MM
+  closingTime   String? // Format HH:MM
   notes         String?
   
   createdAt     DateTime @default(now())

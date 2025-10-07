@@ -53,7 +53,7 @@ class TableNotifier extends StateNotifier<TableState> {
         super(const TableState());
 
   /// Charger toutes les tables
-  Future<void> loadTables() async {
+  Future<void> loadTables({String? token}) async {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
@@ -70,6 +70,81 @@ class TableNotifier extends StateNotifier<TableState> {
         error: error.message,
       );
     }
+  }
+
+  /// Charger les statistiques des tables
+  Future<void> loadStatistics({String? token}) async {
+    // Cette méthode peut être implémentée plus tard si nécessaire
+    // Pour l'instant, on ne fait rien
+  }
+
+  /// Créer une nouvelle table
+  Future<void> createTable({
+    required String token,
+    required String name,
+    required int capacity,
+    required String status,
+    String? description,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      // Implémentation à ajouter selon les besoins
+      await loadTables(token: token);
+    } catch (e) {
+      final error = AppErrorFactory.fromException(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: error.message,
+      );
+    }
+  }
+
+  /// Mettre à jour une table
+  Future<void> updateTable({
+    required String token,
+    required String tableId,
+    required String name,
+    required int capacity,
+    required String status,
+    String? description,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      // Implémentation à ajouter selon les besoins
+      await loadTables(token: token);
+    } catch (e) {
+      final error = AppErrorFactory.fromException(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: error.message,
+      );
+    }
+  }
+
+  /// Supprimer une table
+  Future<void> deleteTable({
+    required String token,
+    required String tableId,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      // Implémentation à ajouter selon les besoins
+      await loadTables(token: token);
+    } catch (e) {
+      final error = AppErrorFactory.fromException(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: error.message,
+      );
+    }
+  }
+
+  /// Rafraîchir les tables
+  Future<void> refreshTables({String? token}) async {
+    await loadTables(token: token);
   }
 
   /// Charger les tables par statut
@@ -179,8 +254,24 @@ final availableTablesProvider = FutureProvider<List<TableEntity>>((ref) async {
   return await repository.getAvailableTables();
 });
 
+/// Provider pour les tables (compatibilité)
+final tablesProvider = Provider<List<TableEntity>>((ref) {
+  final tableState = ref.watch(tableProvider);
+  return tableState.items;
+});
+
+/// Provider pour l'état de chargement des tables
+final tableLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(tableProvider).isLoading;
+});
+
+/// Provider pour l'erreur des tables
+final tableErrorProvider = Provider<String?>((ref) {
+  return ref.watch(tableProvider).error;
+});
+
 /// Provider pour les statistiques d'une table spécifique
-final tableStatsProvider = FutureProvider.family<TableStats?, String>((ref, tableId) async {
+final tableStatsByIdProvider = FutureProvider.family<TableStats?, String>((ref, tableId) async {
   final repository = ref.watch(tableRepositoryProvider);
   return await repository.getTableStats(tableId);
 });

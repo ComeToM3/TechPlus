@@ -1,3 +1,5 @@
+import '../../domain/entities/dashboard_metrics.dart';
+
 /// Modèle de données pour les métriques du dashboard
 class DashboardMetricsModel {
   final int todayReservations;
@@ -134,33 +136,7 @@ class CustomerSegment {
   }
 }
 
-class PopularTimeSlot {
-  final String time;
-  final int count;
-  final double percentage;
-
-  const PopularTimeSlot({
-    required this.time,
-    required this.count,
-    required this.percentage,
-  });
-
-  factory PopularTimeSlot.fromJson(Map<String, dynamic> json) {
-    return PopularTimeSlot(
-      time: json['time'] ?? '',
-      count: json['count'] ?? 0,
-      percentage: (json['percentage'] ?? 0).toDouble(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'time': time,
-      'count': count,
-      'percentage': percentage,
-    };
-  }
-}
+// PopularTimeSlot est défini dans domain/entities/dashboard_metrics.dart
 
 class ReservationTrend {
   final String date;

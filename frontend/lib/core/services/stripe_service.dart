@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../config/stripe_config.dart';
 import '../network/api_service.dart';
@@ -12,13 +13,17 @@ class StripeService {
   /// Initialiser Stripe
   static Future<void> initialize() async {
     try {
+      // Vérifier si on est sur le web
+      if (kIsWeb) {
+        print('⚠️ Stripe initialization skipped on web platform');
+        return;
+      }
+      
       Stripe.publishableKey = StripeConfig.publishableKey;
       await Stripe.instance.applySettings();
     } catch (e) {
-      throw ContextualPaymentError(
-        errorKey: 'stripe_initialization_failed',
-        message: 'Erreur lors de l\'initialisation de Stripe: $e',
-      );
+      // Ne pas faire échouer l'application si Stripe ne peut pas s'initialiser
+      print('⚠️ Stripe initialization failed (non-critical): $e');
     }
   }
   

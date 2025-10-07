@@ -8,13 +8,11 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
-import '../../../../core/network/api_service.dart';
-import '../../../../core/network/api_service_provider.dart';
 import '../providers/schedule_provider.dart';
-import '../providers/table_provider.dart';
-import '../../domain/entities/schedule_entity.dart';
-import '../../domain/entities/table_entity.dart';
+import '../../../../shared/providers/auth_provider.dart';
 import '../../../../core/navigation/unified_navigation.dart';
+import '../../../../core/providers/theme_provider.dart';
+import '../widgets/public_navigation_button.dart';
 
 /// Page de création de réservation moderne et ergonomique
 class CreateReservationPage extends ConsumerStatefulWidget {
@@ -49,13 +47,22 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     _clientSearchController.addListener(_onClientSearchChanged);
     _loadInitialData();
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger les données seulement si nécessaire
+    // Éviter les appels multiples qui causent des boucles infinies
+  }
   
   Future<void> _loadInitialData() async {
     // Charger la configuration des créneaux
-    // Note: scheduleConfigProvider est un FutureProvider, pas besoin de le charger manuellement
-    
-    // Charger les tables
-    // Note: tableProvider est un FutureProvider, pas besoin de le charger manuellement
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      await ref.read(scheduleProvider.notifier).loadScheduleConfig(
+        token: authState.accessToken!,
+      );
+    }
   }
   
   void _onClientSearchChanged() {
@@ -87,6 +94,27 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
           onPressed: () => context.go('/admin/dashboard/reservations'),
           icon: const Icon(Icons.arrow_back),
         ),
+        actions: [
+          const CompactPublicNavigationButton(),
+          Consumer(
+            builder: (context, ref, child) {
+              final themeMode = ref.watch(themeProvider);
+              return IconButton(
+                icon: Icon(
+                  themeMode == ThemeMode.dark 
+                      ? Icons.light_mode 
+                      : Icons.dark_mode,
+                ),
+                onPressed: () {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
+                tooltip: themeMode == ThemeMode.dark 
+                    ? 'Passer au thème clair' 
+                    : 'Passer au thème sombre',
+              );
+            },
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(theme, l10n),
       body: CustomAnimatedWidget(
@@ -577,16 +605,57 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     if (_selectedDate == null) return;
     
     try {
-      // Récupérer la configuration des créneaux depuis l'API
-      // TODO: Intégrer avec scheduleConfigProvider pour charger les vrais créneaux
-      setState(() {
-        _availableSlots = [];
-      });
+      // Toujours recharger la configuration pour avoir les dernières données
+      final authState = ref.read(authProvider);
+      if (authState.accessToken != null) {
+        // Recharger la configuration depuis l'API
+        await ref.read(scheduleProvider.notifier).loadScheduleConfig(
+          token: authState.accessToken!,
+        );
+        
+        final scheduleState = ref.read(scheduleProvider);
+        
+        if (scheduleState.config != null) {
+          // Utiliser la configuration des créneaux
+          final dayOfWeek = _getDayOfWeek(_selectedDate!);
+          final daySchedule = scheduleState.config!['daySchedules']?.firstWhere(
+            (day) => day['dayOfWeek'] == dayOfWeek,
+            orElse: () => null,
+          );
+          
+          if (daySchedule != null && daySchedule['isOpen'] == true) {
+            final timeSlots = daySchedule['timeSlots'] ?? [];
+            setState(() {
+              _availableSlots = timeSlots
+                  .where((slot) => slot['isAvailable'] == true)
+                  .map((slot) => {
+                    'time': slot['time'],
+                    'capacity': slot['capacity'] ?? 20,
+                    'isRecommended': slot['isRecommended'] ?? false,
+                  })
+                  .toList();
+            });
+          } else {
+            setState(() {
+              _availableSlots = [];
+            });
+          }
+        } else {
+          setState(() {
+            _availableSlots = [];
+          });
+        }
+      }
     } catch (e) {
       setState(() {
         _availableSlots = [];
       });
     }
+  }
+
+  String _getDayOfWeek(DateTime date) {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[date.weekday % 7];
   }
   
 

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/providers/dashboard_provider.dart';
+import '../providers/dashboard_provider.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
+import '../../../../core/providers/theme_provider.dart';
+import '../widgets/public_navigation_button.dart';
 
 // Imports supprimés car non utilisés directement dans cette page
 // La navigation se fait via GoRouter
@@ -40,11 +42,7 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
 
   PreferredSizeWidget _buildAppBar(ThemeData theme, AppLocalizations l10n) {
     return AppBar(
-      leading: Icon(
-        Icons.restaurant,
-        color: theme.colorScheme.primary,
-        size: 28,
-      ),
+      leading: const PublicNavigationButton(),
       title: Text(
         'TechPlus Admin',
         style: theme.textTheme.headlineSmall?.copyWith(
@@ -57,6 +55,26 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       actions: [
+        // Bouton de basculement de thème
+        Consumer(
+          builder: (context, ref, child) {
+            final themeMode = ref.watch(themeProvider);
+            return IconButton(
+              icon: Icon(
+                themeMode == ThemeMode.dark 
+                    ? Icons.light_mode 
+                    : Icons.dark_mode,
+              ),
+              onPressed: () {
+                ref.read(themeProvider.notifier).toggleTheme();
+              },
+              tooltip: themeMode == ThemeMode.dark 
+                  ? 'Passer au thème clair' 
+                  : 'Passer au thème sombre',
+            );
+          },
+        ),
+        
         // Bouton de notification
         IconButton(
           icon: Stack(
@@ -210,8 +228,8 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
       ),
       child: metricsState.isLoading 
           ? const Center(child: CircularProgressIndicator())
-          : metricsState.error != null
-              ? Text('Erreur: ${metricsState.error}')
+          : metricsState.errorMessage != null
+              ? Text('Erreur: ${metricsState.errorMessage}')
               : metricsState.metrics != null
                   ? LayoutBuilder(
                       builder: (context, constraints) {
@@ -738,8 +756,8 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
           const SizedBox(height: 20),
           metricsState.isLoading 
               ? const CircularProgressIndicator()
-              : metricsState.error != null
-                  ? Text('Erreur: ${metricsState.error}')
+              : metricsState.errorMessage != null
+                  ? Text('Erreur: ${metricsState.errorMessage}')
                   : metricsState.metrics != null
                       ? Column(
                           children: [

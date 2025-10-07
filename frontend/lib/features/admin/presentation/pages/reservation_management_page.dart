@@ -7,6 +7,7 @@ import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
+import '../widgets/public_navigation_button.dart';
 import 'create_reservation_page.dart';
 
 /// Page de gestion des réservations avec calendrier
@@ -35,6 +36,7 @@ class _ReservationManagementPageState extends ConsumerState<ReservationManagemen
 
     return Scaffold(
       appBar: AppBar(
+        leading: const PublicNavigationButton(),
         title: Text(l10n.reservations),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,

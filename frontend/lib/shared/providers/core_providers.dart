@@ -24,7 +24,3 @@ final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async 
   }
 });
 
-/// Provider pour l'instance Dio (si nécessaire pour des cas spécifiques)
-final dioProvider = Provider<Dio>((ref) {
-  return Dio();
-});

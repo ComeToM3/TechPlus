@@ -1,15 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/providers/table_provider.dart' as data;
+import '../../../../shared/providers/table_provider.dart' as data;
 import '../../domain/entities/table_entity.dart';
 import '../../../../shared/providers/auth_provider.dart';
 
 /// Provider pour les tables
 final tablesProvider = Provider<List<TableEntity>>((ref) {
   final tablesData = ref.watch(data.tablesProvider);
-  if (tablesData == null) return [];
-  
-  return tablesData.map((tableData) => TableEntity.fromJson(tableData)).toList();
+  return tablesData;
 });
 
 /// Provider pour une table spécifique
@@ -19,11 +17,8 @@ final tableProvider = FutureProvider.family<TableEntity?, String>((ref, id) asyn
   
   try {
     final tableRepository = ref.read(data.tableRepositoryProvider);
-    final tableData = await tableRepository.getTableById(
-      token: authState.accessToken!,
-      tableId: id,
-    );
-    return TableEntity.fromJson(tableData);
+    final tableData = await tableRepository.getTableById(id);
+    return tableData;
   } catch (e) {
     return null;
   }
@@ -41,8 +36,9 @@ final availableTablesProvider = Provider<List<TableEntity>>((ref) {
 });
 
 /// Provider pour les statistiques des tables
-final tableStatsProvider = Provider<Map<String, dynamic>?>((ref) {
-  return ref.watch(data.tableStatsProvider);
+final tableStatsProvider = Provider<Map<String, TableStats>>((ref) {
+  final tableState = ref.watch(data.tableProvider);
+  return tableState.tableStats;
 });
 
 /// Provider pour le plan du restaurant

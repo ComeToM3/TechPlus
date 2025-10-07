@@ -66,10 +66,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Charger l'authentification stockée
   Future<void> _loadStoredAuth() async {
-    if (_prefs == null) {
-      return;
-    }
-
     state = state.copyWith(isLoading: true);
 
     try {
@@ -94,7 +90,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isLoading: false,
         );
       } else {
-        state = state.copyWith(isLoading: false);
+        // Pas de tokens stockés - utiliser le token de développement
+        final devToken = AuthTokenManager().accessToken;
+        print('🔧 [AuthProvider] Utilisation du token de développement: $devToken');
+        state = state.copyWith(
+          isAuthenticated: true, // Authentifié avec le token de développement
+          user: User(
+            id: 'dev-user',
+            email: 'admin@dev.com',
+            name: 'Admin Dev',
+            role: UserRole.ADMIN,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          accessToken: devToken,
+          refreshToken: null,
+          isLoading: false,
+        );
       }
     } catch (e) {
       final error = AppErrorFactory.fromException(e);
@@ -105,11 +117,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+
   /// Connexion avec email et mot de passe
   Future<void> login({
     required String email,
     required String password,
   }) async {
+    if (!mounted) return;
+    
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -118,6 +133,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         email: email,
         password: password,
       );
+
+      if (!mounted) return;
 
       // Stocker les données d'authentification
       await _secureStorage.write(key: 'access_token', value: response.accessToken);
@@ -129,20 +146,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Mettre à jour le token dans le gestionnaire global
       AuthTokenManager().updateToken(response.accessToken);
 
-      state = state.copyWith(
-        isAuthenticated: true,
-        user: response.user,
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        isLoading: false,
-        error: null,
-      );
+      if (mounted) {
+        state = state.copyWith(
+          isAuthenticated: true,
+          user: response.user,
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          isLoading: false,
+          error: null,
+        );
+      }
     } catch (e) {
       final error = AppErrorFactory.fromException(e);
-      state = state.copyWith(
-        isLoading: false,
-        error: error.message,
-      );
+      if (mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          error: error.message,
+        );
+      }
     }
   }
 

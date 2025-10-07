@@ -49,15 +49,36 @@ class ScheduleConfig {
 
   /// Crée depuis un Map
   factory ScheduleConfig.fromJson(Map<String, dynamic> json) {
+    // Gérer les deux formats : avec timeSlotSettings ou avec les paramètres directement
+    TimeSlotSettings timeSlotSettings;
+    if (json['timeSlotSettings'] != null) {
+      timeSlotSettings = TimeSlotSettings.fromJson(json['timeSlotSettings'] as Map<String, dynamic>);
+    } else {
+      // Créer TimeSlotSettings depuis les paramètres directs
+      timeSlotSettings = TimeSlotSettings(
+        slotDurationMinutes: json['slotDurationMinutes'] as int? ?? 30,
+        bufferTimeMinutes: json['bufferTimeMinutes'] as int? ?? 15,
+        maxAdvanceBookingDays: json['maxAdvanceBookingDays'] as int? ?? 30,
+        minAdvanceBookingHours: json['minAdvanceBookingHours'] as int? ?? 2,
+        allowSameDayBooking: json['allowSameDayBooking'] as bool? ?? true,
+        allowWeekendBooking: json['allowWeekendBooking'] as bool? ?? true,
+        defaultCapacityPerSlot: json['defaultCapacityPerSlot'] as int? ?? 20,
+      );
+    }
+
     return ScheduleConfig(
-      id: json['id'] as String,
-      restaurantId: json['restaurantId'] as String,
-      daySchedules: (json['daySchedules'] as List)
-          .map((d) => DaySchedule.fromJson(d as Map<String, dynamic>))
-          .toList(),
-      timeSlotSettings: TimeSlotSettings.fromJson(json['timeSlotSettings'] as Map<String, dynamic>),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: json['id'] as String? ?? 'default',
+      restaurantId: json['restaurantId'] as String? ?? 'restaurant_1',
+      daySchedules: (json['daySchedules'] as List?)
+          ?.map((d) => DaySchedule.fromJson(d as Map<String, dynamic>))
+          .toList() ?? [],
+      timeSlotSettings: timeSlotSettings,
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null 
+          ? DateTime.parse(json['updatedAt'] as String)
+          : DateTime.now(),
     );
   }
 }
@@ -68,12 +89,16 @@ class DaySchedule {
   final bool isOpen;
   final List<TimeSlot> timeSlots;
   final String? notes;
+  final String? openingTime;
+  final String? closingTime;
 
   const DaySchedule({
     required this.dayOfWeek,
     required this.isOpen,
     required this.timeSlots,
     this.notes,
+    this.openingTime,
+    this.closingTime,
   });
 
   /// Crée une copie avec des valeurs modifiées
@@ -82,12 +107,16 @@ class DaySchedule {
     bool? isOpen,
     List<TimeSlot>? timeSlots,
     String? notes,
+    String? openingTime,
+    String? closingTime,
   }) {
     return DaySchedule(
       dayOfWeek: dayOfWeek ?? this.dayOfWeek,
       isOpen: isOpen ?? this.isOpen,
       timeSlots: timeSlots ?? this.timeSlots,
       notes: notes ?? this.notes,
+      openingTime: openingTime ?? this.openingTime,
+      closingTime: closingTime ?? this.closingTime,
     );
   }
 
@@ -98,18 +127,22 @@ class DaySchedule {
       'isOpen': isOpen,
       'timeSlots': timeSlots.map((t) => t.toJson()).toList(),
       'notes': notes,
+      'openingTime': openingTime,
+      'closingTime': closingTime,
     };
   }
 
   /// Crée depuis un Map
   factory DaySchedule.fromJson(Map<String, dynamic> json) {
     return DaySchedule(
-      dayOfWeek: json['dayOfWeek'] as String,
-      isOpen: json['isOpen'] as bool,
-      timeSlots: (json['timeSlots'] as List)
-          .map((t) => TimeSlot.fromJson(t as Map<String, dynamic>))
-          .toList(),
+      dayOfWeek: json['dayOfWeek'] as String? ?? 'monday',
+      isOpen: json['isOpen'] as bool? ?? false,
+      timeSlots: (json['timeSlots'] as List?)
+          ?.map((t) => TimeSlot.fromJson(t as Map<String, dynamic>))
+          .toList() ?? [],
       notes: json['notes'] as String?,
+      openingTime: json['openingTime'] as String?,
+      closingTime: json['closingTime'] as String?,
     );
   }
 }
@@ -161,9 +194,9 @@ class TimeSlot {
   /// Crée depuis un Map
   factory TimeSlot.fromJson(Map<String, dynamic> json) {
     return TimeSlot(
-      time: json['time'] as String,
-      isAvailable: json['isAvailable'] as bool,
-      capacity: json['capacity'] as int,
+      time: json['time'] as String? ?? '12:00',
+      isAvailable: json['isAvailable'] as bool? ?? true,
+      capacity: json['capacity'] as int? ?? 25,
       isRecommended: json['isRecommended'] as bool? ?? false,
       notes: json['notes'] as String?,
     );
@@ -178,6 +211,7 @@ class TimeSlotSettings {
   final int minAdvanceBookingHours;
   final bool allowSameDayBooking;
   final bool allowWeekendBooking;
+  final int defaultCapacityPerSlot;
 
   const TimeSlotSettings({
     required this.slotDurationMinutes,
@@ -186,6 +220,7 @@ class TimeSlotSettings {
     required this.minAdvanceBookingHours,
     required this.allowSameDayBooking,
     required this.allowWeekendBooking,
+    required this.defaultCapacityPerSlot,
   });
 
   /// Crée une copie avec des valeurs modifiées
@@ -196,6 +231,7 @@ class TimeSlotSettings {
     int? minAdvanceBookingHours,
     bool? allowSameDayBooking,
     bool? allowWeekendBooking,
+    int? defaultCapacityPerSlot,
   }) {
     return TimeSlotSettings(
       slotDurationMinutes: slotDurationMinutes ?? this.slotDurationMinutes,
@@ -204,6 +240,7 @@ class TimeSlotSettings {
       minAdvanceBookingHours: minAdvanceBookingHours ?? this.minAdvanceBookingHours,
       allowSameDayBooking: allowSameDayBooking ?? this.allowSameDayBooking,
       allowWeekendBooking: allowWeekendBooking ?? this.allowWeekendBooking,
+      defaultCapacityPerSlot: defaultCapacityPerSlot ?? this.defaultCapacityPerSlot,
     );
   }
 
@@ -216,18 +253,33 @@ class TimeSlotSettings {
       'minAdvanceBookingHours': minAdvanceBookingHours,
       'allowSameDayBooking': allowSameDayBooking,
       'allowWeekendBooking': allowWeekendBooking,
+      'defaultCapacityPerSlot': defaultCapacityPerSlot,
     };
   }
 
   /// Crée depuis un Map
   factory TimeSlotSettings.fromJson(Map<String, dynamic> json) {
     return TimeSlotSettings(
-      slotDurationMinutes: json['slotDurationMinutes'] as int,
-      bufferTimeMinutes: json['bufferTimeMinutes'] as int,
-      maxAdvanceBookingDays: json['maxAdvanceBookingDays'] as int,
-      minAdvanceBookingHours: json['minAdvanceBookingHours'] as int,
-      allowSameDayBooking: json['allowSameDayBooking'] as bool,
-      allowWeekendBooking: json['allowWeekendBooking'] as bool,
+      slotDurationMinutes: json['slotDurationMinutes'] as int? ?? 30,
+      bufferTimeMinutes: json['bufferTimeMinutes'] as int? ?? 15,
+      maxAdvanceBookingDays: json['maxAdvanceBookingDays'] as int? ?? 30,
+      minAdvanceBookingHours: json['minAdvanceBookingHours'] as int? ?? 2,
+      allowSameDayBooking: json['allowSameDayBooking'] as bool? ?? true,
+      allowWeekendBooking: json['allowWeekendBooking'] as bool? ?? true,
+      defaultCapacityPerSlot: json['defaultCapacityPerSlot'] as int? ?? 20,
+    );
+  }
+
+  /// Crée des paramètres par défaut
+  factory TimeSlotSettings.defaultSettings() {
+    return const TimeSlotSettings(
+      slotDurationMinutes: 30,
+      bufferTimeMinutes: 15,
+      maxAdvanceBookingDays: 30,
+      minAdvanceBookingHours: 2,
+      allowSameDayBooking: true,
+      allowWeekendBooking: true,
+      defaultCapacityPerSlot: 20,
     );
   }
 }

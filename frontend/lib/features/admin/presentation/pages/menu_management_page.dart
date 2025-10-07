@@ -10,6 +10,7 @@ import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
+import '../widgets/public_navigation_button.dart';
 
 /// Page de gestion du menu
 class MenuManagementPage extends ConsumerStatefulWidget {
@@ -47,6 +48,7 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> with Ti
 
     return Scaffold(
       appBar: AppBar(
+        leading: const PublicNavigationButton(),
         title: Text(l10n.menu),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
