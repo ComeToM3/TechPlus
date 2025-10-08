@@ -136,7 +136,7 @@ class ApiService {
       await _dio.post('$_baseUrl/api/auth/logout');
     } on DioException catch (e) {
       // Ne pas propager l'erreur pour la déconnexion
-      print('Logout error: ${e.message}');
+      // Logout error handled silently
     }
   }
 
@@ -442,7 +442,7 @@ class ApiService {
       });
     } on DioException catch (e) {
       // Ne pas propager l'erreur pour les notifications
-      print('Email notification error: ${e.message}');
+      // Email notification error handled silently
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,9 +12,7 @@ import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
 import '../widgets/public_navigation_button.dart';
-import '../providers/table_provider.dart';
 import '../widgets/interactive_restaurant_layout_widget.dart';
-import '../widgets/table_form_widget.dart';
 import '../widgets/table_list_widget.dart';
 import '../widgets/table_statistics_widget.dart';
 
@@ -27,6 +26,7 @@ class TableManagementPage extends ConsumerStatefulWidget {
 
 class _TableManagementPageState extends ConsumerState<TableManagementPage> with TickerProviderStateMixin {
   late TabController _tabController;
+  bool _isDeleting = false; // État pour éviter les suppressions multiples
   // int _selectedTabIndex = 0;
 
   @override
@@ -44,9 +44,10 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authProvider);
-      if (authState.accessToken != null) {
+      if (authState.accessToken != null && !authState.isLoading) {
         ref.read(data.tableProvider.notifier).loadTables(token: authState.accessToken!);
         ref.read(data.tableProvider.notifier).loadStatistics(token: authState.accessToken!);
+      } else if (!authState.isLoading) {
       }
     });
   }
@@ -61,6 +62,14 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+
+    // Écouter les changements d'authentification
+    ref.listen(authProvider, (previous, next) {
+      if (next.accessToken != null && !next.isLoading && previous?.accessToken != next.accessToken) {
+        ref.read(data.tableProvider.notifier).loadTables(token: next.accessToken!);
+        ref.read(data.tableProvider.notifier).loadStatistics(token: next.accessToken!);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -183,11 +192,7 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         children: [
-          // Actions rapides
-          _buildQuickActions(theme, l10n),
-          const SizedBox(height: 16),
-
-          // Liste des tables
+          // Liste des tables (sans actions rapides ni filtres)
           TableListWidget(
             onTableSelected: _onTableSelected,
             onTableEdit: _onTableEdit,
@@ -222,8 +227,8 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   Widget _buildStatisticsTab(ThemeData theme, AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
-        final tables = ref.watch(tablesProvider);
         final tableState = ref.watch(data.tableProvider);
+        final tables = tableState.items;
         
         if (tableState.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -269,50 +274,6 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
     );
   }
 
-  Widget _buildQuickActions(ThemeData theme, AppLocalizations l10n) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.quickActions,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _showCreateTableDialog,
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.createTable),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _showBulkActionsDialog,
-                    icon: const Icon(Icons.select_all),
-                    label: Text(l10n.bulkActions),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildLayoutActions(ThemeData theme, AppLocalizations l10n) {
     return Card(
@@ -374,68 +335,19 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   }
 
   void _onTableDelete(TableEntity table) {
-    _showDeleteTableDialog(table);
+    _deleteTable(table);
   }
 
   void _showCreateTableDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => TableFormWidget(
-        onSave: _handleCreateTable,
-        onCancel: () => Navigator.of(context).pop(),
-      ),
-    );
+    context.push('/admin/dashboard/tables/create');
   }
 
   void _showEditTableDialog(TableEntity table) {
-    showDialog(
-      context: context,
-      builder: (context) => TableFormWidget(
-        table: table,
-        onSave: _handleUpdateTable,
-        onCancel: () => Navigator.of(context).pop(),
-      ),
-    );
+    // Utiliser la même page de création mais avec les données pré-remplies
+    context.push('/admin/dashboard/tables/create', extra: table);
   }
 
-  void _showDeleteTableDialog(TableEntity table) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteTable),
-        content: Text(AppLocalizations.of(context)!.deleteTableConfirmation('${table.number}')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteTable(table);
-            },
-            child: Text(AppLocalizations.of(context)!.delete),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showBulkActionsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.bulkActions),
-        content: const Text('Actions en lot à implémenter'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.close),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _editLayout() {
     // Fonctionnalité d'édition du plan - à implémenter
@@ -452,17 +364,79 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
   }
 
   Future<void> _deleteTable(TableEntity table) async {
+    if (_isDeleting) return; // Éviter les suppressions multiples
+    
+    // Afficher une confirmation avant suppression
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.deleteTable),
+        content: Text(AppLocalizations.of(context)!.deleteTableConfirmation('${table.number}')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(AppLocalizations.of(context)!.delete),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed != true) return; // Annulation
+    
+    setState(() {
+      _isDeleting = true;
+    });
+    
+    if (kDebugMode) {
+    }
     final authState = ref.read(authProvider);
     if (authState.accessToken != null) {
       try {
+        if (kDebugMode) {
+        }
         await ref.read(data.tableProvider.notifier).deleteTable(
           token: authState.accessToken!,
           tableId: table.id,
         );
+        if (kDebugMode) {
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Table ${table.number} supprimée avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } catch (e) {
-        // Gérer l'erreur si nécessaire
-        rethrow;
+        if (kDebugMode) {
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors de la suppression: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isDeleting = false;
+          });
+        }
       }
+    } else {
+      if (kDebugMode) {
+      }
+      setState(() {
+        _isDeleting = false;
+      });
     }
   }
 
@@ -472,51 +446,4 @@ class _TableManagementPageState extends ConsumerState<TableManagementPage> with 
       ref.read(data.tableProvider.notifier).refreshTables(token: authState.accessToken!);
     }
   }
-
-  Future<void> _handleCreateTable(TableEntity table) async {
-    final authState = ref.read(authProvider);
-    if (authState.accessToken != null) {
-      try {
-        final tableData = {
-          'number': table.number,
-          'capacity': table.capacity,
-          'position': table.position,
-        };
-        await ref.read(data.tableProvider.notifier).createTable(
-          token: authState.accessToken!,
-          name: table.number.toString(),
-          capacity: table.capacity,
-          status: table.isActive ? 'available' : 'unavailable',
-          description: table.position,
-        );
-      } catch (e) {
-        rethrow;
-      }
-    }
-  }
-
-  Future<void> _handleUpdateTable(TableEntity table) async {
-    final authState = ref.read(authProvider);
-    if (authState.accessToken != null) {
-      try {
-        final tableData = {
-          'number': table.number,
-          'capacity': table.capacity,
-          'position': table.position,
-          'isActive': table.isActive,
-        };
-        await ref.read(data.tableProvider.notifier).updateTable(
-          token: authState.accessToken!,
-          tableId: table.id,
-          name: table.number.toString(),
-          capacity: table.capacity,
-          status: table.isActive ? 'available' : 'unavailable',
-          description: table.position,
-        );
-      } catch (e) {
-        rethrow;
-      }
-    }
-  }
 }
-

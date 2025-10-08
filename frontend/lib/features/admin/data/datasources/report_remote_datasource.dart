@@ -1,9 +1,9 @@
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 import '../../domain/entities/report_entity.dart';
 
 /// Data source pour les rapports (API)
 class ReportRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
   const ReportRemoteDataSource(this._apiClient);
 

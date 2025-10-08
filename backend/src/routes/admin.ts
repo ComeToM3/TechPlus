@@ -8,6 +8,85 @@ const router = Router();
 const prisma = new PrismaClient();
 
 /**
+ * @route GET /api/admin/reservations
+ * @description Get all reservations for admin
+ * @access Admin only
+ */
+router.get(
+  '/reservations',
+  adminLimiter,
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Vérifier que l'utilisateur est admin
+      const user = (req as any).user;
+      if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+        res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.',
+        });
+        return;
+      }
+
+      const { page = 1, limit = 10, status, startDate, endDate } = req.query;
+
+      // Construire les filtres
+      const where: any = {};
+      
+      if (status) {
+        where.status = status;
+      }
+      
+      if (startDate && endDate) {
+        where.date = {
+          gte: new Date(startDate as string),
+          lte: new Date(endDate as string),
+        };
+      }
+
+      const reservations = await prisma.reservation.findMany({
+        where,
+        include: {
+          restaurant: {
+            select: { id: true, name: true, address: true, phone: true },
+          },
+          table: {
+            select: { id: true, number: true, capacity: true, position: true },
+          },
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+        orderBy: { date: 'desc' },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      });
+
+      const total = await prisma.reservation.count({ where });
+
+      res.json({
+        success: true,
+        data: {
+          reservations,
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            pages: Math.ceil(total / Number(limit)),
+          },
+        },
+      });
+    } catch (error) {
+      logger.error('Error fetching admin reservations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  }
+);
+
+/**
  * @route GET /api/admin/dashboard/metrics
  * @description Get admin dashboard metrics
  * @access Admin only

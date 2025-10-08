@@ -22,12 +22,7 @@ class StandardApiClient {
     dio.options.sendTimeout = ApiConfig.sendTimeout;
     
     // Intercepteurs
-    dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      error: true,
-      logPrint: (obj) => print('[API] $obj'),
-    ));
+    // LogInterceptor supprimé pour la production
     
     // Intercepteur d'authentification automatique
     dio.interceptors.add(InterceptorsWrapper(
@@ -49,30 +44,15 @@ class StandardApiClient {
     final token = AuthTokenManager().accessToken;
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
-    } else {
-      // Token de développement pour les tests
-      options.headers['Authorization'] = 'Bearer dev-token';
+      // Debug: Log du token utilisé (tronqué pour la sécurité)
+      print('🔐 [StandardApiClient] Token utilisé: ${token.length > 20 ? token.substring(0, 20) + '...' : token}');
     }
   }
 
   /// Méthode statique pour gérer les erreurs
   static void _handleErrorStatic(DioException error) {
-    switch (error.response?.statusCode) {
-      case 401:
-        print('🔐 Authentication required');
-        break;
-      case 403:
-        print('🚫 Access forbidden');
-        break;
-      case 404:
-        print('❌ Resource not found');
-        break;
-      case 500:
-        print('💥 Server error');
-        break;
-      default:
-        print('⚠️ API Error: ${error.message}');
-    }
+    // Gestion silencieuse des erreurs pour la production
+    // Les erreurs sont gérées par les intercepteurs et les providers
   }
 
 

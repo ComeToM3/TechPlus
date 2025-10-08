@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/table_entity.dart';
 import '../../domain/entities/restaurant_layout_entity.dart';
-import '../providers/table_provider.dart';
+import '../../../../shared/providers/table_provider.dart';
 import '../../../../shared/widgets/cards/bento_card.dart';
 import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';

@@ -1,9 +1,9 @@
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 import '../../domain/entities/reservation_calendar.dart';
 
 /// Data source distant pour les réservations du calendrier
 class ReservationCalendarRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
   const ReservationCalendarRemoteDataSource(this._apiClient);
 
@@ -32,13 +32,34 @@ class ReservationCalendarRemoteDataSource {
       }
 
       final response = await _apiClient.get(
-        '/api/reservations',
+        '/api/admin/reservations',
         queryParameters: queryParams,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((json) => ReservationCalendar.fromJson(json)).toList();
+        print('🔍 [DEBUG] getReservationsForPeriod - Réponse API:');
+        print('  - Status Code: ${response.statusCode}');
+        print('  - Response Data: ${response.data}');
+        print('  - Data Type: ${response.data.runtimeType}');
+        print('  - Data[\'data\']: ${response.data['data']}');
+        print('  - Data[\'data\'] Type: ${response.data['data'].runtimeType}');
+        
+        final responseData = response.data['data'];
+        if (responseData is Map && responseData.containsKey('reservations')) {
+          // Structure: {reservations: [...], pagination: {...}}
+          final reservations = responseData['reservations'] as List;
+          print('🔍 [DEBUG] Parsing reservations from nested structure: ${reservations.length} items');
+          return reservations.map((json) => ReservationCalendar.fromJson(json.cast<String, dynamic>())).toList();
+        } else if (responseData is List) {
+          print('🔍 [DEBUG] Parsing as List: ${responseData.length} items');
+          return responseData.map((json) => ReservationCalendar.fromJson(json.cast<String, dynamic>())).toList();
+        } else if (responseData is Map) {
+          print('🔍 [DEBUG] Parsing as Map - converting to List');
+          return [ReservationCalendar.fromJson(responseData.cast<String, dynamic>())];
+        } else {
+          print('🔍 [DEBUG] Unknown data type, returning empty list');
+          return [];
+        }
       } else {
         throw Exception('Failed to load reservations: ${response.statusCode}');
       }
@@ -88,13 +109,38 @@ class ReservationCalendarRemoteDataSource {
   /// Crée une nouvelle réservation
   Future<ReservationCalendar> createReservation(ReservationCalendar reservation) async {
     try {
+      print('🔍 [DEBUG] Données envoyées à l\'API:');
+      print('  - date: ${reservation.date.toIso8601String()}');
+      print('  - time: ${reservation.time}');
+      print('  - partySize: ${reservation.partySize}');
+      print('  - clientName: ${reservation.clientName}');
+      print('  - clientEmail: ${reservation.clientEmail}');
+      print('  - clientPhone: ${reservation.clientPhone}');
+      print('  - tableNumber: ${reservation.tableNumber}');
+      print('  - specialRequests: ${reservation.specialRequests}');
+      print('  - status: ${reservation.status}');
+      
       final response = await _apiClient.post(
         '/api/reservations',
         data: reservation.toJson(),
       );
 
+      print('🔍 [DEBUG] ReservationCalendarRemoteDataSource - Réponse API:');
+      print('  - Status Code: ${response.statusCode}');
+      print('  - Response Data: ${response.data}');
+      print('  - Data Type: ${response.data.runtimeType}');
+
       if (response.statusCode == 201) {
-        return ReservationCalendar.fromJson(response.data['data']);
+        print('🔍 [DEBUG] Parsing reservation from: ${response.data['data']}');
+        try {
+          final reservation = ReservationCalendar.fromJson(response.data['data']);
+          print('🔍 [DEBUG] Reservation parsed successfully: ${reservation.id}');
+          return reservation;
+        } catch (e) {
+          print('🔍 [DEBUG] Error parsing reservation: $e');
+          print('🔍 [DEBUG] Raw data: ${response.data['data']}');
+          rethrow;
+        }
       } else {
         throw Exception('Failed to create reservation: ${response.statusCode}');
       }

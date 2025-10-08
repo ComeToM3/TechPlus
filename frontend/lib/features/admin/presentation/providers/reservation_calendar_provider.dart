@@ -24,13 +24,13 @@ final reservationCalendarLocalDataSourceProvider = Provider<ReservationCalendarL
       },
       error: (error, stack) {
         // Retourner une instance temporaire pour éviter l'erreur
-        print('⚠️ SharedPreferences error in reservation provider: $error');
+        // SharedPreferences error handled silently
         return ReservationCalendarLocalDataSource(null);
       },
     );
   } catch (e) {
     // Fallback en cas d'erreur critique
-    print('⚠️ Critical error in reservation provider: $e');
+    // Critical error handled silently
     return ReservationCalendarLocalDataSource(null);
   }
 });
@@ -158,13 +158,16 @@ class ReservationCalendarNotifier extends StateNotifier<ReservationCalendarState
   /// Crée une nouvelle réservation
   Future<ReservationCalendar?> createReservation(ReservationCalendar reservation) async {
     try {
+      print('🔍 [DEBUG] ReservationCalendarProvider.createReservation - Début');
       final createdReservation = await _repository.createReservation(reservation);
+      print('🔍 [DEBUG] ReservationCalendarProvider.createReservation - Réservation créée: ${createdReservation.id}');
       
       // Actualise la liste
       await _loadReservations();
       
       return createdReservation;
     } catch (e) {
+      print('🔍 [DEBUG] ReservationCalendarProvider.createReservation - Erreur: $e');
       state = state.copyWith(error: e.toString());
       return null;
     }

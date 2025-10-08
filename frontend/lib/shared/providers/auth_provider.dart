@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
-import '../../core/network/api_client.dart';
+import '../../core/network/standard_api_client.dart';
 import '../../core/network/auth_token_manager.dart';
 import '../../core/network/api_service.dart';
 import '../../core/network/api_service_provider.dart';
@@ -51,7 +51,7 @@ class AuthState extends BaseState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final SharedPreferences? _prefs;
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
   final ApiService _apiService;
 
   AuthNotifier(this._prefs, this._apiClient, this._apiService) : super(const AuthState()) {
@@ -59,10 +59,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   // Constructeur pour l'état de chargement
-  AuthNotifier._loading() : _prefs = null, _apiClient = ApiClient(Dio()), _apiService = ApiService(Dio(), ''), super(const AuthState(isLoading: true));
+  AuthNotifier._loading() : _prefs = null, _apiClient = StandardApiClient.create(), _apiService = ApiService(Dio(), ''), super(const AuthState(isLoading: true));
 
   // Constructeur pour l'état d'erreur
-  AuthNotifier._error() : _prefs = null, _apiClient = ApiClient(Dio()), _apiService = ApiService(Dio(), ''), super(const AuthState(error: 'Failed to initialize authentication'));
+  AuthNotifier._error() : _prefs = null, _apiClient = StandardApiClient.create(), _apiService = ApiService(Dio(), ''), super(const AuthState(error: 'Failed to initialize authentication'));
 
   /// Charger l'authentification stockée
   Future<void> _loadStoredAuth() async {
@@ -93,6 +93,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         // Pas de tokens stockés - utiliser le token de développement
         final devToken = AuthTokenManager().accessToken;
         print('🔧 [AuthProvider] Utilisation du token de développement: $devToken');
+        
+        // S'assurer que l'AuthTokenManager est synchronisé
+        AuthTokenManager().updateToken(devToken);
+        
         state = state.copyWith(
           isAuthenticated: true, // Authentifié avec le token de développement
           user: User(

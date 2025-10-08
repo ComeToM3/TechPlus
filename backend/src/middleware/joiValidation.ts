@@ -64,6 +64,10 @@ export const validateRequest = (schema: {
     }
 
     if (errors.length > 0) {
+      console.log('🔍 [DEBUG] Validation errors:', errors);
+      console.log('🔍 [DEBUG] Request body:', JSON.stringify(req.body, null, 2));
+      console.log('🔍 [DEBUG] Schema used:', schema);
+      
       logger.warn('Validation failed:', {
         errors,
         body: req.body,
@@ -242,18 +246,83 @@ export const validationSchemas = {
   // Réservations
   reservation: {
     create: Joi.object({
+      // Champs obligatoires
       date: commonSchemas.date,
       time: commonSchemas.time,
       partySize: commonSchemas.partySize,
+      
+      // Champs optionnels du modèle Prisma
+      duration: Joi.number().integer().min(30).max(300).optional().messages({
+        'number.min': 'must be at least 30 minutes',
+        'number.max': 'must not exceed 300 minutes',
+      }),
+      status: Joi.string().valid('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'NO_SHOW').optional().messages({
+        'any.only': 'must be one of: PENDING, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW',
+      }),
+      notes: Joi.string().max(1000).optional().messages({
+        'string.max': 'must not exceed 1000 characters',
+      }),
       specialRequests: Joi.string().max(500).allow('').optional().messages({
         'string.max': 'must not exceed 500 characters',
       }),
-      clientName: commonSchemas.name.optional(),
-      clientEmail: commonSchemas.email.optional(),
-      clientPhone: commonSchemas.phone.optional(),
+      clientName: Joi.string()
+        .min(2)
+        .max(50)
+        .pattern(/^[a-zA-ZÀ-ÿ\s'-]+$/)
+        .trim()
+        .optional()
+        .messages({
+          'string.min': 'must be at least 2 characters long',
+          'string.max': 'must not exceed 50 characters',
+          'string.pattern.base': 'must contain only letters, spaces, hyphens, and apostrophes',
+        }),
+      clientEmail: Joi.string().email().lowercase().trim().optional().messages({
+        'string.email': 'must be a valid email address',
+      }),
+      clientPhone: Joi.string()
+        .pattern(/^(\+1|1)?[2-9]\d{2}[2-9]\d{2}\d{4}$/)
+        .optional()
+        .messages({
+          'string.pattern.base': 'must be a valid Quebec/Canadian phone number (e.g., 514-777-1269)',
+        }),
+      tableId: commonSchemas.mongoId.optional(),
       tableNumber: Joi.string().max(10).optional().messages({
         'string.max': 'must not exceed 10 characters',
       }),
+      managementToken: Joi.string().length(32).optional().messages({
+        'string.length': 'must be exactly 32 characters',
+      }),
+      tokenExpiresAt: Joi.date().iso().optional().messages({
+        'date.format': 'must be a valid ISO date',
+      }),
+      adminNotes: Joi.string().max(1000).optional().messages({
+        'string.max': 'must not exceed 1000 characters',
+      }),
+      cancellationReason: Joi.string().max(200).optional().messages({
+        'string.max': 'must not exceed 200 characters',
+      }),
+      requiresPayment: Joi.boolean().optional(),
+      estimatedAmount: Joi.number().positive().precision(2).max(10000).optional().messages({
+        'number.positive': 'must be positive',
+        'number.precision': 'must have at most 2 decimal places',
+        'number.max': 'must not exceed 10000',
+      }),
+      depositAmount: Joi.number().positive().precision(2).max(10000).optional().messages({
+        'number.positive': 'must be positive',
+        'number.precision': 'must have at most 2 decimal places',
+        'number.max': 'must not exceed 10000',
+      }),
+      paymentStatus: Joi.string().valid('NONE', 'PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED').optional().messages({
+        'any.only': 'must be one of: NONE, PENDING, COMPLETED, FAILED, REFUNDED, PARTIALLY_REFUNDED',
+      }),
+      stripePaymentId: Joi.string().max(100).optional().messages({
+        'string.max': 'must not exceed 100 characters',
+      }),
+      
+      // Champs générés automatiquement (ignorés si présents)
+      id: Joi.string().optional(),
+      createdAt: Joi.date().optional(),
+      updatedAt: Joi.date().optional(),
     }),
 
     update: Joi.object({

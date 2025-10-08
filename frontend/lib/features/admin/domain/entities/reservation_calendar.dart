@@ -73,27 +73,49 @@ class ReservationCalendar {
 
   /// Convertit en Map pour la sérialisation
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final json = <String, dynamic>{
       'date': date.toIso8601String(),
       'time': time,
       'partySize': partySize,
       'clientName': clientName,
       'clientEmail': clientEmail,
-      'clientPhone': clientPhone,
       'status': status,
-      'tableNumber': tableNumber,
-      'notes': notes,
-      'specialRequests': specialRequests,
-      'estimatedAmount': estimatedAmount,
-      'paymentStatus': paymentStatus,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
     };
+    
+    // Ajouter les champs optionnels seulement s'ils ne sont pas null/vides
+    if (clientPhone != null && clientPhone!.isNotEmpty) {
+      json['clientPhone'] = clientPhone;
+    }
+    if (tableNumber != null && tableNumber!.isNotEmpty) {
+      json['tableNumber'] = tableNumber;
+    }
+    if (notes != null && notes!.isNotEmpty) {
+      json['notes'] = notes;
+    }
+    if (specialRequests != null && specialRequests!.isNotEmpty) {
+      json['specialRequests'] = specialRequests;
+    }
+    if (estimatedAmount != null) {
+      json['estimatedAmount'] = estimatedAmount;
+    }
+    if (paymentStatus != null && paymentStatus!.isNotEmpty) {
+      json['paymentStatus'] = paymentStatus;
+    }
+    
+    return json;
   }
 
   /// Crée depuis un Map
   factory ReservationCalendar.fromJson(Map<String, dynamic> json) {
+    // Gérer les propriétés de table imbriquées
+    String? tableNumber;
+    if (json['table'] != null && json['table'] is Map<String, dynamic>) {
+      final table = json['table'] as Map<String, dynamic>;
+      tableNumber = table['number']?.toString();
+    } else if (json['tableNumber'] != null) {
+      tableNumber = json['tableNumber'].toString();
+    }
+    
     return ReservationCalendar(
       id: json['id'] as String,
       date: DateTime.parse(json['date'] as String),
@@ -103,7 +125,7 @@ class ReservationCalendar {
       clientEmail: json['clientEmail'] as String,
       clientPhone: json['clientPhone'] as String?,
       status: json['status'] as String,
-      tableNumber: json['tableNumber'] as String?,
+      tableNumber: tableNumber,
       notes: json['notes'] as String?,
       specialRequests: json['specialRequests'] as String?,
       estimatedAmount: (json['estimatedAmount'] as num?)?.toDouble(),

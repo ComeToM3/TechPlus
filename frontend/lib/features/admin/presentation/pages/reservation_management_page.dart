@@ -6,6 +6,7 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/navigation/unified_navigation.dart';
 import '../widgets/public_navigation_button.dart';
 import 'create_reservation_page.dart';
@@ -22,9 +23,10 @@ class _ReservationManagementPageState extends ConsumerState<ReservationManagemen
   @override
   void initState() {
     super.initState();
-    // Charge les statistiques au démarrage
+    // Charge les statistiques et les réservations au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(reservationCalendarProvider.notifier).loadStatistics();
+      ref.read(reservationCalendarProvider.notifier).refresh();
     });
   }
 
@@ -90,7 +92,7 @@ class _ReservationManagementPageState extends ConsumerState<ReservationManagemen
             const SizedBox(height: 24),
             
             // Liste des réservations récentes
-            _buildRecentReservations(context, theme, l10n),
+            _buildRecentReservations(context, theme, l10n, calendarState),
             const SizedBox(height: 24),
             
             // Actions rapides
@@ -245,8 +247,12 @@ class _ReservationManagementPageState extends ConsumerState<ReservationManagemen
     );
   }
 
-  Widget _buildRecentReservations(BuildContext context, ThemeData theme, AppLocalizations l10n) {
-    final calendarState = ref.watch(reservationCalendarProvider);
+  Widget _buildRecentReservations(BuildContext context, ThemeData theme, AppLocalizations l10n, calendarState) {
+    print('🔍 [DEBUG] _buildRecentReservations - État des réservations:');
+    print('  - isLoading: ${calendarState.isLoading}');
+    print('  - error: ${calendarState.error}');
+    print('  - reservations count: ${calendarState.reservations.length}');
+    print('  - reservations: ${calendarState.reservations.map((r) => '${r.id}: ${r.clientName} (${r.date})').toList()}');
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,13 +328,235 @@ class _ReservationManagementPageState extends ConsumerState<ReservationManagemen
 
   Widget _buildReservationsList(ThemeData theme, AppLocalizations l10n, List<dynamic> reservations) {
     return Column(
-      children: reservations.map((reservation) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: _buildReservationCard(theme, l10n, reservation),
-        );
-      }).toList(),
+      children: [
+        // En-tête compact avec statistiques
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Text(
+                '${reservations.length} réservation${reservations.length > 1 ? 's' : ''} récente${reservations.length > 1 ? 's' : ''}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Actions',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        
+        // Liste compacte des réservations
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: reservations.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 4),
+          itemBuilder: (context, index) {
+            final reservation = reservations[index];
+            return _buildCompactReservationCard(theme, l10n, reservation);
+          },
+        ),
+      ],
     );
+  }
+
+  /// Construit une carte de réservation compacte pour la page de gestion
+  Widget _buildCompactReservationCard(ThemeData theme, AppLocalizations l10n, dynamic reservation) {
+    final status = reservation.status.toLowerCase();
+    final statusColor = _getStatusColor(status, theme);
+    final dateFormat = DateFormat('dd/MM');
+    final timeFormat = DateFormat('HH:mm');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.go('/admin/dashboard/reservations/${reservation.id}'),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                // Avatar du client avec initiale
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      reservation.clientName.isNotEmpty 
+                          ? reservation.clientName[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Informations principales - tout sur une ligne
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Nom du client
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              reservation.clientName.isNotEmpty 
+                                  ? reservation.clientName 
+                                  : 'Client anonyme',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${dateFormat.format(reservation.date)} à ${reservation.time}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      
+                      // Détails de la réservation
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.group,
+                                size: 12,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${reservation.partySize}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (reservation.tableNumber != null) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.table_restaurant,
+                                  size: 12,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${reservation.tableNumber}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Statut
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: statusColor.withOpacity(0.3),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getStatusIcon(status),
+                              size: 10,
+                              color: statusColor,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              _getStatusLabel(reservation.status, l10n),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: statusColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Retourne l'icône du statut
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'pending':
+        return Icons.schedule;
+      case 'confirmed':
+        return Icons.check_circle;
+      case 'cancelled':
+        return Icons.cancel;
+      case 'completed':
+        return Icons.done;
+      case 'no_show':
+        return Icons.person_off;
+      default:
+        return Icons.help;
+    }
   }
 
   Widget _buildReservationCard(ThemeData theme, AppLocalizations l10n, dynamic reservation) {

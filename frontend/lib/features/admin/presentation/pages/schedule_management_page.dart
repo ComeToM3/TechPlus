@@ -42,6 +42,13 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
     final authState = ref.read(authProvider);
     if (authState.accessToken != null) {
       try {
+        // Vérifier si les données sont déjà chargées
+        final scheduleState = ref.read(scheduleProvider);
+        if (!scheduleState.isLoading && scheduleState.config != null) {
+          _hasLoaded = true;
+          return;
+        }
+        
         await ref.read(scheduleProvider.notifier).loadScheduleConfig(
           token: authState.accessToken!,
         );
@@ -49,6 +56,9 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
       } catch (e) {
         _hasLoaded = true; // Marquer comme chargé même en cas d'erreur pour éviter les boucles
       }
+    } else {
+      // Si pas de token, créer une configuration par défaut
+      _hasLoaded = true;
     }
   }
 
@@ -154,7 +164,6 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final scheduleState = ref.watch(scheduleProvider);
     final authState = ref.watch(authProvider);
 
     return Scaffold(
@@ -200,7 +209,7 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
             icon: const Icon(Icons.refresh),
             onPressed: () {
               _hasLoaded = false; // Réinitialiser le flag
-              ref.read(scheduleProvider.notifier).loadScheduleConfig(
+              ref.read(scheduleProvider.notifier).refreshScheduleConfig(
                 token: authState.accessToken!,
               );
             },
@@ -244,11 +253,25 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
             const SizedBox(height: 16),
             
             // Contenu principal
-            scheduleState.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : scheduleState.error != null
-                    ? _buildErrorState(theme, l10n, scheduleState.error!)
-                    : _buildContent(theme, l10n, scheduleState.config),
+            Consumer(
+              builder: (context, ref, child) {
+                // Utiliser select pour éviter les rebuilds inutiles
+                final isLoading = ref.watch(scheduleProvider.select((state) => state.isLoading));
+                final error = ref.watch(scheduleProvider.select((state) => state.error));
+                final config = ref.watch(scheduleProvider.select((state) => state.config));
+                
+                // Éviter les rebuilds inutiles
+                if (isLoading && config == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                if (error != null && config == null) {
+                  return _buildErrorState(theme, l10n, error);
+                }
+                
+                return _buildContent(theme, l10n, config);
+              },
+            ),
           ],
         ),
       ),
@@ -318,7 +341,10 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
           ),
           const SizedBox(height: 16),
           SimpleButton(
-            onPressed: _loadScheduleConfig,
+            onPressed: () {
+              _hasLoaded = false;
+              _loadScheduleConfig();
+            },
             text: l10n.retry,
             type: ButtonType.primary,
           ),

@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 import '../../domain/entities/menu_entity.dart';
 import '../../domain/repositories/menu_repository.dart';
 
 /// Data source distant pour la gestion du menu
 class MenuRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
   const MenuRemoteDataSource(this._apiClient);
 

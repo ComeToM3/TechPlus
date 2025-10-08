@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:dio/dio.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
-import 'core/network/api_client.dart';
+import 'core/network/standard_api_client.dart';
 import 'core/navigation/app_router.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/l10n/locale_provider.dart';
@@ -24,13 +24,16 @@ void main() async {
     // Charger les variables d'environnement
     await EnvLoader.loadEnv();
     
-    // Initialiser le service de sécurité
-    await SecurityService().initialize();
+    // Désactiver temporairement les services problématiques pour Flutter Web
+    if (!kIsWeb) {
+      // Initialiser le service de sécurité seulement sur mobile
+      await SecurityService().initialize();
+    } else {
+      print('⚠️ Security service skipped on web platform');
+    }
     
-    // Initialiser le client API
-    final dio = Dio();
-    final apiClient = ApiClient(dio);
-    await apiClient.initialize();
+    // Initialiser le client API standardisé
+    StandardApiClient.create();
     
     // Initialiser Stripe
     await StripeService.initialize();

@@ -57,6 +57,21 @@ export const getTables = async (req: Request, res: Response): Promise<void> => {
       orderBy: { number: 'asc' },
     });
 
+    logger.info('🔍 [DEBUG] getTables - Tables récupérées:', {
+      userId: user.id,
+      restaurantId: restaurant.id,
+      tableCount: tables.length,
+      tables: tables.map(t => ({
+        id: t.id,
+        number: t.number,
+        capacity: t.capacity,
+        isActive: t.isActive,
+        status: t.status,
+        position: t.position,
+      })),
+      ip: req.ip,
+    });
+
     logger.info('Tables retrieved', {
       userId: user.id,
       restaurantId: restaurant.id,
@@ -172,10 +187,22 @@ export const createTable = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const { number, capacity, position } = req.body;
+    const { number, capacity, position, status } = req.body;
+
+    // DEBUG: Log des données reçues
+    logger.info('🔍 [DEBUG] createTable - Données reçues:', {
+      body: req.body,
+      user: user.id,
+      ip: req.ip,
+    });
 
     // Validation
     if (!number || !capacity) {
+      logger.warn('❌ [DEBUG] createTable - Validation failed: missing number or capacity', {
+        number,
+        capacity,
+        user: user.id,
+      });
       res.status(400).json({
         success: false,
         message: 'Number and capacity are required',
@@ -184,6 +211,10 @@ export const createTable = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (capacity < 1 || capacity > 20) {
+      logger.warn('❌ [DEBUG] createTable - Validation failed: invalid capacity', {
+        capacity,
+        user: user.id,
+      });
       res.status(400).json({
         success: false,
         message: 'Capacity must be between 1 and 20',
@@ -197,12 +228,20 @@ export const createTable = async (req: Request, res: Response): Promise<void> =>
     });
 
     if (!restaurant) {
+      logger.warn('❌ [DEBUG] createTable - Restaurant not found', {
+        user: user.id,
+      });
       res.status(404).json({
         success: false,
         message: 'Restaurant not found',
       });
       return;
     }
+
+    logger.info('✅ [DEBUG] createTable - Restaurant trouvé:', {
+      restaurantId: restaurant.id,
+      restaurantName: restaurant.name,
+    });
 
     // Vérifier si le numéro de table existe déjà
     const existingTable = await prisma.table.findFirst({
@@ -213,6 +252,11 @@ export const createTable = async (req: Request, res: Response): Promise<void> =>
     });
 
     if (existingTable) {
+      logger.warn('❌ [DEBUG] createTable - Table number already exists', {
+        number: parseInt(number),
+        existingTableId: existingTable.id,
+        user: user.id,
+      });
       res.status(400).json({
         success: false,
         message: 'Table number already exists',
@@ -220,16 +264,34 @@ export const createTable = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    logger.info('🔍 [DEBUG] createTable - Création de la table en base:', {
+      number: parseInt(number),
+      capacity: parseInt(capacity),
+      position: position || null,
+      status: status || 'AVAILABLE',
+      restaurantId: restaurant.id,
+    });
+
     const table = await prisma.table.create({
       data: {
         number: parseInt(number),
         capacity: parseInt(capacity),
         position: position || null,
+        status: status || 'AVAILABLE',
         restaurantId: restaurant.id,
       },
       include: {
         restaurant: true,
       },
+    });
+
+    logger.info('✅ [DEBUG] createTable - Table créée avec succès:', {
+      tableId: table.id,
+      tableNumber: table.number,
+      tableCapacity: table.capacity,
+      tablePosition: table.position,
+      tableStatus: table.status,
+      restaurantId: restaurant.id,
     });
 
     logger.info('Table created', {
@@ -668,6 +730,323 @@ export const getTableStatistics = async (req: Request, res: Response): Promise<v
     res.status(500).json({
       success: false,
       message: 'Failed to get table statistics',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+// ===== ENDPOINTS OPTIMISÉS POUR ÉVITER L'ENVOI DE TOUTES LES DONNÉES =====
+
+/**
+ * @route PATCH /api/admin/tables/:id/capacity
+ * @description Update only table capacity
+ * @access Admin only
+ */
+export const updateTableCapacity = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { capacity } = req.body;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Table ID is required',
+      });
+      return;
+    }
+
+    const updatedTable = await prisma.table.update({
+      where: { id },
+      data: { capacity },
+      select: { id: true, capacity: true, number: true },
+    });
+
+    res.json({
+      success: true,
+      data: updatedTable,
+    });
+  } catch (error) {
+    logger.error('Error updating table capacity:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update table capacity',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @route PATCH /api/admin/tables/:id/position
+ * @description Update only table position
+ * @access Admin only
+ */
+export const updateTablePosition = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { position } = req.body;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Table ID is required',
+      });
+      return;
+    }
+
+    const updatedTable = await prisma.table.update({
+      where: { id },
+      data: { position },
+      select: { id: true, position: true, number: true },
+    });
+
+    res.json({
+      success: true,
+      data: updatedTable,
+    });
+  } catch (error) {
+    logger.error('Error updating table position:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update table position',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @route PATCH /api/admin/tables/:id/number
+ * @description Update only table number
+ * @access Admin only
+ */
+export const updateTableNumber = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { number } = req.body;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Table ID is required',
+      });
+      return;
+    }
+
+    const updatedTable = await prisma.table.update({
+      where: { id },
+      data: { number },
+      select: { id: true, number: true },
+    });
+
+    res.json({
+      success: true,
+      data: updatedTable,
+    });
+  } catch (error) {
+    logger.error('Error updating table number:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update table number',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @route PATCH /api/admin/tables/:id/active
+ * @description Update only table active status
+ * @access Admin only
+ */
+export const updateTableActive = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Table ID is required',
+      });
+      return;
+    }
+
+    const updatedTable = await prisma.table.update({
+      where: { id },
+      data: { isActive },
+      select: { id: true, isActive: true, number: true },
+    });
+
+    res.json({
+      success: true,
+      data: updatedTable,
+    });
+  } catch (error) {
+    logger.error('Error updating table active status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update table active status',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @route GET /api/admin/tables/metadata
+ * @description Get tables metadata only (without reservations)
+ * @access Admin only
+ */
+export const getTablesMetadata = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.',
+      });
+      return;
+    }
+
+    const restaurant = await prisma.restaurant.findFirst({
+      where: { isActive: true },
+    });
+
+    if (!restaurant) {
+      res.status(404).json({
+        success: false,
+        message: 'Restaurant not found',
+      });
+      return;
+    }
+
+    const tables = await prisma.table.findMany({
+      where: { restaurantId: restaurant.id },
+      select: {
+        id: true,
+        number: true,
+        capacity: true,
+        isActive: true,
+        position: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: tables,
+    });
+  } catch (error) {
+    logger.error('Error fetching tables metadata:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tables metadata',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @route GET /api/admin/tables/:id/stats-only
+ * @description Get only table statistics
+ * @access Admin only
+ */
+export const getTableStatsOnly = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Table ID is required',
+      });
+      return;
+    }
+
+    const stats = await prisma.reservation.aggregate({
+      where: { tableId: id },
+      _count: { id: true },
+    });
+
+    const todayReservations = await prisma.reservation.count({
+      where: {
+        tableId: id,
+        date: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lt: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalReservations: stats._count?.id || 0,
+        todayReservations,
+        tableId: id,
+      },
+    });
+  } catch (error) {
+    logger.error('Error fetching table stats only:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch table stats',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @route PATCH /api/admin/tables/batch
+ * @description Batch update multiple tables
+ * @access Admin only
+ */
+export const batchUpdateTables = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.',
+      });
+      return;
+    }
+
+    const { updates } = req.body;
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Updates array is required and must not be empty',
+      });
+      return;
+    }
+
+    const results = await Promise.allSettled(
+      updates.map(async (update: any) => {
+        const { id, ...data } = update;
+        return await prisma.table.update({
+          where: { id },
+          data,
+          select: { id: true, number: true },
+        });
+      })
+    );
+
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    res.json({
+      success: true,
+      data: {
+        successful,
+        failed,
+        total: updates.length,
+      },
+    });
+  } catch (error) {
+    logger.error('Error batch updating tables:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to batch update tables',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }

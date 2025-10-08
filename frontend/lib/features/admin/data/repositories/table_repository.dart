@@ -1,156 +1,145 @@
-import '../../../../core/network/table_api_service.dart';
+import '../../../../core/network/standard_table_api.dart';
+import '../../domain/entities/table_entity.dart';
+import '../../domain/entities/restaurant_layout_entity.dart';
 
 /// Repository pour la gestion des tables
 class TableRepository {
-  final TableApiService _apiService;
+  final StandardTableApi _apiService;
 
   TableRepository(this._apiService);
 
   /// Récupère toutes les tables
-  Future<List<Map<String, dynamic>>> getTables({
-    required String token,
-  }) async {
+  Future<List<TableEntity>> getAllTables() async {
     try {
-      final response = await _apiService.get(
-        '/api/admin/tables',
-        token: token,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        return List<Map<String, dynamic>>.from(response['data']);
-      } else {
-        throw Exception('Erreur lors de la récupération des tables: ${response['message'] ?? 'Erreur inconnue'}');
-      }
+      final tables = await _apiService.getAllTables();
+      return tables;
     } catch (e) {
       throw Exception('Erreur lors de la récupération des tables: $e');
     }
   }
 
   /// Récupère une table par son ID
-  Future<Map<String, dynamic>> getTableById({
-    required String token,
-    required String tableId,
-  }) async {
+  Future<TableEntity?> getTableById(String id) async {
     try {
-      final response = await _apiService.get(
-        '/api/admin/tables/$tableId',
-        token: token,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'];
-      } else {
-        throw Exception('Erreur lors de la récupération de la table: ${response['message'] ?? 'Erreur inconnue'}');
-      }
+      return await _apiService.getTableById(id);
     } catch (e) {
       throw Exception('Erreur lors de la récupération de la table: $e');
     }
   }
 
   /// Crée une nouvelle table
-  Future<Map<String, dynamic>> createTable({
-    required String token,
-    required Map<String, dynamic> tableData,
+  Future<TableEntity> createTable({
+    required int number,
+    required int capacity,
+    String? position,
+    required String status,
   }) async {
     try {
-      final response = await _apiService.post(
-        '/api/admin/tables',
-        tableData,
-        token: token,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'];
-      } else {
-        throw Exception('Erreur lors de la création de la table: ${response['message'] ?? 'Erreur inconnue'}');
-      }
+      final tableData = {
+        'number': number,
+        'capacity': capacity,
+        if (position != null) 'position': position,
+        'status': status,
+      };
+      
+      
+      final result = await _apiService.createTable(tableData);
+      
+      
+      return result;
     } catch (e) {
       throw Exception('Erreur lors de la création de la table: $e');
     }
   }
 
   /// Met à jour une table
-  Future<Map<String, dynamic>> updateTable({
-    required String token,
-    required String tableId,
-    required Map<String, dynamic> tableData,
+  Future<TableEntity> updateTable({
+    required String id,
+    String? name,
+    int? capacity,
+    String? status,
+    String? description,
+    String? position,
   }) async {
     try {
-      final response = await _apiService.put(
-        '/api/admin/tables/$tableId',
-        tableData,
-        token: token,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'];
-      } else {
-        throw Exception('Erreur lors de la mise à jour de la table: ${response['message'] ?? 'Erreur inconnue'}');
+      final updateData = <String, dynamic>{};
+      if (name != null) updateData['number'] = name; // Le backend attend 'number', pas 'name'
+      if (capacity != null) updateData['capacity'] = capacity;
+      if (status != null) {
+        // Le backend attend 'isActive' (boolean) pour le statut
+        updateData['isActive'] = status == 'available';
       }
+      if (description != null) updateData['description'] = description;
+      if (position != null) updateData['position'] = position;
+      
+      return await _apiService.updateTable(id, updateData);
     } catch (e) {
       throw Exception('Erreur lors de la mise à jour de la table: $e');
     }
   }
 
   /// Supprime une table
-  Future<void> deleteTable({
-    required String token,
-    required String tableId,
-  }) async {
+  Future<void> deleteTable(String id) async {
     try {
-      final response = await _apiService.delete(
-        '/api/admin/tables/$tableId',
-        token: token,
-      );
-
-      if (response['success'] != true) {
-        throw Exception('Erreur lors de la suppression de la table: ${response['message'] ?? 'Erreur inconnue'}');
-      }
+      await _apiService.deleteTable(id);
     } catch (e) {
       throw Exception('Erreur lors de la suppression de la table: $e');
     }
   }
 
-  /// Met à jour le statut d'une table
-  Future<Map<String, dynamic>> updateTableStatus({
-    required String token,
-    required String tableId,
-    required bool isActive,
-  }) async {
+  /// Récupère les statistiques des tables
+  Future<Map<String, dynamic>> getTableStatistics() async {
     try {
-      final response = await _apiService.put(
-        '/api/admin/tables/$tableId/status',
-        {'isActive': isActive},
-        token: token,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'];
-      } else {
-        throw Exception('Erreur lors de la mise à jour du statut: ${response['message'] ?? 'Erreur inconnue'}');
-      }
+      return await _apiService.getTableStatistics();
     } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du statut de la table: $e');
+      throw Exception('Erreur lors de la récupération des statistiques: $e');
     }
   }
 
-  /// Récupère les statistiques des tables
-  Future<Map<String, dynamic>> getTableStatistics({
-    required String token,
-  }) async {
+  /// Récupère la disposition du restaurant
+  Future<RestaurantLayout> getRestaurantLayout() async {
     try {
-      final response = await _apiService.get(
-        '/api/admin/tables/statistics',
-        token: token,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'];
-      } else {
-        throw Exception('Erreur lors de la récupération des statistiques: ${response['message'] ?? 'Erreur inconnue'}');
-      }
+      return await _apiService.getRestaurantLayout();
     } catch (e) {
-      throw Exception('Erreur lors de la récupération des statistiques: $e');
+      throw Exception('Erreur lors de la récupération de la disposition: $e');
+    }
+  }
+
+  /// Met à jour la disposition du restaurant
+  Future<RestaurantLayout> updateRestaurantLayout(RestaurantLayout layout) async {
+    try {
+      return await _apiService.updateRestaurantLayout(layout.toJson());
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour de la disposition: $e');
+    }
+  }
+
+  /// Récupère les tables par statut
+  Future<List<TableEntity>> getTablesByStatus(TableStatus status) async {
+    try {
+      final allTables = await getAllTables();
+      return allTables.where((table) => table.status == status).toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des tables par statut: $e');
+    }
+  }
+
+  /// Récupère les tables disponibles (toutes les tables actives)
+  Future<List<TableEntity>> getAvailableTables() async {
+    try {
+      final allTables = await getAllTables();
+      return allTables.where((table) => table.isActive).toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des tables disponibles: $e');
+    }
+  }
+
+  /// Récupère les statistiques d'une table spécifique
+  Future<Map<String, dynamic>> getTableStats(String tableId) async {
+    try {
+      return await _apiService.getTableStats(tableId);
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des statistiques de la table: $e');
     }
   }
 }

@@ -51,6 +51,9 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
   }
 
   void _loadScheduleConfig() {
+    // Éviter les boucles infinies en vérifiant l'état actuel
+    if (_scheduleConfig != null) return;
+    
     // Utiliser les données du provider en priorité
     final scheduleState = ref.read(scheduleProvider);
     
@@ -75,21 +78,28 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     
-    // Écouter les changements du provider
-    final scheduleState = ref.watch(scheduleProvider);
+    // Utiliser select pour éviter les rebuilds inutiles
+    final error = ref.watch(scheduleProvider.select((state) => state.error));
+    final config = ref.watch(scheduleProvider.select((state) => state.config));
+    final isLoading = ref.watch(scheduleProvider.select((state) => state.isLoading));
     
-    // Charger la configuration une seule fois
-    if (scheduleState.config != null && _scheduleConfig == null) {
+    // Éviter les rebuilds inutiles
+    if (error != null && _scheduleConfig == null) {
+      return _buildErrorState(theme, l10n, error);
+    }
+    
+    // Charger la configuration depuis le provider une seule fois
+    if (config != null && _scheduleConfig == null) {
       try {
-        _scheduleConfig = _convertApiDataToScheduleConfig(scheduleState.config!);
+        _scheduleConfig = _convertApiDataToScheduleConfig(config);
       } catch (e) {
-        // Créer une configuration par défaut en cas d'erreur
-        _scheduleConfig = _getDefaultScheduleConfig();
+        // Afficher l'erreur de conversion
+        return _buildErrorState(theme, l10n, 'Erreur de conversion des données: $e');
       }
     }
     
-    if (scheduleState.isLoading || _isLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if ((isLoading || _isLoading) && _scheduleConfig == null) {
+      return _buildLoadingState(theme, l10n);
     }
 
     if (_scheduleConfig == null) {
@@ -143,24 +153,28 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
     
     final slots = <TimeSlot>[];
     
-    // Déjeuner : 12h-14h
+    // Déjeuner : 12h-14h (créneaux de 30 minutes)
     for (int hour = 12; hour < 14; hour++) {
+      for (int minute = 0; minute < 60; minute += 30) {
         slots.add(TimeSlot(
-        time: '${hour.toString().padLeft(2, '0')}:00',
+          time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
           isAvailable: true,
           capacity: 20,
-        isRecommended: hour == 12 || hour == 13,
+          isRecommended: (hour == 12 && minute == 0) || (hour == 13 && minute == 0),
         ));
+      }
     }
     
-    // Dîner : 19h-21h
+    // Dîner : 19h-21h (créneaux de 30 minutes)
     for (int hour = 19; hour < 21; hour++) {
+      for (int minute = 0; minute < 60; minute += 30) {
         slots.add(TimeSlot(
-        time: '${hour.toString().padLeft(2, '0')}:00',
+          time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
           isAvailable: true,
           capacity: 20,
-        isRecommended: hour == 19 || hour == 20,
+          isRecommended: (hour == 19 && minute == 0) || (hour == 20 && minute == 0),
         ));
+      }
     }
     
     return slots;
@@ -171,24 +185,28 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
     
     final slots = <TimeSlot>[];
     
-    // Déjeuner : 12h-14h
+    // Déjeuner : 12h-14h (créneaux de 30 minutes)
     for (int hour = 12; hour < 14; hour++) {
+      for (int minute = 0; minute < 60; minute += 30) {
         slots.add(TimeSlot(
-        time: '${hour.toString().padLeft(2, '0')}:00',
+          time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
           isAvailable: true,
           capacity: 20,
-        isRecommended: hour == 12 || hour == 13,
+          isRecommended: (hour == 12 && minute == 0) || (hour == 13 && minute == 0),
         ));
+      }
     }
     
-    // Dîner : 19h-21h
+    // Dîner : 19h-21h (créneaux de 30 minutes)
     for (int hour = 19; hour < 21; hour++) {
+      for (int minute = 0; minute < 60; minute += 30) {
         slots.add(TimeSlot(
-        time: '${hour.toString().padLeft(2, '0')}:00',
+          time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
           isAvailable: true,
           capacity: 20,
-        isRecommended: hour == 19 || hour == 20,
+          isRecommended: (hour == 19 && minute == 0) || (hour == 20 && minute == 0),
         ));
+      }
     }
     
     return slots;
@@ -877,6 +895,81 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
     widget.onScheduleChanged?.call(_scheduleConfig!);
   }
 
+
+  Widget _buildLoadingState(ThemeData theme, AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            'Chargement de la configuration...',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme, AppLocalizations l10n, String error) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Erreur de chargement',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _scheduleConfig = _getDefaultScheduleConfig();
+                  });
+                  widget.onScheduleChanged?.call(_scheduleConfig!);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Créer une configuration'),
+              ),
+              const SizedBox(width: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  _loadScheduleConfig();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Réessayer'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
     return Center(

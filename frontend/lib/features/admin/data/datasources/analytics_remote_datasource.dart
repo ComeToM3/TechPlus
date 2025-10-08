@@ -1,9 +1,9 @@
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 import '../../domain/entities/analytics_entity.dart';
 
 /// Data source distant pour les analytics
 class AnalyticsRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
   const AnalyticsRemoteDataSource(this._apiClient);
 

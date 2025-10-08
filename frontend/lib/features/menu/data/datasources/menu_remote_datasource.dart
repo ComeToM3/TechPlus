@@ -1,6 +1,4 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 import '../models/menu_item_model.dart';
 
 /// Source de données distante pour le menu
@@ -14,9 +12,9 @@ abstract class MenuRemoteDataSource {
 
 /// Implémentation de la source de données distante pour le menu
 class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
-  MenuRemoteDataSourceImpl({required ApiClient apiClient})
+  MenuRemoteDataSourceImpl({required StandardApiClient apiClient})
       : _apiClient = apiClient;
 
   @override

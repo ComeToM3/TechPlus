@@ -1,13 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/base_state.dart';
 import '../errors/app_errors.dart';
-import '../../core/network/api_client.dart';
 import '../../features/admin/domain/entities/table_entity.dart';
-import '../../features/admin/domain/repositories/table_repository.dart';
-import '../../features/admin/data/datasources/table_remote_datasource.dart';
-import '../../features/admin/data/datasources/table_local_datasource.dart';
-import '../../features/admin/data/repositories/table_repository_impl.dart';
-import 'core_providers.dart';
+import '../../features/admin/data/repositories/table_repository.dart' as data;
+import '../../core/network/standard_table_api.dart';
+import '../../core/network/api_providers.dart';
+
 
 /// État unifié pour les tables
 class TableState extends BaseListState<TableEntity> {
@@ -46,9 +45,9 @@ class TableState extends BaseListState<TableEntity> {
 
 /// Notifier unifié pour la gestion des tables
 class TableNotifier extends StateNotifier<TableState> {
-  final TableRepository _repository;
+  final data.TableRepository _repository;
 
-  TableNotifier({required TableRepository repository})
+  TableNotifier({required data.TableRepository repository})
       : _repository = repository,
         super(const TableState());
 
@@ -81,15 +80,22 @@ class TableNotifier extends StateNotifier<TableState> {
   /// Créer une nouvelle table
   Future<void> createTable({
     required String token,
-    required String name,
+    required int number,
     required int capacity,
+    String? position,
     required String status,
-    String? description,
   }) async {
+    
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      // Implémentation à ajouter selon les besoins
+      await _repository.createTable(
+        number: number,
+        capacity: capacity,
+        position: position,
+        status: status,
+      );
+      // Recharger les tables après création
       await loadTables(token: token);
     } catch (e) {
       final error = AppErrorFactory.fromException(e);
@@ -104,17 +110,37 @@ class TableNotifier extends StateNotifier<TableState> {
   Future<void> updateTable({
     required String token,
     required String tableId,
-    required String name,
-    required int capacity,
-    required String status,
+    String? name,
+    int? capacity,
+    String? status,
     String? description,
+    String? position,
   }) async {
+    if (kDebugMode) {
+    }
+    
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      // Implémentation à ajouter selon les besoins
+      if (kDebugMode) {
+      }
+      await _repository.updateTable(
+        id: tableId,
+        name: name,
+        capacity: capacity,
+        status: status,
+        description: description,
+        position: position,
+      );
+      if (kDebugMode) {
+      }
+      // Recharger les tables après mise à jour
       await loadTables(token: token);
+      if (kDebugMode) {
+      }
     } catch (e) {
+      if (kDebugMode) {
+      }
       final error = AppErrorFactory.fromException(e);
       state = state.copyWith(
         isLoading: false,
@@ -128,12 +154,24 @@ class TableNotifier extends StateNotifier<TableState> {
     required String token,
     required String tableId,
   }) async {
+    if (kDebugMode) {
+    }
+    
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      // Implémentation à ajouter selon les besoins
+      if (kDebugMode) {
+      }
+      await _repository.deleteTable(tableId);
+      if (kDebugMode) {
+      }
+      // Recharger les tables après suppression
       await loadTables(token: token);
+      if (kDebugMode) {
+      }
     } catch (e) {
+      if (kDebugMode) {
+      }
       final error = AppErrorFactory.fromException(e);
       state = state.copyWith(
         isLoading: false,
@@ -190,8 +228,17 @@ class TableNotifier extends StateNotifier<TableState> {
   /// Charger les statistiques d'une table spécifique
   Future<void> loadTableStats(String tableId) async {
     try {
-      final stats = await _repository.getTableStats(tableId);
-      if (stats != null) {
+      final statsData = await _repository.getTableStats(tableId);
+      if (statsData != null) {
+        // Convertir Map<String, dynamic> en TableStats
+        final stats = TableStats(
+          tableId: statsData['tableId'] ?? tableId,
+          totalReservations: statsData['totalReservations'] ?? 0,
+          averageOccupancy: (statsData['averageOccupancy'] ?? 0.0).toDouble(),
+          revenue: (statsData['revenue'] ?? 0.0).toDouble(),
+          totalGuests: statsData['totalGuests'] ?? 0,
+          lastReservation: DateTime.tryParse(statsData['lastReservation'] ?? '') ?? DateTime.now(),
+        );
         final statsMap = Map<String, TableStats>.from(state.tableStats);
         statsMap[tableId] = stats;
         state = state.copyWith(tableStats: statsMap);
@@ -218,39 +265,30 @@ class TableNotifier extends StateNotifier<TableState> {
   }
 }
 
-/// Provider pour la source de données distante des tables
-final tableRemoteDataSourceProvider = Provider<TableRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return TableRemoteDataSource(apiClient);
-});
-
-/// Provider pour la source de données locale des tables
-final tableLocalDataSourceProvider = Provider<TableLocalDataSource>((ref) {
-  return TableLocalDataSource();
-});
-
-/// Provider pour le repository des tables
-final tableRepositoryProvider = Provider<TableRepository>((ref) {
-  final remoteDataSource = ref.watch(tableRemoteDataSourceProvider);
-  final localDataSource = ref.watch(tableLocalDataSourceProvider);
-  return TableRepositoryImpl(remoteDataSource, localDataSource);
-});
 
 /// Provider unifié pour l'état des tables
 final tableProvider = StateNotifierProvider<TableNotifier, TableState>((ref) {
-  final repository = ref.watch(tableRepositoryProvider);
+  final apiClient = ref.watch(standardApiClientProvider);
+  final tableApi = StandardTableApi(apiClient);
+  final repository = data.TableRepository(tableApi);
+  
+  // Utiliser directement le repository de données
   return TableNotifier(repository: repository);
 });
 
 /// Provider pour une table spécifique
 final tableByIdProvider = FutureProvider.family<TableEntity?, String>((ref, id) async {
-  final repository = ref.watch(tableRepositoryProvider);
+  final apiClient = ref.watch(standardApiClientProvider);
+  final tableApi = StandardTableApi(apiClient);
+  final repository = data.TableRepository(tableApi);
   return await repository.getTableById(id);
 });
 
 /// Provider pour les tables disponibles
 final availableTablesProvider = FutureProvider<List<TableEntity>>((ref) async {
-  final repository = ref.watch(tableRepositoryProvider);
+  final apiClient = ref.watch(standardApiClientProvider);
+  final tableApi = StandardTableApi(apiClient);
+  final repository = data.TableRepository(tableApi);
   return await repository.getAvailableTables();
 });
 
@@ -271,7 +309,9 @@ final tableErrorProvider = Provider<String?>((ref) {
 });
 
 /// Provider pour les statistiques d'une table spécifique
-final tableStatsByIdProvider = FutureProvider.family<TableStats?, String>((ref, tableId) async {
-  final repository = ref.watch(tableRepositoryProvider);
+final tableStatsByIdProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, tableId) async {
+  final apiClient = ref.watch(standardApiClientProvider);
+  final tableApi = StandardTableApi(apiClient);
+  final repository = data.TableRepository(tableApi);
   return await repository.getTableStats(tableId);
 });

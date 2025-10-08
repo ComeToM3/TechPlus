@@ -69,6 +69,11 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
   Future<void> loadScheduleConfig({String? token}) async {
     if (_isLoading) return; // Éviter les appels multiples
     
+    // Éviter les rechargements si les données sont déjà présentes
+    if (state.config != null && !state.isLoading) {
+      return;
+    }
+    
     _isLoading = true;
     state = state.copyWith(isLoading: true, error: null);
     
@@ -160,12 +165,23 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
 
   /// Rafraîchit la configuration
   Future<void> refreshScheduleConfig({required String token}) async {
+    // Forcer le rechargement même si déjà en cours
+    _isLoading = false;
     await loadScheduleConfig(token: token);
   }
+
+  /// Vérifie si les données sont déjà chargées
+  bool get hasData => state.config != null && !state.isLoading;
 
   /// Efface l'erreur
   void clearError() {
     state = state.copyWith(error: null);
+  }
+
+  /// Réinitialise complètement l'état
+  void reset() {
+    _isLoading = false;
+    state = const ScheduleState();
   }
 }
 

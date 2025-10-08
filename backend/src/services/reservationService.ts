@@ -84,6 +84,12 @@ export class ReservationService {
       });
 
       // 7. Créer la réservation
+      console.log('🔍 [DEBUG] ReservationService.createReservation - Données reçues:');
+      console.log('  - userId:', data.userId);
+      console.log('  - userId type:', typeof data.userId);
+      console.log('  - userId length:', data.userId?.length);
+      console.log('  - userId trim:', data.userId?.trim());
+      
       const reservationData: Prisma.ReservationCreateInput = {
         date: new Date(data.date),
         time: data.time,
@@ -99,7 +105,7 @@ export class ReservationService {
         tokenExpiresAt,
         restaurant: { connect: { id: restaurant.id } },
         ...(availableTable && { table: { connect: { id: availableTable.id } } }),
-        ...(data.userId && { user: { connect: { id: data.userId } } }),
+        ...(data.userId && data.userId.trim() !== '' && { user: { connect: { id: data.userId } } }),
         ...(data.clientName && { clientName: data.clientName }),
         ...(data.clientEmail && { clientEmail: data.clientEmail }),
         ...(data.clientPhone && { clientPhone: data.clientPhone }),

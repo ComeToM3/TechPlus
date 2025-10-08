@@ -21,9 +21,15 @@ export const createReservation = asyncHandler(async (req: Request, res: Response
     clientPhone,
   } = req.body;
 
-  const userId = req.user?.id;
+  const adminUserId = req.user?.id;
+  
+  console.log('🔍 [DEBUG] ReservationController.createReservation - Admin creating reservation for client:');
+  console.log('  - Admin user:', req.user);
+  console.log('  - Client info:', { clientName, clientEmail, clientPhone });
+  console.log('  - This is an admin-created reservation, not linking to admin user');
 
-  // Utiliser le service de réservation pour créer la réservation
+  // Pour les réservations créées par l'admin, on ne lie pas à l'utilisateur admin
+  // mais on crée une réservation "anonyme" avec les infos du client
   const reservation = await ReservationService.createReservation({
     date,
     time,
@@ -34,13 +40,22 @@ export const createReservation = asyncHandler(async (req: Request, res: Response
     clientName,
     clientEmail,
     clientPhone,
-    userId: userId || undefined,
+    userId: undefined, // Pas d'utilisateur lié pour les réservations admin
   });
+
+  console.log('🔍 [DEBUG] ReservationController - Réservation créée:');
+  console.log('  - ID:', reservation.id);
+  console.log('  - Date:', reservation.date);
+  console.log('  - Time:', reservation.time);
+  console.log('  - Client:', reservation.clientName);
+  console.log('  - Status:', reservation.status);
+  console.log('🔍 [DEBUG] ReservationController - Objet complet:');
+  console.log(JSON.stringify(reservation, null, 2));
 
   res.status(201).json({
     success: true,
     message: 'Reservation created successfully',
-    data: { reservation },
+    data: reservation,
   });
 });
 

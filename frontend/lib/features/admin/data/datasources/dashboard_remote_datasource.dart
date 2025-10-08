@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../domain/entities/dashboard_metrics.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 
 /// Data source distant pour les métriques du dashboard
 class DashboardRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
   DashboardRemoteDataSource(this._apiClient);
 

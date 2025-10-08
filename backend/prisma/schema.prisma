@@ -92,6 +92,7 @@ model Table {
   number       Int
   capacity     Int
   position     String?
+  status       TableStatus @default(AVAILABLE)
   isActive     Boolean @default(true)
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -220,6 +221,14 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  MAINTENANCE
+  OUT_OF_ORDER
 }
 
 model Notification {

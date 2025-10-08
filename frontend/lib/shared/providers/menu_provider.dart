@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/base_state.dart';
 import '../errors/app_errors.dart';
-import '../../core/network/api_client.dart';
 import '../../features/menu/domain/entities/menu_item.dart';
 import '../../features/menu/data/datasources/menu_remote_datasource.dart';
 import '../../features/menu/data/repositories/menu_repository_impl.dart';

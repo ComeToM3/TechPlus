@@ -95,6 +95,23 @@ async function main() {
 
   console.log('✅ Client user created:', clientUser.email);
 
+  // Create dev user for development
+  const hashedDevPassword = await hash('dev123', 12);
+  const devUser = await prisma.user.create({
+    data: {
+      id: 'dev-user', // ID fixe pour le développement
+      email: 'dev@example.com',
+      password: hashedDevPassword,
+      name: 'Dev User',
+      phone: '+1 514 999 9999',
+      role: UserRole.ADMIN,
+      isActive: true,
+      lastLoginAt: new Date()
+    }
+  });
+
+  console.log('✅ Dev user created:', devUser.email);
+
   // Create menu items
   const menuItems = [
     {

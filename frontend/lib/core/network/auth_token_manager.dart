@@ -1,4 +1,5 @@
 /// Gestionnaire global pour les tokens d'authentification
+/// Source unique de vérité pour l'authentification dans l'application
 class AuthTokenManager {
   static final AuthTokenManager _instance = AuthTokenManager._internal();
   factory AuthTokenManager() => _instance;
@@ -8,14 +9,20 @@ class AuthTokenManager {
   final List<Function(String?)> _listeners = [];
 
   /// Obtenir le token actuel
+  /// En développement, retourne automatiquement 'dev-token' si aucun token n'est défini
   String? get accessToken {
-    // Solution temporaire pour le développement - retourner un token de développement
     if (_accessToken == null) {
-      print('🔧 [AuthTokenManager] Utilisation du token de développement');
+      // Token de développement utilisé par défaut
       return 'dev-token';
     }
     return _accessToken;
   }
+
+  /// Vérifier si un token est défini (pas le token de développement)
+  bool get hasRealToken => _accessToken != null;
+
+  /// Vérifier si on utilise le token de développement
+  bool get isUsingDevToken => _accessToken == null;
 
   /// Mettre à jour le token
   void updateToken(String? token) {

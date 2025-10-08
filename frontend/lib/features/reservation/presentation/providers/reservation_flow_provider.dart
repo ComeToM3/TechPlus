@@ -4,7 +4,6 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/network/api_service_provider.dart';
 import '../../../../core/network/api_providers.dart';
 import '../../../../shared/models/reservation.dart';
-import '../../../admin/domain/entities/schedule_entity.dart';
 
 /// État du flux de réservation
 class ReservationFlowState {
@@ -236,8 +235,9 @@ class ReservationFlowNotifier extends StateNotifier<ReservationFlowState> {
       // Appeler l'API réelle pour obtenir les créneaux disponibles
       final availabilityApi = ref.read(availabilityApiProvider);
       final slots = await availabilityApi.getAvailableSlots(
-        date: date,
-        partySize: state.partySize,
+        'default-restaurant-id', // TODO: Récupérer l'ID du restaurant depuis la config
+        date,
+        state.partySize,
       );
       
       // Retourner seulement les créneaux disponibles

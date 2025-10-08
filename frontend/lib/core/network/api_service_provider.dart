@@ -14,12 +14,7 @@ final dioProvider = Provider<Dio>((ref) {
   dio.options.receiveTimeout = ApiConfig.receiveTimeout;
   dio.options.sendTimeout = ApiConfig.sendTimeout;
   
-  // Intercepteurs
-  dio.interceptors.add(LogInterceptor(
-    requestBody: true,
-    responseBody: true,
-    logPrint: (obj) => print(obj),
-  ));
+  // Intercepteurs - LogInterceptor supprimé pour la production
   
   // Intercepteur pour ajouter le token d'authentification
   dio.interceptors.add(InterceptorsWrapper(

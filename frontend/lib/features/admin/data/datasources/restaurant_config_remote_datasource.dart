@@ -1,10 +1,10 @@
-import '../../../../core/network/api_client.dart';
+import '../../../../core/network/standard_api_client.dart';
 import '../../domain/entities/restaurant_config_entity.dart';
 import 'package:dio/dio.dart';
 
 /// Data source distant pour la configuration du restaurant
 class RestaurantConfigRemoteDataSource {
-  final ApiClient _apiClient;
+  final StandardApiClient _apiClient;
 
   const RestaurantConfigRemoteDataSource(this._apiClient);
 

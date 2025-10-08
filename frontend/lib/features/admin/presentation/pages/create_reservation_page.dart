@@ -8,8 +8,11 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
-import '../providers/schedule_provider.dart';
 import '../../../../shared/providers/auth_provider.dart';
+import '../../../../shared/providers/table_provider.dart' as data;
+import '../../domain/entities/table_entity.dart';
+import '../../domain/entities/schedule_entity.dart';
+import '../providers/schedule_provider.dart';
 import '../../../../core/navigation/unified_navigation.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../widgets/public_navigation_button.dart';
@@ -34,7 +37,7 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
   
   // Données sélectionnées
   List<Map<String, dynamic>> _availableSlots = [];
-  Map<String, dynamic>? _selectedTable;
+  TableEntity? _selectedTable;
   
   // Contrôleurs pour nouveau client
   final _newClientNameController = TextEditingController();
@@ -45,28 +48,102 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
   void initState() {
     super.initState();
     _clientSearchController.addListener(_onClientSearchChanged);
-    _loadInitialData();
+    // Déplacer le chargement dans didChangeDependencies pour éviter les problèmes de timing
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Recharger les données seulement si nécessaire
-    // Éviter les appels multiples qui causent des boucles infinies
+    // Charger les données seulement si elles ne sont pas déjà chargées
+    _loadInitialDataIfNeeded();
+  }
+  
+  Future<void> _loadInitialDataIfNeeded() async {
+    final authState = ref.read(authProvider);
+    final tableState = ref.read(data.tableProvider);
+    
+    // Ne charger que si on a un token et que les tables ne sont pas déjà chargées
+    if (authState.accessToken != null && 
+        !tableState.isLoading && 
+        tableState.items.isEmpty && 
+        tableState.error == null) {
+      await _loadInitialData();
+    }
   }
   
   Future<void> _loadInitialData() async {
-    // Charger la configuration des créneaux
+    // Charger les tables et les créneaux pour la création de réservation
     final authState = ref.read(authProvider);
     if (authState.accessToken != null) {
-      await ref.read(scheduleProvider.notifier).loadScheduleConfig(
-        token: authState.accessToken!,
-      );
+      try {
+        await ref.read(data.tableProvider.notifier).loadTables(
+          token: authState.accessToken!,
+        );
+        await ref.read(scheduleProvider.notifier).loadScheduleConfig(
+          token: authState.accessToken!,
+        );
+      } catch (e) {
+        // Gérer les erreurs de chargement
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors du chargement des données: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
   
   void _onClientSearchChanged() {
     // Recherche de clients via l'API - à implémenter selon les besoins
+  }
+
+  /// Rafraîchir les tables
+  Future<void> _refreshTables() async {
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        await ref.read(data.tableProvider.notifier).loadTables(
+          token: authState.accessToken!,
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors du rafraîchissement des tables: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  /// Rafraîchir la configuration des créneaux
+  Future<void> _refreshScheduleConfig() async {
+    final authState = ref.read(authProvider);
+    if (authState.accessToken != null) {
+      try {
+        await ref.read(scheduleProvider.notifier).loadScheduleConfig(
+          token: authState.accessToken!,
+        );
+        // Recharger les créneaux après avoir mis à jour la configuration
+        if (_selectedDate != null) {
+          await _loadAvailableSlots();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors du rafraîchissement de la configuration: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -365,6 +442,29 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
   }
 
   Widget _buildNoSlotsMessage(ThemeData theme) {
+    // Déterminer le message selon le jour sélectionné
+    final dayOfWeek = _selectedDate != null ? _getDayOfWeek(_selectedDate!) : '';
+    final isWeekend = dayOfWeek == 'saturday' || dayOfWeek == 'sunday';
+    final isMonday = dayOfWeek == 'monday';
+    
+    String title;
+    String message;
+    IconData icon;
+    
+    if (isMonday) {
+      title = 'Lundi fermé';
+      message = 'Le restaurant est fermé le lundi. Veuillez choisir un autre jour pour votre réservation.';
+      icon = Icons.event_busy;
+    } else if (isWeekend) {
+      title = 'Weekend fermé';
+      message = 'Le restaurant est fermé le weekend. Veuillez choisir un jour de semaine pour votre réservation.';
+      icon = Icons.event_busy;
+    } else {
+      title = 'Aucun créneau configuré';
+      message = 'Vous devez d\'abord configurer les créneaux horaires de votre restaurant avant de pouvoir créer des réservations.';
+      icon = Icons.schedule_outlined;
+    }
+    
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -375,13 +475,13 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
       child: Column(
         children: [
           Icon(
-            Icons.schedule_outlined,
+            icon,
             size: 48,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 16),
           Text(
-            'Aucun créneau configuré',
+            title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colorScheme.onSurfaceVariant,
@@ -389,20 +489,47 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Vous devez d\'abord configurer les créneaux horaires de votre restaurant avant de pouvoir créer des réservations.',
+            message,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () {
-              context.go('/admin/dashboard/schedule');
-            },
-            icon: const Icon(Icons.schedule),
-            label: const Text('Configurer les créneaux'),
-          ),
+          if (!isMonday && !isWeekend) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _refreshScheduleConfig,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Actualiser'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.go('/admin/dashboard/schedule');
+                  },
+                  icon: const Icon(Icons.schedule),
+                  label: const Text('Configurer les créneaux'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.secondary,
+                    foregroundColor: theme.colorScheme.onSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            ElevatedButton.icon(
+              onPressed: _selectDate,
+              icon: const Icon(Icons.calendar_today),
+              label: const Text('Choisir une autre date'),
+            ),
+          ],
         ],
       ),
     );
@@ -428,9 +555,105 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
   }
 
   Widget _buildTableGrid(ThemeData theme) {
-    // Charger les tables depuis l'API
-    // TODO: Intégrer avec tableProvider pour charger les vraies tables
-    return _buildNoTablesMessage(theme);
+    return Consumer(
+      builder: (context, ref, child) {
+        // Utiliser select pour éviter les rebuilds inutiles
+        final tableState = ref.watch(data.tableProvider);
+        final isLoading = tableState.isLoading;
+        final error = tableState.error;
+        final tables = tableState.items;
+        
+        // Debug: Afficher l'état actuel
+        print('🔍 [DEBUG] _buildTableGrid - État des tables:');
+        print('  - isLoading: $isLoading');
+        print('  - error: $error');
+        print('  - tables count: ${tables.length}');
+        
+        // Si on est en train de charger et qu'il n'y a pas de tables, afficher le loading
+        if (isLoading && tables.isEmpty) {
+          return _buildLoadingTables(theme);
+        }
+        
+        // Si il y a une erreur et pas de tables, afficher l'erreur
+        if (error != null && tables.isEmpty) {
+          return _buildTablesError(theme, error);
+        }
+        
+        // Si pas de tables et pas de loading, afficher le message
+        if (tables.isEmpty && !isLoading) {
+          return _buildNoTablesMessage(theme);
+        }
+        
+        // Filtrer les tables disponibles et adaptées à la taille du groupe
+        final availableTables = tables
+            .where((table) => table.isActive && table.capacity >= _partySize)
+            .toList();
+            
+        print('  - available tables count: ${availableTables.length}');
+        print('  - party size: $_partySize');
+        
+        if (availableTables.isEmpty && tables.isNotEmpty) {
+          return _buildNoSuitableTablesMessage(theme);
+        }
+        
+        return _buildTablesGrid(theme, availableTables);
+      },
+    );
+  }
+
+  Widget _buildLoadingTables(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget _buildTablesError(ThemeData theme, String error) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.error),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Erreur lors du chargement des tables',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onErrorContainer,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _refreshTables,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.error,
+              foregroundColor: theme.colorScheme.onError,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildNoTablesMessage(ThemeData theme) {
@@ -465,22 +688,184 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
             ),
           ),
           const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () {
-              context.go('/admin/dashboard/tables');
-            },
-            icon: const Icon(Icons.settings),
-            label: const Text('Configurer les tables'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _refreshTables,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Actualiser'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  context.go('/admin/dashboard/tables');
+                },
+                icon: const Icon(Icons.settings),
+                label: const Text('Configurer les tables'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.secondary,
+                  foregroundColor: theme.colorScheme.onSecondary,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  Widget _buildNoSuitableTablesMessage(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outline),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.table_restaurant_outlined,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Aucune table adaptée',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Aucune table disponible ne peut accueillir $_partySize personnes. Essayez de réduire le nombre de personnes ou configurez des tables plus grandes.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTablesGrid(ThemeData theme, List<TableEntity> tables) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tables disponibles (${tables.length})',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 1.2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: tables.length,
+          itemBuilder: (context, index) {
+            final table = tables[index];
+            final isSelected = _selectedTable?.id == table.id;
+            
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedTable = table;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? theme.colorScheme.primary 
+                      : theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected 
+                        ? theme.colorScheme.primary 
+                        : theme.colorScheme.outline,
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: isSelected ? [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ] : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.table_restaurant,
+                      size: 24,
+                      color: isSelected 
+                          ? theme.colorScheme.onPrimary 
+                          : theme.colorScheme.onSurface,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Table ${table.number}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isSelected 
+                            ? theme.colorScheme.onPrimary 
+                            : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${table.capacity} places',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isSelected 
+                            ? theme.colorScheme.onPrimary.withOpacity(0.8)
+                            : theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    if (table.position != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        table.position!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isSelected 
+                              ? theme.colorScheme.onPrimary.withOpacity(0.6)
+                              : theme.colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildPartySizeSection(ThemeData theme, AppLocalizations l10n) {
     return BentoCard(
       title: 'Nombre de personnes',
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -493,7 +878,12 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
             Row(
               children: [
               IconButton(
-                onPressed: _partySize > 1 ? () => setState(() => _partySize--) : null,
+                onPressed: _partySize > 1 ? () {
+                  setState(() {
+                    _partySize--;
+                    _selectedTable = null; // Reset table selection when party size changes
+                  });
+                } : null,
                 icon: const Icon(Icons.remove),
               ),
               Container(
@@ -511,7 +901,12 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
                 ),
               ),
               IconButton(
-                onPressed: _partySize < 20 ? () => setState(() => _partySize++) : null,
+                onPressed: _partySize < 20 ? () {
+                  setState(() {
+                    _partySize++;
+                    _selectedTable = null; // Reset table selection when party size changes
+                  });
+                } : null,
                 icon: const Icon(Icons.add),
                 ),
               ],
@@ -605,48 +1000,99 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     if (_selectedDate == null) return;
     
     try {
-      // Toujours recharger la configuration pour avoir les dernières données
-      final authState = ref.read(authProvider);
-      if (authState.accessToken != null) {
-        // Recharger la configuration depuis l'API
-        await ref.read(scheduleProvider.notifier).loadScheduleConfig(
-          token: authState.accessToken!,
+      // Utiliser les données déjà chargées du provider (éviter les appels multiples)
+      final scheduleState = ref.read(scheduleProvider);
+      
+      if (scheduleState.config != null) {
+        // Convertir les données brutes en entités typées
+        final scheduleConfig = ScheduleConfig.fromJson(scheduleState.config!);
+        final dayOfWeek = _getDayOfWeek(_selectedDate!);
+        
+        // Trouver le jour correspondant
+        final daySchedule = scheduleConfig.daySchedules.firstWhere(
+          (day) => day.dayOfWeek == dayOfWeek,
+          orElse: () => DaySchedule(
+            dayOfWeek: dayOfWeek,
+            isOpen: false,
+            timeSlots: [],
+          ),
         );
         
-        final scheduleState = ref.read(scheduleProvider);
+        print('🔍 [DEBUG] _loadAvailableSlots - Utilisation des entités typées:');
+        print('  - dayOfWeek: $dayOfWeek');
+        print('  - daySchedule.isOpen: ${daySchedule.isOpen}');
+        print('  - daySchedule.timeSlots.length: ${daySchedule.timeSlots.length}');
         
-        if (scheduleState.config != null) {
-          // Utiliser la configuration des créneaux
-          final dayOfWeek = _getDayOfWeek(_selectedDate!);
-          final daySchedule = scheduleState.config!['daySchedules']?.firstWhere(
-            (day) => day['dayOfWeek'] == dayOfWeek,
-            orElse: () => null,
-          );
+        if (daySchedule.isOpen) {
+          // Vérifier si la date n'est pas trop en avance
+          final now = DateTime.now();
+          final daysDifference = _selectedDate!.difference(now).inDays;
+          final maxAdvanceDays = scheduleConfig.timeSlotSettings.maxAdvanceBookingDays;
           
-          if (daySchedule != null && daySchedule['isOpen'] == true) {
-            final timeSlots = daySchedule['timeSlots'] ?? [];
-            setState(() {
-              _availableSlots = timeSlots
-                  .where((slot) => slot['isAvailable'] == true)
-                  .map((slot) => {
-                    'time': slot['time'],
-                    'capacity': slot['capacity'] ?? 20,
-                    'isRecommended': slot['isRecommended'] ?? false,
-                  })
-                  .toList();
-            });
-          } else {
+          if (daysDifference > maxAdvanceDays) {
+            print('  - Date trop en avance (${daysDifference} jours > ${maxAdvanceDays} jours)');
             setState(() {
               _availableSlots = [];
             });
+            return;
           }
+          
+          // Vérifier les contraintes de réservation
+          final isToday = daysDifference == 0;
+          final isWeekend = _selectedDate!.weekday == DateTime.saturday || _selectedDate!.weekday == DateTime.sunday;
+          final allowSameDay = scheduleConfig.timeSlotSettings.allowSameDayBooking;
+          final allowWeekend = scheduleConfig.timeSlotSettings.allowWeekendBooking;
+          
+          if (isToday && !allowSameDay) {
+            print('  - Réservation le même jour non autorisée');
+            setState(() {
+              _availableSlots = [];
+            });
+            return;
+          }
+          
+          if (isWeekend && !allowWeekend) {
+            print('  - Réservation le weekend non autorisée');
+            setState(() {
+              _availableSlots = [];
+            });
+            return;
+          }
+          
+          // Générer les créneaux selon les paramètres de configuration
+          final generatedSlots = _generateSlotsFromSettings(
+            daySchedule, 
+            scheduleConfig.timeSlotSettings,
+            _selectedDate!
+          );
+          
+          print('  - Créneaux générés: ${generatedSlots.length}');
+          print('  - Heures d\'ouverture: ${daySchedule.openingTime} - ${daySchedule.closingTime}');
+          print('  - Durée des créneaux: ${scheduleConfig.timeSlotSettings.slotDurationMinutes} minutes');
+          print('  - Temps de pause: ${scheduleConfig.timeSlotSettings.bufferTimeMinutes} minutes');
+          
+          for (final slot in generatedSlots) {
+            print('    - ${slot['time']}');
+          }
+          
+          setState(() {
+            _availableSlots = generatedSlots;
+          });
         } else {
+          // Jour fermé
+          print('  - Jour fermé');
           setState(() {
             _availableSlots = [];
           });
         }
+      } else {
+        // Pas de configuration du tout
+        setState(() {
+          _availableSlots = [];
+        });
       }
     } catch (e) {
+      // En cas d'erreur, ne pas afficher de créneaux par défaut
       setState(() {
         _availableSlots = [];
       });
@@ -657,6 +1103,98 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     return days[date.weekday % 7];
   }
+
+  /// Génère les créneaux selon les paramètres de configuration
+  List<Map<String, dynamic>> _generateSlotsFromSettings(
+    DaySchedule daySchedule,
+    TimeSlotSettings settings,
+    DateTime selectedDate,
+  ) {
+    if (!daySchedule.isOpen || 
+        daySchedule.openingTime == null || 
+        daySchedule.closingTime == null) {
+      return [];
+    }
+
+    final openingTime = _parseTimeString(daySchedule.openingTime!);
+    final closingTime = _parseTimeString(daySchedule.closingTime!);
+    
+    if (openingTime == null || closingTime == null) {
+      return [];
+    }
+
+    final slots = <Map<String, dynamic>>[];
+    final slotDuration = settings.slotDurationMinutes;
+    final bufferTime = settings.bufferTimeMinutes;
+    final minAdvanceHours = settings.minAdvanceBookingHours;
+    
+    print('  - Génération des créneaux:');
+    print('    - Ouverture: ${daySchedule.openingTime}');
+    print('    - Fermeture: ${daySchedule.closingTime}');
+    print('    - Durée: ${slotDuration} minutes');
+    print('    - Pause: ${bufferTime} minutes');
+    print('    - Réservation minimum: ${minAdvanceHours} heures');
+    
+    var currentTime = openingTime;
+    while (currentTime.isBefore(closingTime)) {
+      final endTime = currentTime.add(Duration(minutes: slotDuration));
+      
+      // Vérifier si le créneau ne dépasse pas l'heure de fermeture
+      if (endTime.isAfter(closingTime)) {
+        break;
+      }
+      
+      final timeString = '${currentTime.hour.toString().padLeft(2, '0')}:${currentTime.minute.toString().padLeft(2, '0')}';
+      
+      // Créer le DateTime complet du créneau
+      final slotDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        currentTime.hour,
+        currentTime.minute,
+      );
+      
+      // Vérifier si le créneau respecte la contrainte de réservation minimum
+      final now = DateTime.now();
+      final minBookingTime = now.add(Duration(hours: minAdvanceHours));
+      final isAvailable = slotDateTime.isAfter(minBookingTime);
+      
+      if (isAvailable) {
+        slots.add({
+          'time': timeString,
+          'capacity': settings.defaultCapacityPerSlot,
+          'isAvailable': true,
+        });
+      } else {
+        print('    - Créneau ${timeString} exclu (trop proche: ${slotDateTime.difference(now).inHours}h < ${minAdvanceHours}h)');
+      }
+      
+      // Ajouter le temps de pause entre les créneaux
+      currentTime = endTime.add(Duration(minutes: bufferTime));
+    }
+    
+    print('    - Créneaux générés: ${slots.length}');
+    return slots;
+  }
+
+  /// Parse une chaîne de temps (HH:MM) en DateTime
+  DateTime? _parseTimeString(String timeString) {
+    try {
+      final parts = timeString.split(':');
+      if (parts.length != 2) return null;
+      
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      
+      return DateTime(2000, 1, 1, hour, minute);
+    } catch (e) {
+      return null;
+    }
+  }
+
+
+
   
 
   void _createReservation() async {
@@ -690,6 +1228,12 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     });
 
     try {
+      print('🔍 [DEBUG] _createReservation - Début de la création');
+      print('  - Date sélectionnée: $_selectedDate');
+      print('  - Heure sélectionnée: $_selectedTime');
+      print('  - Table sélectionnée: ${_selectedTable?.number}');
+      print('  - Taille du groupe: $_partySize');
+      
       final calendarNotifier = ref.read(reservationCalendarProvider.notifier);
       
       // Préparer les données du client
@@ -698,6 +1242,9 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
       final clientPhone = _newClientPhoneController.text.trim().isNotEmpty
           ? _newClientPhoneController.text.trim()
           : null;
+          
+      print('  - Client: $clientName ($clientEmail)');
+      print('  - Téléphone: $clientPhone');
       
       // Extraire l'heure de début du créneau sélectionné
       String timeForBackend = _selectedTime!;
@@ -719,14 +1266,25 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
         date: _selectedDate!,
         time: timeForBackend, // Utiliser l'heure de début seulement
         partySize: _partySize,
-        status: 'pending',
-        tableNumber: _selectedTable!['number'], // Ajouter le numéro de table
+        status: 'PENDING', // Utiliser le format en majuscules
+        tableNumber: _selectedTable!.number.toString(), // Ajouter le numéro de table
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         specialRequests: specialRequests,
       );
+      
+      print('  - Réservation créée:');
+      print('    - ID: ${reservation.id}');
+      print('    - Date: ${reservation.date}');
+      print('    - Heure: ${reservation.time}');
+      print('    - Table: ${reservation.tableNumber}');
+      print('    - Statut: ${reservation.status}');
 
+      print('  - Appel de l\'API...');
       final createdReservation = await calendarNotifier.createReservation(reservation);
+      print('  - Résultat API: ${createdReservation != null ? "Succès" : "Échec"}');
+      print('  - createdReservation: $createdReservation');
+      print('  - createdReservation != null: ${createdReservation != null}');
 
       if (mounted && createdReservation != null) {
         ScaffoldMessenger.of(context).showSnackBar(
