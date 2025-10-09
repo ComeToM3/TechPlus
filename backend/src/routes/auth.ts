@@ -5,6 +5,7 @@ import {
   getProfile,
   googleAuth,
   login,
+  loginWithToken,
   logout,
   refreshToken,
   register,
@@ -19,6 +20,7 @@ const router = Router();
 // Routes d'authentification avec validation Joi
 router.post('/register', authLimiter, validateWithJoi({ body: schemas.auth.register }), register);
 router.post('/login', authLimiter, validateWithJoi({ body: schemas.auth.login }), login);
+router.post('/token', authLimiter, loginWithToken);
 router.post('/refresh', validateWithJoi({ body: schemas.auth.refreshToken }), refreshToken);
 router.post('/logout', authenticateToken, logout);
 

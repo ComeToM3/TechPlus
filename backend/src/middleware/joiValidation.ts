@@ -91,12 +91,12 @@ export const validateRequest = (schema: {
  * Schémas de validation communs
  */
 export const commonSchemas = {
-  // Validation des IDs MongoDB
-  mongoId: Joi.string()
-    .pattern(/^[0-9a-fA-F]{24}$/)
+  // Validation des IDs Prisma (CUID)
+  prismaId: Joi.string()
+    .pattern(/^c[a-z0-9]{24}$/)
     .required()
     .messages({
-      'string.pattern.base': 'must be a valid MongoDB ObjectId',
+      'string.pattern.base': 'must be a valid Prisma ID (CUID)',
       'any.required': 'is required',
     }),
 
@@ -285,7 +285,7 @@ export const validationSchemas = {
         .messages({
           'string.pattern.base': 'must be a valid Quebec/Canadian phone number (e.g., 514-777-1269)',
         }),
-      tableId: commonSchemas.mongoId.optional(),
+      tableId: commonSchemas.prismaId.optional(),
       tableNumber: Joi.string().max(10).optional().messages({
         'string.max': 'must not exceed 10 characters',
       }),
@@ -352,12 +352,13 @@ export const validationSchemas = {
     }),
 
     params: Joi.object({
-      id: commonSchemas.mongoId,
+      id: commonSchemas.prismaId,
     }),
 
     tokenParams: Joi.object({
-      token: Joi.string().length(32).required().messages({
-        'string.length': 'must be exactly 32 characters',
+      token: Joi.string().min(32).max(50).required().messages({
+        'string.min': 'must be at least 32 characters',
+        'string.max': 'must not exceed 50 characters',
         'any.required': 'is required',
       }),
     }),
@@ -366,7 +367,7 @@ export const validationSchemas = {
   // Paiements
   payment: {
     createIntent: Joi.object({
-      reservationId: commonSchemas.mongoId,
+      reservationId: commonSchemas.prismaId,
       amount: commonSchemas.amount,
       currency: Joi.string().valid('EUR', 'USD').default('EUR'),
     }),
@@ -401,7 +402,7 @@ export const validationSchemas = {
   // Notifications
   notification: {
     send: Joi.object({
-      reservationId: commonSchemas.mongoId,
+      reservationId: commonSchemas.prismaId,
       type: Joi.string()
         .valid(
           'RESERVATION_CONFIRMATION',
@@ -442,7 +443,7 @@ export const validationSchemas = {
       type: Joi.string().optional(),
       status: Joi.string().valid('PENDING', 'SENT', 'FAILED', 'RETRYING').optional(),
       recipientEmail: commonSchemas.email.optional(),
-      reservationId: commonSchemas.mongoId.optional(),
+      reservationId: commonSchemas.prismaId.optional(),
     }),
   },
 
@@ -518,7 +519,7 @@ export const validationSchemas = {
     }),
 
     params: Joi.object({
-      id: commonSchemas.mongoId,
+      id: commonSchemas.prismaId,
     }),
   },
 
@@ -566,7 +567,7 @@ export const validationSchemas = {
     }),
 
     params: Joi.object({
-      id: commonSchemas.mongoId,
+      id: commonSchemas.prismaId,
     }),
   },
 };

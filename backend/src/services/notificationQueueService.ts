@@ -20,7 +20,7 @@ export class NotificationQueueService {
   private readonly RETRY_DELAY = 60000; // 1 minute
 
   constructor() {
-    this.startProcessing();
+    // Ne pas démarrer automatiquement - sera démarré manuellement
   }
 
   /**
@@ -98,11 +98,14 @@ export class NotificationQueueService {
       return;
     }
 
-    this.processingInterval = setInterval(async () => {
-      await this.processQueue();
-    }, this.PROCESSING_INTERVAL);
-
-    logger.info('Notification queue processing started');
+    // Démarrer avec un délai pour laisser le serveur s'initialiser
+    setTimeout(() => {
+      this.processingInterval = setInterval(async () => {
+        await this.processQueue();
+      }, this.PROCESSING_INTERVAL);
+      
+      logger.info('Notification queue processing started');
+    }, 5000); // Délai de 5 secondes
   }
 
   /**

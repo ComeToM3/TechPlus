@@ -84,11 +84,10 @@ export class ReservationService {
       });
 
       // 7. Créer la réservation
-      console.log('🔍 [DEBUG] ReservationService.createReservation - Données reçues:');
-      console.log('  - userId:', data.userId);
-      console.log('  - userId type:', typeof data.userId);
-      console.log('  - userId length:', data.userId?.length);
-      console.log('  - userId trim:', data.userId?.trim());
+      console.log('🔍 [DEBUG] ReservationService.createReservation - Creating reservation:');
+      console.log('  - Guest reservation:', !data.userId ? 'Yes (no user account)' : 'No (linked to user)');
+      console.log('  - Management token generated:', !!managementToken);
+      console.log('  - Client info:', { clientName: data.clientName, clientEmail: data.clientEmail });
       
       const reservationData: Prisma.ReservationCreateInput = {
         date: new Date(data.date),

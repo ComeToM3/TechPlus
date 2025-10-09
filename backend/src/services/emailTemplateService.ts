@@ -28,6 +28,7 @@ export interface TemplateData {
 
   // URLs
   managementUrl?: string;
+  managementToken?: string;
 }
 
 export class EmailTemplateService {

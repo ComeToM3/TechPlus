@@ -309,4 +309,14 @@ app.use(errorHandler);
 // 404 handler
 app.use(notFoundHandler);
 
+// Démarrer les services en arrière-plan
+import { notificationQueueService } from '@/services/notificationQueueService';
+import { ReminderService } from '@/services/reminderService';
+
+// Démarrer le service de queue de notifications
+notificationQueueService.startProcessing();
+
+// Démarrer le service de rappels automatiques
+ReminderService.startReminderService();
+
 export default app;

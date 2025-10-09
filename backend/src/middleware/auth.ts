@@ -222,6 +222,15 @@ export const authenticateManagementToken = async (
       return;
     }
 
+    // Vérifier que la réservation n'est pas annulée
+    if (reservation.status === 'CANCELLED') {
+      res.status(410).json({
+        error: 'Reservation cancelled',
+        message: 'This reservation has been cancelled',
+      });
+      return;
+    }
+
     // Ajouter les données de réservation à la requête
     (req as any).reservation = reservation;
     (req as any).managementToken = token;

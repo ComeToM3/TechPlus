@@ -193,15 +193,18 @@ export class NotificationService {
       reservationDate: date,
       reservationTime: time,
       partySize: reservation.partySize,
-      tableNumber: reservation.table?.number?.toString(),
+      tableNumber: reservation.table 
+        ? `Table ${reservation.table.number} (${reservation.table.capacity} personnes) - ${reservation.table.position}`
+        : 'Non spécifiée',
       specialRequests: reservation.specialRequests,
       cancellationReason: data?.reason,
       refundAmount: data?.refundAmount,
       refundStatus: data?.refundStatus,
       requiresPayment: reservation.requiresPayment,
       managementUrl: reservation.managementToken 
-        ? `${process.env.FRONTEND_URL}/manage-reservation?token=${reservation.managementToken}`
+        ? `${process.env.FRONTEND_URL}/reservation/manage/${reservation.managementToken}`
         : '',
+      managementToken: reservation.managementToken || '',
     };
 
     let html: string;

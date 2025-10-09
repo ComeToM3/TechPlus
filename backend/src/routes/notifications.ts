@@ -30,6 +30,18 @@ router.post(
   sendReservationNotification
 );
 
+// Endpoint générique pour les notifications (compatible avec le frontend)
+router.post(
+  '/send',
+  notificationLimiter,
+  [
+    body('reservationId').optional().isMongoId().withMessage('reservationId must be a valid MongoDB ObjectId'),
+    validateEmail('clientEmail'),
+    handleValidationErrors,
+  ],
+  sendReservationNotification
+);
+
 router.post(
   '/send-custom',
   notificationLimiter,

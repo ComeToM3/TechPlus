@@ -284,6 +284,75 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 });
 
 /**
+ * Connexion par token (pour les guests)
+ */
+export const loginWithToken = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  if (!token) {
+    throw new CustomError('Token is required', 400);
+  }
+
+  // Vérifier que le token existe et n'est pas expiré
+  const reservation = await prisma.reservation.findUnique({
+    where: { managementToken: token },
+    include: {
+      user: { select: { id: true, email: true, name: true, role: true } },
+      restaurant: { select: { id: true, name: true } },
+    },
+  });
+
+  if (!reservation) {
+    throw new CustomError('Invalid token', 401);
+  }
+
+  if (reservation.tokenExpiresAt && reservation.tokenExpiresAt < new Date()) {
+    throw new CustomError('Token has expired', 401);
+  }
+
+  // Vérifier que la réservation n'est pas annulée
+  if (reservation.status === 'CANCELLED') {
+    throw new CustomError('This reservation has been cancelled', 410);
+  }
+
+  // Créer un utilisateur temporaire pour le guest
+  const guestUser = {
+    id: `guest_${reservation.id}`,
+    email: reservation.clientEmail || 'guest@example.com',
+    name: reservation.clientName || 'Guest',
+    role: 'GUEST' as const,
+  };
+
+  // Générer les tokens JWT pour le guest
+  const tokenPair = jwtService.generateTokenPair({
+    userId: guestUser.id,
+    email: guestUser.email,
+    role: guestUser.role,
+  });
+
+  logger.info(`Token login successful for guest: ${guestUser.email} with reservation: ${reservation.id}`);
+
+  res.json({
+    success: true,
+    message: 'Token login successful',
+    data: {
+      user: guestUser,
+      tokens: {
+        accessToken: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+      },
+      reservation: {
+        id: reservation.id,
+        restaurant: reservation.restaurant,
+        date: reservation.date,
+        time: reservation.time,
+        partySize: reservation.partySize,
+      },
+    },
+  });
+});
+
+/**
  * OAuth2 - Google
  */
 export const googleAuth = asyncHandler(async (req: Request, res: Response) => {

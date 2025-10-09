@@ -9,21 +9,25 @@ import logger from '@/utils/logger';
  * Envoyer une notification de réservation
  */
 export const sendReservationNotification = asyncHandler(async (req: Request, res: Response) => {
-  const { reservationId, type, recipientEmail, data } = req.body;
+  const { reservationId, type, recipientEmail, clientEmail, data } = req.body;
 
-  if (!reservationId || !type || !recipientEmail) {
-    throw new CustomError('Missing required fields: reservationId, type, recipientEmail', 400);
+  // Support des deux formats : recipientEmail ou clientEmail
+  const email = recipientEmail || clientEmail;
+  const notificationType = type || 'reservation_confirmation';
+
+  if (!reservationId || !email) {
+    throw new CustomError('Missing required fields: reservationId and email', 400);
   }
 
   // Valider le type de notification
-  if (!Object.values(NotificationType).includes(type)) {
+  if (!Object.values(NotificationType).includes(notificationType)) {
     throw new CustomError('Invalid notification type', 400);
   }
 
   const success = await notificationService.sendReservationNotification(
-    type,
+    notificationType,
     reservationId,
-    recipientEmail,
+    email,
     data || {}
   );
 
@@ -36,8 +40,8 @@ export const sendReservationNotification = asyncHandler(async (req: Request, res
     message: 'Notification sent successfully',
     data: {
       reservationId,
-      type,
-      recipientEmail,
+      type: notificationType,
+      recipientEmail: email,
     },
   });
 });
