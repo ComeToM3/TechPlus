@@ -47,6 +47,90 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reservations => 'Réservations';
 
   @override
+  String get loadingTables => 'Chargement des tables disponibles...';
+
+  @override
+  String get noTablesAvailable => 'Aucune table disponible pour ce créneau';
+
+  @override
+  String get table => 'Table';
+
+  @override
+  String get people => 'personnes';
+
+  @override
+  String get person => 'personne';
+
+  @override
+  String get minutes => 'minutes';
+
+  @override
+  String get duration => 'Durée';
+
+  @override
+  String get tableToBeAssigned => 'Table à assigner';
+
+  @override
+  String get reservationConfirmation => 'Confirmation de Réservation';
+
+  @override
+  String get reservationNotFound => 'Réservation non trouvée';
+
+  @override
+  String get backToHome => 'Retour à l\'accueil';
+
+  @override
+  String get reservationConfirmed => 'Réservation Confirmée';
+
+  @override
+  String get reservationConfirmedMessage =>
+      'Votre réservation a été créée avec succès. Vous recevrez un email de confirmation.';
+
+  @override
+  String get manageReservation => 'Gérer la Réservation';
+
+  @override
+  String get viewReservation => 'Voir la Réservation';
+
+  @override
+  String get cancelReservationConfirmation =>
+      'Êtes-vous sûr de vouloir annuler cette réservation ?';
+
+  @override
+  String get reservationCancelled => 'Réservation annulée avec succès';
+
+  @override
+  String get selectDateTime => 'Sélectionner Date & Heure';
+
+  @override
+  String get yourInformation => 'Vos Informations';
+
+  @override
+  String get phone => 'Téléphone';
+
+  @override
+  String get specialRequests => 'Demandes spéciales';
+
+  @override
+  String get specialRequestsHint => 'Demandes spéciales du client...';
+
+  @override
+  String get requiredField => 'Champ requis';
+
+  @override
+  String get invalidEmail => 'Email invalide';
+
+  @override
+  String get pleaseCompleteAllFields =>
+      'Veuillez compléter tous les champs requis';
+
+  @override
+  String get creating => 'Création...';
+
+  @override
+  String get unknownError => 'Une erreur inconnue s\'est produite';
+
+  @override
   String get restaurantName => 'Nom du Restaurant';
 
   @override
@@ -266,12 +350,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noReservationsForDate => 'Aucune réservation pour cette date';
-
-  @override
-  String get people => 'personnes';
-
-  @override
-  String get table => 'Table';
 
   @override
   String get reservationManagement => 'Gestion des réservations';
@@ -592,9 +670,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get phoneHint => '+1 514 123 4567';
-
-  @override
-  String get specialRequestsHint => 'Demandes spéciales du client...';
 
   @override
   String get adminNotes => 'Notes admin';
@@ -1092,9 +1167,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get restore => 'Restaurer';
 
   @override
-  String get specialRequests => 'Demandes spéciales';
-
-  @override
   String get completed => 'Terminé';
 
   @override
@@ -1102,9 +1174,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get search => 'Rechercher';
-
-  @override
-  String get phone => 'Téléphone';
 
   @override
   String get save => 'Enregistrer';
@@ -1144,12 +1213,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get website => 'Site Web';
-
-  @override
-  String get requiredField => 'Champ requis';
-
-  @override
-  String get invalidEmail => 'Email invalide';
 
   @override
   String get configurationSaved => 'Configuration sauvegardée';

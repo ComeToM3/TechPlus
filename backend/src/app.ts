@@ -148,16 +148,16 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// Import des routes
-import authRoutes from '@/routes/auth';
-import reservationRoutes from '@/routes/reservations';
-import availabilityRoutes from '@/routes/availability';
-import paymentRoutes from '@/routes/payments';
-import notificationRoutes from '@/routes/notifications';
+// Import des routes Clean Architecture
+import authRoutes from '@/routes/authNew';
+import reservationRoutes from '@/routes/reservationsNew';
+import availabilityRoutes from '@/routes/availabilityNew';
+import paymentRoutes from '@/routes/paymentNew';
+import notificationRoutes from '@/routes/notificationsNew';
 import healthRoutes from '@/routes/health';
 import adminRoutes from '@/routes/admin';
-import scheduleRoutes from '@/routes/schedule';
-import tableRoutes from '@/routes/tables';
+import scheduleRoutes from '@/routes/scheduleNew';
+import tableRoutes from '@/routes/tableNew';
 
 // API routes
 app.get('/', (req, res) => {

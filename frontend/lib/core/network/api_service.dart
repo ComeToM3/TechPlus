@@ -90,10 +90,18 @@ class ApiService {
       if (response.statusCode == 200) {
         return AuthResponse.fromJson(response.data);
       } else {
-        throw ContextualAuthError(
-          errorKey: 'token_invalid',
-          message: 'Token invalide ou expiré',
-        );
+        // Gérer les autres codes de statut
+        if (response.statusCode == 410) {
+          throw ContextualAuthError(
+            errorKey: 'reservation_cancelled',
+            message: 'Cette réservation a été annulée',
+          );
+        } else {
+          throw ContextualAuthError(
+            errorKey: 'token_invalid',
+            message: 'Token invalide ou expiré',
+          );
+        }
       }
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -342,29 +350,59 @@ class ApiService {
 
   // ==================== AVAILABILITY ====================
 
-  /// Obtenir les créneaux disponibles
+  /// Obtenir les créneaux disponibles (endpoints publics)
   Future<List<String>> getAvailableTimeSlots(DateTime date, int partySize) async {
-    try {
-      final response = await _dio.get('$_baseUrl/api/availability', queryParameters: {
-        'date': date.toIso8601String().split('T')[0],
-        'partySize': partySize,
-      });
+    final response = await _dio.get('$_baseUrl/api/availability', queryParameters: {
+      'date': date.toIso8601String().split('T')[0], // Format YYYY-MM-DD
+      'partySize': partySize,
+    });
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['timeSlots'];
-        return data.cast<String>();
+    if (response.statusCode == 200) {
+      final data = response.data['data'];
+      if (data != null && data['availableSlots'] != null) {
+        final List<dynamic> slots = data['availableSlots'];
+        return slots.cast<String>();
       } else {
         throw ContextualReservationError(
           errorKey: 'availability_failed',
-          message: 'Échec de la récupération des créneaux',
+          message: 'Format de réponse invalide',
         );
       }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
+    } else {
       throw ContextualReservationError(
-        errorKey: 'availability_error',
-        message: 'Erreur de disponibilité: ${e.toString()}',
+        errorKey: 'availability_failed',
+        message: 'Échec de la récupération des créneaux',
+      );
+    }
+  }
+
+  /// Obtenir les tables disponibles (endpoints publics)
+  Future<List<Map<String, dynamic>>> getAvailableTables({
+    required DateTime date,
+    required String time,
+    required int partySize,
+  }) async {
+    final response = await _dio.get('$_baseUrl/api/availability/tables', queryParameters: {
+      'date': date.toIso8601String().split('T')[0], // Format YYYY-MM-DD
+      'time': time,
+      'partySize': partySize,
+    });
+
+    if (response.statusCode == 200) {
+      final data = response.data['data'];
+      if (data != null && data['availableTables'] != null) {
+        final List<dynamic> tables = data['availableTables'];
+        return tables.cast<Map<String, dynamic>>();
+      } else {
+        throw ContextualReservationError(
+          errorKey: 'tables_failed',
+          message: 'Format de réponse invalide',
+        );
+      }
+    } else {
+      throw ContextualReservationError(
+        errorKey: 'tables_failed',
+        message: 'Échec de la récupération des tables',
       );
     }
   }
@@ -485,6 +523,12 @@ class ApiService {
             message: 'Ressource non trouvée',
             suggestedActions: ['Vérifiez l\'URL', 'Contactez le support'],
           );
+        } else if (statusCode == 410) {
+          return ContextualAuthError(
+            errorKey: 'reservation_cancelled',
+            message: 'Cette réservation a été annulée',
+            suggestedActions: ['Contactez le restaurant', 'Créez une nouvelle réservation'],
+          );
         } else if (statusCode == 500) {
           return ContextualServerError(
             errorKey: 'server_error',
@@ -568,5 +612,48 @@ class PaymentConfirmationResponse {
       success: json['success'],
       error: json['error'],
     );
+  }
+}
+
+/// Extension pour les réservations publiques
+extension PublicReservationApi on ApiService {
+  /// Créer une réservation publique (sans authentification)
+  Future<Map<String, dynamic>> createPublicReservation({
+    required DateTime date,
+    required String time,
+    required int partySize,
+    required String clientName,
+    required String clientEmail,
+    required String clientPhone,
+    String? specialRequests,
+    String? tableId,
+  }) async {
+    final response = await _dio.post('$_baseUrl/api/reservations/guest', data: {
+      'date': date.toIso8601String().split('T')[0], // Format YYYY-MM-DD
+      'time': time,
+      'partySize': partySize,
+      'clientName': clientName,
+      'clientEmail': clientEmail,
+      'clientPhone': clientPhone,
+      if (specialRequests != null && specialRequests.isNotEmpty) 'specialRequests': specialRequests,
+      if (tableId != null) 'tableId': tableId,
+    });
+
+    if (response.statusCode == 201) {
+      final data = response.data['data'];
+      if (data != null) {
+        return data;
+      } else {
+        throw ContextualReservationError(
+          errorKey: 'creation_failed',
+          message: 'Format de réponse invalide',
+        );
+      }
+    } else {
+      throw ContextualReservationError(
+        errorKey: 'creation_failed',
+        message: 'Échec de la création de la réservation',
+      );
+    }
   }
 }

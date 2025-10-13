@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/buttons/animated_button.dart';
 import '../../../../shared/widgets/forms/custom_text_field.dart';
+import '../../../../shared/providers/auth_provider.dart';
 
 /// Page de connexion par token pour les clients
 class TokenLoginPage extends ConsumerStatefulWidget {
@@ -194,8 +195,19 @@ class _TokenLoginPageState extends ConsumerState<TokenLoginPage> {
     if (_formKey.currentState?.validate() ?? false) {
       final token = _tokenController.text.trim();
       
-      // Rediriger vers la page de gestion avec le token
-      context.go('/manage-reservation?token=$token');
+      // Utiliser le provider d'authentification pour la connexion par token
+      ref.read(authProvider.notifier).loginWithToken(token).then((_) {
+        // Rediriger vers la page de gestion de réservation avec le token et le mode edit
+        context.go('/reserve?token=$token&mode=edit');
+      }).catchError((error) {
+        // Afficher l'erreur à l'utilisateur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de connexion: ${error.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
     }
   }
 }

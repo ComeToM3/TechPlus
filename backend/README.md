@@ -154,10 +154,16 @@ FACEBOOK_APP_ID="your-facebook-app-id"
 FACEBOOK_APP_SECRET="your-facebook-app-secret"
 
 # Email (SMTP)
+# ⚠️  SECURITY WARNING: Never commit real SMTP credentials to version control!
+# Use environment variables and keep your .env file in .gitignore
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
+SMTP_SECURE="false"
 SMTP_USER="your-email@gmail.com"
 SMTP_PASS="your-app-password"
+SMTP_FROM="noreply@techplus.com"
+SMTP_FROM_NAME="TechPlus"
+SMTP_TEST_EMAIL="test@example.com"
 
 # Stripe
 STRIPE_SECRET_KEY="sk_test_..."

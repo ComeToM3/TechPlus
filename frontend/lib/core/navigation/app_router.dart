@@ -5,11 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/admin/presentation/pages/reservation_list_page.dart' as admin;
 import '../../features/admin/presentation/pages/create_reservation_page.dart' as admin_create;
-import '../../features/reservation/presentation/pages/reservation_selection_page.dart';
+import '../../features/reservation/presentation/pages/public_reservation_page.dart' as reservation;
 import '../../features/reservation/presentation/pages/reservation_info_page.dart';
 import '../../features/reservation/presentation/pages/reservation_payment_page.dart';
 import '../../features/reservation/presentation/pages/reservation_confirmation_page.dart';
-import '../../features/reservation/presentation/pages/guest_management_page.dart';
 import '../../features/reservation/presentation/pages/reservation_modification_page.dart';
 import '../../features/reservation/presentation/pages/reservation_cancellation_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -18,7 +17,6 @@ import '../../features/public/presentation/pages/home_page.dart' as public;
 import '../../features/public/presentation/pages/menu_page.dart';
 import '../../features/public/presentation/pages/about_page.dart';
 import '../../features/public/presentation/pages/contact_page.dart';
-import '../../features/public/presentation/pages/public_reservation_page.dart';
 import '../../features/demo/presentation/pages/animations_demo_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 import '../../features/admin/presentation/pages/reservation_management_page.dart';
@@ -35,7 +33,7 @@ import '../../features/admin/presentation/pages/menu_management_page.dart';
 /// Provider pour le routeur de l'application
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/admin/dashboard', // Démarrer directement sur le dashboard admin
+    initialLocation: '/', // Démarrer sur la page publique
     redirect: (BuildContext context, GoRouterState state) {
       // Désactiver l'authentification - permettre l'accès direct à toutes les routes
       return null; // Pas de redirection
@@ -65,7 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reservations/create',
         name: 'reservation-create',
-        builder: (context, state) => const ReservationSelectionPage(),
+        builder: (context, state) => const reservation.PublicReservationPage(),
         routes: [
           GoRoute(
             path: 'info',
@@ -80,7 +78,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'confirmation',
             name: 'reservation-confirmation',
-            builder: (context, state) => const ReservationConfirmationPage(),
+            builder: (context, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return ReservationConfirmationPage(reservationId: id);
+            },
           ),
         ],
       ),
@@ -94,7 +95,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'manage-reservation',
         builder: (context, state) {
           final token = state.uri.queryParameters['token'];
-          return GuestManagementPage(token: token);
+          return const reservation.PublicReservationPage();
         },
         routes: [
           GoRoute(
@@ -112,7 +113,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reserve',
         name: 'reserve',
-        builder: (context, state) => const PublicReservationPage(),
+        builder: (context, state) => const reservation.PublicReservationPage(),
+      ),
+      // Route de confirmation publique
+      GoRoute(
+        path: '/reservation/confirmation/:id',
+        name: 'public-reservation-confirmation',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return ReservationConfirmationPage(reservationId: id);
+        },
+      ),
+      // Route de gestion par token (redirige vers la page de création en mode modification)
+      GoRoute(
+        path: '/reservation/manage/:token',
+        name: 'reservation-manage-token',
+        builder: (context, state) {
+          final token = state.pathParameters['token'] ?? '';
+          return const reservation.PublicReservationPage();
+        },
       ),
       GoRoute(
         path: '/login',

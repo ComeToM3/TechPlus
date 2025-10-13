@@ -170,6 +170,168 @@ abstract class AppLocalizations {
   /// **'Réservations'**
   String get reservations;
 
+  /// No description provided for @loadingTables.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement des tables disponibles...'**
+  String get loadingTables;
+
+  /// No description provided for @noTablesAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune table disponible pour ce créneau'**
+  String get noTablesAvailable;
+
+  /// Table
+  ///
+  /// In fr, this message translates to:
+  /// **'Table'**
+  String get table;
+
+  /// Nombre de personnes
+  ///
+  /// In fr, this message translates to:
+  /// **'personnes'**
+  String get people;
+
+  /// No description provided for @person.
+  ///
+  /// In fr, this message translates to:
+  /// **'personne'**
+  String get person;
+
+  /// No description provided for @minutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'minutes'**
+  String get minutes;
+
+  /// No description provided for @duration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée'**
+  String get duration;
+
+  /// No description provided for @tableToBeAssigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Table à assigner'**
+  String get tableToBeAssigned;
+
+  /// No description provided for @reservationConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmation de Réservation'**
+  String get reservationConfirmation;
+
+  /// No description provided for @reservationNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation non trouvée'**
+  String get reservationNotFound;
+
+  /// No description provided for @backToHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'accueil'**
+  String get backToHome;
+
+  /// No description provided for @reservationConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation Confirmée'**
+  String get reservationConfirmed;
+
+  /// No description provided for @reservationConfirmedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre réservation a été créée avec succès. Vous recevrez un email de confirmation.'**
+  String get reservationConfirmedMessage;
+
+  /// No description provided for @manageReservation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer la Réservation'**
+  String get manageReservation;
+
+  /// No description provided for @viewReservation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir la Réservation'**
+  String get viewReservation;
+
+  /// No description provided for @cancelReservationConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir annuler cette réservation ?'**
+  String get cancelReservationConfirmation;
+
+  /// No description provided for @reservationCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation annulée avec succès'**
+  String get reservationCancelled;
+
+  /// No description provided for @selectDateTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner Date & Heure'**
+  String get selectDateTime;
+
+  /// No description provided for @yourInformation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos Informations'**
+  String get yourInformation;
+
+  /// No description provided for @phone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléphone'**
+  String get phone;
+
+  /// No description provided for @specialRequests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes spéciales'**
+  String get specialRequests;
+
+  /// Placeholder demandes spéciales
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes spéciales du client...'**
+  String get specialRequestsHint;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Champ requis'**
+  String get requiredField;
+
+  /// No description provided for @invalidEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email invalide'**
+  String get invalidEmail;
+
+  /// No description provided for @pleaseCompleteAllFields.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez compléter tous les champs requis'**
+  String get pleaseCompleteAllFields;
+
+  /// No description provided for @creating.
+  ///
+  /// In fr, this message translates to:
+  /// **'Création...'**
+  String get creating;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur inconnue s\'est produite'**
+  String get unknownError;
+
   /// Nom du restaurant
   ///
   /// In fr, this message translates to:
@@ -589,18 +751,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune réservation pour cette date'**
   String get noReservationsForDate;
-
-  /// Nombre de personnes
-  ///
-  /// In fr, this message translates to:
-  /// **'personnes'**
-  String get people;
-
-  /// Table
-  ///
-  /// In fr, this message translates to:
-  /// **'Table'**
-  String get table;
 
   /// Titre gestion des réservations
   ///
@@ -1225,12 +1375,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'+1 514 123 4567'**
   String get phoneHint;
-
-  /// Placeholder demandes spéciales
-  ///
-  /// In fr, this message translates to:
-  /// **'Demandes spéciales du client...'**
-  String get specialRequestsHint;
 
   /// Notes admin
   ///
@@ -2192,12 +2336,6 @@ abstract class AppLocalizations {
   /// **'Restaurer'**
   String get restore;
 
-  /// No description provided for @specialRequests.
-  ///
-  /// In fr, this message translates to:
-  /// **'Demandes spéciales'**
-  String get specialRequests;
-
   /// No description provided for @completed.
   ///
   /// In fr, this message translates to:
@@ -2215,12 +2353,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Rechercher'**
   String get search;
-
-  /// No description provided for @phone.
-  ///
-  /// In fr, this message translates to:
-  /// **'Téléphone'**
-  String get phone;
 
   /// No description provided for @save.
   ///
@@ -2299,18 +2431,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Site Web'**
   String get website;
-
-  /// No description provided for @requiredField.
-  ///
-  /// In fr, this message translates to:
-  /// **'Champ requis'**
-  String get requiredField;
-
-  /// No description provided for @invalidEmail.
-  ///
-  /// In fr, this message translates to:
-  /// **'Email invalide'**
-  String get invalidEmail;
 
   /// No description provided for @configurationSaved.
   ///

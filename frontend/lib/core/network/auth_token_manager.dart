@@ -9,12 +9,8 @@ class AuthTokenManager {
   final List<Function(String?)> _listeners = [];
 
   /// Obtenir le token actuel
-  /// En développement, retourne automatiquement 'dev-token' si aucun token n'est défini
+  /// Ne pas faire de fallback automatique vers le token de développement
   String? get accessToken {
-    if (_accessToken == null) {
-      // Token de développement utilisé par défaut
-      return 'dev-token';
-    }
     return _accessToken;
   }
 

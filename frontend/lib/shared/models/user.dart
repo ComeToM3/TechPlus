@@ -80,4 +80,5 @@ enum UserRole {
   CLIENT,
   ADMIN,
   SUPER_ADMIN,
+  GUEST,
 }

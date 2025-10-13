@@ -136,6 +136,14 @@ class GuestManagementNotifier extends StateNotifier<GuestManagementState> {
         isTokenValid: true,
         isReservationLoaded: true,
         reservationId: reservation.id,
+        reservationDate: reservation.date,
+        reservationTime: reservation.time,
+        partySize: reservation.partySize,
+        specialRequests: reservation.specialRequests,
+        clientName: reservation.clientName,
+        clientEmail: reservation.clientEmail,
+        clientPhone: reservation.clientPhone,
+        status: reservation.status.toString(),
         error: null,
       );
       

@@ -90,24 +90,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isLoading: false,
         );
       } else {
-        // Pas de tokens stockés - utiliser le token de développement
-        final devToken = AuthTokenManager().accessToken;
-        print('🔧 [AuthProvider] Utilisation du token de développement: $devToken');
-        
-        // S'assurer que l'AuthTokenManager est synchronisé
-        AuthTokenManager().updateToken(devToken);
-        
+        // Pas de tokens stockés - ne pas faire de fallback automatique
+        // Le fallback vers le token de développement ne doit se faire que dans des cas spécifiques
         state = state.copyWith(
-          isAuthenticated: true, // Authentifié avec le token de développement
-          user: User(
-            id: 'dev-user',
-            email: 'admin@dev.com',
-            name: 'Admin Dev',
-            role: UserRole.ADMIN,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          ),
-          accessToken: devToken,
+          isAuthenticated: false,
+          user: null,
+          accessToken: null,
           refreshToken: null,
           isLoading: false,
         );
@@ -243,11 +231,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
         error: null,
       );
     } catch (e) {
-      final error = AppErrorFactory.authError('Token invalide ou expiré');
+      // En cas d'erreur, déconnecter complètement l'utilisateur
+      await _secureStorage.delete(key: 'access_token');
+      await _secureStorage.delete(key: 'refresh_token');
+      await _secureStorage.delete(key: 'user_data');
+      AuthTokenManager().clearToken();
+      
+      final error = AppErrorFactory.fromException(e);
       state = state.copyWith(
+        isAuthenticated: false,
+        user: null,
+        accessToken: null,
+        refreshToken: null,
         isLoading: false,
         error: error.message,
       );
+      
+      // Lancer l'exception pour que le .catchError() soit appelé
+      rethrow;
     }
   }
 
