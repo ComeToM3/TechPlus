@@ -41,7 +41,14 @@ class ScheduleConfig {
       'id': id,
       'restaurantId': restaurantId,
       'daySchedules': daySchedules.map((d) => d.toJson()).toList(),
-      'timeSlotSettings': timeSlotSettings.toJson(),
+      // Le backend attend les paramètres directement, pas dans timeSlotSettings
+      'slotDurationMinutes': timeSlotSettings.slotDurationMinutes,
+      'bufferTimeMinutes': timeSlotSettings.bufferTimeMinutes,
+      'maxAdvanceBookingDays': timeSlotSettings.maxAdvanceBookingDays,
+      'minAdvanceBookingHours': timeSlotSettings.minAdvanceBookingHours,
+      'allowSameDayBooking': timeSlotSettings.allowSameDayBooking,
+      'allowWeekendBooking': timeSlotSettings.allowWeekendBooking,
+      'defaultCapacityPerSlot': timeSlotSettings.defaultCapacityPerSlot,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -49,29 +56,35 @@ class ScheduleConfig {
 
   /// Crée depuis un Map
   factory ScheduleConfig.fromJson(Map<String, dynamic> json) {
-    // Gérer les deux formats : avec timeSlotSettings ou avec les paramètres directement
-    TimeSlotSettings timeSlotSettings;
-    if (json['timeSlotSettings'] != null) {
-      timeSlotSettings = TimeSlotSettings.fromJson(json['timeSlotSettings'] as Map<String, dynamic>);
-    } else {
-      // Créer TimeSlotSettings depuis les paramètres directs
-      timeSlotSettings = TimeSlotSettings(
-        slotDurationMinutes: json['slotDurationMinutes'] as int? ?? 30,
-        bufferTimeMinutes: json['bufferTimeMinutes'] as int? ?? 15,
-        maxAdvanceBookingDays: json['maxAdvanceBookingDays'] as int? ?? 30,
-        minAdvanceBookingHours: json['minAdvanceBookingHours'] as int? ?? 2,
-        allowSameDayBooking: json['allowSameDayBooking'] as bool? ?? true,
-        allowWeekendBooking: json['allowWeekendBooking'] as bool? ?? true,
-        defaultCapacityPerSlot: json['defaultCapacityPerSlot'] as int? ?? 20,
-      );
+    print('🔍 [ScheduleConfig.fromJson] Parsing JSON data');
+    print('🔍 [ScheduleConfig.fromJson] JSON keys: ${json.keys.toList()}');
+    print('🔍 [ScheduleConfig.fromJson] daySchedules in JSON: ${json['daySchedules']?.length ?? 0}');
+    print('🔍 [ScheduleConfig.fromJson] daySchedules data: ${json['daySchedules']}');
+    
+    // Le backend retourne les paramètres directement, pas dans timeSlotSettings
+    TimeSlotSettings timeSlotSettings = TimeSlotSettings(
+      slotDurationMinutes: json['slotDurationMinutes'] as int? ?? 30,
+      bufferTimeMinutes: json['bufferTimeMinutes'] as int? ?? 15,
+      maxAdvanceBookingDays: json['maxAdvanceBookingDays'] as int? ?? 30,
+      minAdvanceBookingHours: json['minAdvanceBookingHours'] as int? ?? 2,
+      allowSameDayBooking: json['allowSameDayBooking'] as bool? ?? true,
+      allowWeekendBooking: json['allowWeekendBooking'] as bool? ?? true,
+      defaultCapacityPerSlot: json['defaultCapacityPerSlot'] as int? ?? 20,
+    );
+
+    final daySchedules = (json['daySchedules'] as List?)
+        ?.map((d) => DaySchedule.fromJson(d as Map<String, dynamic>))
+        .toList() ?? [];
+    
+    print('🔍 [ScheduleConfig.fromJson] Parsed daySchedules count: ${daySchedules.length}');
+    for (final day in daySchedules) {
+      print('🔍 [ScheduleConfig.fromJson] Day: ${day.dayOfWeek}, Open: ${day.isOpen}, Slots: ${day.timeSlots.length}');
     }
 
     return ScheduleConfig(
       id: json['id'] as String? ?? 'default',
       restaurantId: json['restaurantId'] as String? ?? 'restaurant_1',
-      daySchedules: (json['daySchedules'] as List?)
-          ?.map((d) => DaySchedule.fromJson(d as Map<String, dynamic>))
-          .toList() ?? [],
+      daySchedules: daySchedules,
       timeSlotSettings: timeSlotSettings,
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt'] as String)

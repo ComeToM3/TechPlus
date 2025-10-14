@@ -50,17 +50,19 @@ class Reservation {
       duration: json['duration'] as int,
       partySize: json['partySize'] as int,
       status: json['status'] as String,
-      notes: json['notes'] as String?,
-      specialRequests: json['specialRequests'] as String?,
-      clientName: json['clientName'] as String?,
-      clientEmail: json['clientEmail'] as String?,
-      clientPhone: json['clientPhone'] as String?,
-      managementToken: json['managementToken'] as String?,
+      notes: json['notes']?.toString(),
+      specialRequests: json['specialRequests']?.toString(),
+      clientName: json['clientName']?.toString(),
+      clientEmail: json['clientEmail']?.toString(),
+      clientPhone: json['clientPhone']?.toString(),
+      managementToken: json['managementToken']?.toString(),
       requiresPayment: json['requiresPayment'] as bool? ?? false,
-      depositAmount: (json['depositAmount'] as num?)?.toDouble(),
-      paymentStatus: json['paymentStatus'] as String? ?? 'NONE',
+      depositAmount: json['depositAmount'] != null 
+          ? double.tryParse(json['depositAmount'].toString()) 
+          : null,
+      paymentStatus: json['paymentStatus']?.toString() ?? 'NONE',
       restaurantId: json['restaurantId'] as String,
-      tableId: json['tableId'] as String?,
+      tableId: json['tableId']?.toString(),
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt'] as String)
           : null,

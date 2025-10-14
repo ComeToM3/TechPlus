@@ -9,11 +9,12 @@ final scheduleProvider = StateNotifierProvider<ScheduleNotifier, ScheduleState>(
   return ScheduleNotifier(scheduleApi);
 });
 
-/// Provider pour la configuration des créneaux
-final scheduleConfigProvider = FutureProvider.family<ScheduleConfig?, String>((ref, restaurantId) async {
-  final scheduleApi = ref.watch(scheduleApiProvider);
-  return await scheduleApi.getScheduleConfig(restaurantId);
-});
+/// Provider pour la configuration des créneaux - SUPPRIMÉ pour éviter les conflits
+/// Utiliser scheduleProvider à la place
+// final scheduleConfigProvider = FutureProvider.family<ScheduleConfig?, String>((ref, restaurantId) async {
+//   final scheduleApi = ref.watch(scheduleApiProvider);
+//   return await scheduleApi.getScheduleConfig(restaurantId);
+// });
 
 /// Provider pour les créneaux disponibles
 final availableSlotsProvider = FutureProvider.family<List<TimeSlot>, AvailableSlotsParams>((ref, params) async {
@@ -67,18 +68,31 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
 
   /// Charge la configuration des horaires
   Future<void> loadScheduleConfig({String? token}) async {
-    if (_isLoading) return; // Éviter les appels multiples
+    if (_isLoading) {
+      print('🔍 [ScheduleProvider] Already loading, skipping');
+      return; // Éviter les appels multiples
+    }
     
     // Éviter les rechargements si les données sont déjà présentes
     if (state.config != null && !state.isLoading) {
+      print('🔍 [ScheduleProvider] Data already loaded, skipping');
       return;
     }
+    
+    // Protection supplémentaire : vérifier si on a déjà des daySchedules
+    if (state.config != null && state.config!['daySchedules'] != null && (state.config!['daySchedules'] as List).isNotEmpty) {
+      print('🔍 [ScheduleProvider] daySchedules already present, skipping');
+      return;
+    }
+    
+    print('🔍 [ScheduleProvider] Loading schedule config...');
     
     _isLoading = true;
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      final config = await _scheduleApi.getScheduleConfig('restaurant_1');
+      // Utiliser un restaurantId par défaut ou récupérer depuis l'API
+      final config = await _scheduleApi.getScheduleConfig('default');
       
       state = state.copyWith(
         config: config?.toJson(),
@@ -107,7 +121,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
     
     try {
       final scheduleConfig = ScheduleConfig.fromJson(scheduleData);
-      final config = await _scheduleApi.saveScheduleConfig('restaurant_1', scheduleConfig);
+      final config = await _scheduleApi.saveScheduleConfig('default', scheduleConfig);
       state = state.copyWith(
         config: config.toJson(),
         isLoading: false,
@@ -143,7 +157,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
       
       // Ensuite sauvegarder sur le serveur
       final scheduleConfig = ScheduleConfig.fromJson(scheduleData);
-      final config = await _scheduleApi.saveScheduleConfig('restaurant_1', scheduleConfig);
+      final config = await _scheduleApi.saveScheduleConfig('default', scheduleConfig);
       
       // Mettre à jour avec la réponse du serveur
       state = state.copyWith(

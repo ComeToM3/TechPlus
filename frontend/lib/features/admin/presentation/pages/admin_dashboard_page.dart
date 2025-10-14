@@ -6,6 +6,7 @@ import '../providers/dashboard_provider.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../../../core/navigation/unified_navigation.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../shared/widgets/auth/admin_auth_guard.dart';
 import '../widgets/public_navigation_button.dart';
 
 // Imports supprimés car non utilisés directement dans cette page
@@ -23,6 +24,10 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
   @override
   void initState() {
     super.initState();
+    // Recharger les métriques quand la page se charge
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(dashboardProvider.notifier).refreshMetrics();
+    });
   }
 
   @override
@@ -31,11 +36,13 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
     final l10n = AppLocalizations.of(context)!;
     final metricsState = ref.watch(dashboardProvider);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: _buildAppBar(theme, l10n),
-      body: _buildLayout(theme, l10n, metricsState),
-      bottomNavigationBar: _buildBottomNavigationBar(theme, l10n),
+    return AdminAuthGuard(
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        appBar: _buildAppBar(theme, l10n),
+        body: _buildLayout(theme, l10n, metricsState),
+        bottomNavigationBar: _buildBottomNavigationBar(theme, l10n),
+      ),
     );
   }
 
@@ -227,9 +234,32 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
         ),
       ),
       child: metricsState.isLoading 
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Chargement des données...'),
+                ],
+              ),
+            )
           : metricsState.errorMessage != null
-              ? Text('Erreur: ${metricsState.errorMessage}')
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text('Erreur: ${metricsState.errorMessage}'),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref.read(dashboardProvider.notifier).refreshMetrics(),
+                        child: Text('Réessayer'),
+                      ),
+                    ],
+                  ),
+                )
               : metricsState.metrics != null
                   ? LayoutBuilder(
                       builder: (context, constraints) {

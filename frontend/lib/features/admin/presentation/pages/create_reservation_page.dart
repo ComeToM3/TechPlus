@@ -126,6 +126,13 @@ class _CreateReservationPageState extends ConsumerState<CreateReservationPage> {
     final authState = ref.read(authProvider);
     if (authState.accessToken != null) {
       try {
+        // Vérifier si on a déjà des données avant de recharger
+        final scheduleState = ref.read(scheduleProvider);
+        if (scheduleState.config != null && scheduleState.config!['daySchedules'] != null && (scheduleState.config!['daySchedules'] as List).isNotEmpty) {
+          print('🔍 [CreateReservationPage] Schedule config already loaded, skipping refresh');
+          return;
+        }
+        
         await ref.read(scheduleProvider.notifier).loadScheduleConfig(
           token: authState.accessToken!,
         );

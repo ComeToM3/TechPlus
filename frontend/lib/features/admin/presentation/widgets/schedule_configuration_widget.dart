@@ -52,10 +52,19 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
 
   void _loadScheduleConfig() {
     // Éviter les boucles infinies en vérifiant l'état actuel
-    if (_scheduleConfig != null) return;
+    if (_scheduleConfig != null) {
+      print('🔍 _loadScheduleConfig: Already loaded, skipping');
+      return;
+    }
     
-    // Utiliser les données du provider en priorité
+    print('🔍 _loadScheduleConfig: Loading schedule config...');
+    
+    // Éviter les appels multiples en vérifiant si on est déjà en train de charger
     final scheduleState = ref.read(scheduleProvider);
+    if (scheduleState.isLoading) {
+      print('🔍 _loadScheduleConfig: Already loading, skipping');
+      return;
+    }
     
     if (scheduleState.config != null) {
       setState(() {
@@ -213,8 +222,13 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
   }
 
   ScheduleConfig _convertApiDataToScheduleConfig(Map<String, dynamic> data) {
+    print('🔍 Converting API data to ScheduleConfig');
+    print('🔍 Data keys: ${data.keys.toList()}');
+    print('🔍 daySchedules count: ${(data['daySchedules'] as List?)?.length ?? 0}');
+    print('🔍 Raw daySchedules data: ${data['daySchedules']}');
     
-    final daySchedules = (data['daySchedules'] as List<dynamic>?)
+    // Récupérer les daySchedules de l'API
+    final apiDaySchedules = (data['daySchedules'] as List<dynamic>?)
         ?.map((dayData) => DaySchedule(
               dayOfWeek: dayData['dayOfWeek'] as String,
               isOpen: dayData['isOpen'] as bool? ?? false,
@@ -231,6 +245,25 @@ class _ScheduleConfigurationWidgetState extends ConsumerState<ScheduleConfigurat
               closingTime: dayData['closingTime'] as String?,
             ))
         .toList() ?? [];
+
+    // S'assurer que tous les jours de la semaine sont présents
+    final daySchedules = <DaySchedule>[];
+    for (final day in DayOfWeek.values) {
+      final existingDay = apiDaySchedules.firstWhere(
+        (d) => d.dayOfWeek.toLowerCase() == day.english.toLowerCase(),
+        orElse: () => DaySchedule(
+          dayOfWeek: day.english,
+          isOpen: false, // Par défaut fermé si pas trouvé dans l'API
+          notes: '',
+          timeSlots: [],
+          openingTime: '09:00',
+          closingTime: '22:00',
+        ),
+      );
+      daySchedules.add(existingDay);
+      print('🔍 Added day: ${day.english} (${existingDay.isOpen ? 'Open' : 'Closed'}) - from API: ${apiDaySchedules.any((d) => d.dayOfWeek.toLowerCase() == day.english.toLowerCase())}');
+    }
+    print('🔍 Total days generated: ${daySchedules.length}');
 
     // Gérer les deux formats : paramètres directs ou dans timeSlotSettings
     TimeSlotSettings timeSlotSettings;

@@ -6,6 +6,7 @@ import { config } from '@/config/environment';
 import { testDatabaseConnection } from '@/config/database';
 import sessionConfig from '@/config/session';
 import { initSentry, sentryRequestHandler, sentryTracingHandler, sentryErrorHandler } from '@/config/sentry-simple';
+import { Container } from './infrastructure/container/Container';
 import { 
   helmetConfig,
   corsConfig,
@@ -18,6 +19,11 @@ import {
   enumerationProtectionMiddleware,
   sessionSecurityConfig
 } from '@/config/security';
+
+// Initialize DI Container early
+console.log('🔄 Initializing DI Container in app.ts...');
+Container.getInstance();
+console.log('✅ DI Container initialized in app.ts');
 // import { 
 //   httpLoggingMiddleware, 
 //   errorLoggingMiddleware, 

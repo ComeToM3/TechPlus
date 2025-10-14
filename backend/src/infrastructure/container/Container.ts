@@ -382,13 +382,29 @@ export class Container {
       this.services.get('CheckSlotAvailabilityUseCase')
     ));
 
+    console.log('🔍 Registering ScheduleController...');
+    const getScheduleConfigUseCase = this.services.get('GetScheduleConfigUseCase');
+    const createOrUpdateScheduleConfigUseCase = this.services.get('CreateOrUpdateScheduleConfigUseCase');
+    const deleteScheduleConfigUseCase = this.services.get('DeleteScheduleConfigUseCase');
+    const getAvailableSlotsUseCase = this.services.get('GetAvailableSlotsUseCase');
+    const validateReservationUseCase = this.services.get('ValidateReservationUseCase');
+    
+    console.log('🔍 Schedule Use Cases resolved:', {
+      getScheduleConfigUseCase: !!getScheduleConfigUseCase,
+      createOrUpdateScheduleConfigUseCase: !!createOrUpdateScheduleConfigUseCase,
+      deleteScheduleConfigUseCase: !!deleteScheduleConfigUseCase,
+      getAvailableSlotsUseCase: !!getAvailableSlotsUseCase,
+      validateReservationUseCase: !!validateReservationUseCase,
+    });
+    
     this.services.set('ScheduleController', new ScheduleControllerNew(
-      this.services.get('GetScheduleConfigUseCase'),
-      this.services.get('CreateOrUpdateScheduleConfigUseCase'),
-      this.services.get('DeleteScheduleConfigUseCase'),
-      this.services.get('GetAvailableSlotsUseCase'),
-      this.services.get('ValidateReservationUseCase')
+      getScheduleConfigUseCase,
+      createOrUpdateScheduleConfigUseCase,
+      deleteScheduleConfigUseCase,
+      getAvailableSlotsUseCase,
+      validateReservationUseCase
     ));
+    console.log('✅ ScheduleController registered');
 
     this.services.set('TableController', new TableControllerNew(
       this.services.get('GetTablesUseCase'),

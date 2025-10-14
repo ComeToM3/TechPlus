@@ -6,6 +6,7 @@ import '../../../../shared/widgets/buttons/simple_button.dart';
 import '../../../../shared/animations/animated_widget.dart';
 import '../../../../shared/animations/animation_constants.dart';
 import '../../../../generated/l10n/app_localizations.dart';
+import '../../../../shared/providers/table_provider.dart' as data;
 
 /// Widget pour le plan interactif du restaurant
 class InteractiveRestaurantLayoutWidget extends ConsumerStatefulWidget {
@@ -234,7 +235,7 @@ class _InteractiveRestaurantLayoutWidgetState extends ConsumerState<InteractiveR
         ),
 
         // Tables (simulées pour l'instant)
-        ..._buildTables(theme, l10n),
+        ..._buildTables(theme, l10n, ref),
       ],
     );
   }
@@ -276,43 +277,10 @@ class _InteractiveRestaurantLayoutWidgetState extends ConsumerState<InteractiveR
     );
   }
 
-  List<Widget> _buildTables(ThemeData theme, AppLocalizations l10n) {
-    // Tables simulées - à remplacer par les vraies données
-    final tables = [
-      TableEntity(
-        id: '1',
-        number: 1,
-        capacity: 4,
-        position: 'Gauche, près de la fenêtre',
-        isActive: true,
-        status: TableStatus.available,
-        restaurantId: 'restaurant_1',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      TableEntity(
-        id: '2',
-        number: 2,
-        capacity: 6,
-        position: 'Gauche, centre',
-        isActive: true,
-        status: TableStatus.occupied,
-        restaurantId: 'restaurant_1',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      TableEntity(
-        id: '3',
-        number: 3,
-        capacity: 2,
-        position: 'Droite, coin',
-        isActive: true,
-        status: TableStatus.reserved,
-        restaurantId: 'restaurant_1',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
+  List<Widget> _buildTables(ThemeData theme, AppLocalizations l10n, WidgetRef ref) {
+    // Utiliser les vraies données depuis le provider
+    final tableState = ref.watch(data.tableProvider);
+    final tables = tableState.items;
 
     return tables.map((table) {
       return Positioned(

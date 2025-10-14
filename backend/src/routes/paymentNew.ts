@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { PaymentControllerNew } from '../controllers/paymentControllerNew';
 import { Container } from '../infrastructure/container/Container';
+import { authenticateToken } from '@/middleware/auth';
+import { reservationLimiter } from '@/middleware/rateLimit';
 
 const router = Router();
 
@@ -12,7 +14,7 @@ const paymentController = Container.getInstance().getPaymentController();
  * @description Create a PaymentIntent for a reservation
  * @access Authenticated users only
  */
-router.post('/intent', (req, res) => {
+router.post('/intent', reservationLimiter, authenticateToken, (req, res) => {
   paymentController.createPaymentIntent(req, res);
 });
 
@@ -21,7 +23,7 @@ router.post('/intent', (req, res) => {
  * @description Confirm a payment
  * @access Authenticated users only
  */
-router.post('/confirm', (req, res) => {
+router.post('/confirm', reservationLimiter, authenticateToken, (req, res) => {
   paymentController.confirmPayment(req, res);
 });
 
@@ -30,7 +32,7 @@ router.post('/confirm', (req, res) => {
  * @description Process a refund
  * @access Authenticated users only
  */
-router.post('/refund', (req, res) => {
+router.post('/refund', reservationLimiter, authenticateToken, (req, res) => {
   paymentController.processRefund(req, res);
 });
 
@@ -39,7 +41,7 @@ router.post('/refund', (req, res) => {
  * @description Get payment details
  * @access Authenticated users only
  */
-router.get('/:id', (req, res) => {
+router.get('/:id', reservationLimiter, authenticateToken, (req, res) => {
   paymentController.getPaymentDetails(req, res);
 });
 

@@ -53,6 +53,7 @@ class _ScheduleManagementPageState extends ConsumerState<ScheduleManagementPage>
           token: authState.accessToken!,
         );
         _hasLoaded = true;
+        print('🔍 Schedule config loaded in page');
       } catch (e) {
         _hasLoaded = true; // Marquer comme chargé même en cas d'erreur pour éviter les boucles
       }

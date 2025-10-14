@@ -11,7 +11,12 @@ class StandardScheduleApi {
   /// Obtenir la configuration des créneaux
   Future<ScheduleConfig?> getScheduleConfig(String restaurantId) async {
     try {
+      print('🔍 [StandardScheduleApi] getScheduleConfig called');
       final response = await _client.get('/api/admin/schedule');
+      
+      print('🔍 [StandardScheduleApi] Response status: ${response.statusCode}');
+      print('🔍 [StandardScheduleApi] Response data keys: ${response.data.keys.toList()}');
+      print('🔍 [StandardScheduleApi] daySchedules in response: ${response.data['data']?['daySchedules']?.length ?? 0}');
 
       if (response.statusCode == 200) {
         return ScheduleConfig.fromJson(response.data['data']);
@@ -21,6 +26,7 @@ class StandardScheduleApi {
         throw Exception('Failed to fetch schedule config');
       }
     } catch (e) {
+      print('❌ [StandardScheduleApi] Error: $e');
       throw Exception('Error fetching schedule config: $e');
     }
   }

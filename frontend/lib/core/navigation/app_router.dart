@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../shared/providers/auth_provider.dart';
 import '../../features/admin/presentation/pages/reservation_list_page.dart' as admin;
 import '../../features/admin/presentation/pages/create_reservation_page.dart' as admin_create;
 import '../../features/reservation/presentation/pages/public_reservation_page.dart' as reservation;
@@ -35,8 +36,27 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/', // Démarrer sur la page publique
     redirect: (BuildContext context, GoRouterState state) {
-      // Désactiver l'authentification - permettre l'accès direct à toutes les routes
-      return null; // Pas de redirection
+      // Vérifier l'authentification pour les routes admin
+      final isAuthenticated = ref.read(isAuthenticatedProvider);
+      final isAdmin = ref.read(isAdminProvider);
+      final isLoading = ref.read(authProvider).isLoading;
+      
+      // Si on charge encore l'authentification, attendre
+      if (isLoading) {
+        return null;
+      }
+      
+      // Vérifier l'accès aux routes admin
+      if (state.uri.path.startsWith('/admin/')) {
+        if (!isAuthenticated) {
+          return '/admin/login';
+        }
+        if (!isAdmin) {
+          return '/login'; // Rediriger vers login si pas admin
+        }
+      }
+      
+      return null; // Pas de redirection pour les autres routes
     },
     routes: [
       // === ROUTES PUBLIQUES (Clients/Guests) ===

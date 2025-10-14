@@ -22,6 +22,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Pré-remplir avec les identifiants admin
+    _emailController.text = 'admin@techplus-restaurant.com';
+    _passwordController.text = 'admin123';
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -109,62 +117,106 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           
                           SizedBox(height: isMobile ? 24 : 32),
                           
-                          // Champ email
-                          CustomTextField(
-                            controller: _emailController,
-                            labelText: 'Email',
-                            hintText: 'admin@restaurant.com',
-                            keyboardType: TextInputType.emailAddress,
-                            prefixIcon: Icons.email_outlined,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Veuillez saisir votre email';
-                              }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                                return 'Veuillez saisir un email valide';
-                              }
-                              return null;
-                            },
+                          // Champ email avec bouton de copie
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _emailController,
+                                  labelText: 'Email',
+                                  hintText: 'admin@restaurant.com',
+                                  keyboardType: TextInputType.emailAddress,
+                                  prefixIcon: Icons.email_outlined,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Veuillez saisir votre email';
+                                    }
+                                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                      return 'Veuillez saisir un email valide';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () {
+                                  _emailController.text = 'admin@techplus-restaurant.com';
+                                },
+                                icon: const Icon(Icons.content_copy),
+                                tooltip: 'Copier email admin',
+                                style: IconButton.styleFrom(
+                                  backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                                ),
+                              ),
+                            ],
                           ),
                           
                           SizedBox(height: isMobile ? 16 : 20),
                           
-                          // Champ mot de passe
-                          CustomTextField(
-                            controller: _passwordController,
-                            labelText: 'Mot de passe',
-                            hintText: '••••••••',
-                            obscureText: _obscurePassword,
-                            prefixIcon: Icons.lock_outlined,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                          // Champ mot de passe avec bouton de copie
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _passwordController,
+                                  labelText: 'Mot de passe',
+                                  hintText: '••••••••',
+                                  obscureText: _obscurePassword,
+                                  prefixIcon: Icons.lock_outlined,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Veuillez saisir votre mot de passe';
+                                    }
+                                    if (value.length < 6) {
+                                      return 'Le mot de passe doit contenir au moins 6 caractères';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Veuillez saisir votre mot de passe';
-                              }
-                              if (value.length < 6) {
-                                return 'Le mot de passe doit contenir au moins 6 caractères';
-                              }
-                              return null;
-                            },
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () {
+                                  _passwordController.text = 'admin123';
+                                },
+                                icon: const Icon(Icons.content_copy),
+                                tooltip: 'Copier mot de passe admin',
+                                style: IconButton.styleFrom(
+                                  backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                                ),
+                              ),
+                            ],
                           ),
                           
                           SizedBox(height: isMobile ? 24 : 32),
                           
-                          // Bouton de connexion
+                          // Bouton de connexion rapide admin
+                          SimpleButton(
+                            text: '🚀 Connexion Admin Rapide',
+                            onPressed: authState.isLoading ? null : () => _handleQuickAdminLogin(authNotifier),
+                            isLoading: authState.isLoading,
+                            type: ButtonType.primary,
+                          ),
+                          
+                          SizedBox(height: isMobile ? 12 : 16),
+                          
+                          // Bouton de connexion normal
                           SimpleButton(
                             text: 'Se connecter',
                             onPressed: authState.isLoading ? null : () => _handleLogin(authNotifier),
                             isLoading: authState.isLoading,
-                            type: ButtonType.primary,
+                            type: ButtonType.secondary,
                           ),
                           
                           SizedBox(height: isMobile ? 16 : 20),
@@ -211,39 +263,87 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           
                           SizedBox(height: isMobile ? 16 : 20),
                           
-                          // Informations de test
+                          // Informations de test améliorées
                           Container(
-                            padding: EdgeInsets.all(isMobile ? 12 : 16),
+                            padding: EdgeInsets.all(isMobile ? 16 : 20),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  theme.colorScheme.primary.withOpacity(0.1),
+                                  theme.colorScheme.primary.withOpacity(0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
                               border: Border.all(
-                                color: theme.colorScheme.primary.withOpacity(0.2),
+                                color: theme.colorScheme.primary.withOpacity(0.3),
+                                width: 2,
                               ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Comptes de test disponibles:',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: isMobile ? 10 : 12,
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.admin_panel_settings,
+                                      color: theme.colorScheme.primary,
+                                      size: isMobile ? 20 : 24,
+                                    ),
+                                    SizedBox(width: isMobile ? 8 : 12),
+                                    Text(
+                                      '🔑 Identifiants Admin Pré-remplis',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.primary,
+                                        fontSize: isMobile ? 14 : 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: isMobile ? 12 : 16),
+                                Container(
+                                  padding: EdgeInsets.all(isMobile ? 12 : 16),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outline.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Email: admin@techplus-restaurant.com',
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontFamily: 'monospace',
+                                          fontSize: isMobile ? 12 : 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: isMobile ? 4 : 8),
+                                      Text(
+                                        'Mot de passe: admin123',
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontFamily: 'monospace',
+                                          fontSize: isMobile ? 12 : 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                SizedBox(height: isMobile ? 4 : 8),
-                                        Text(
-                                          'Admin: admin@techplus-restaurant.com / admin123',
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            fontSize: isMobile ? 9 : 11,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Client: client@example.com / client123',
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            fontSize: isMobile ? 9 : 11,
-                                          ),
-                                        ),
+                                SizedBox(height: isMobile ? 12 : 16),
+                                Text(
+                                  '💡 Utilisez le bouton "Connexion Admin Rapide" ci-dessus pour vous connecter automatiquement !',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: isMobile ? 10 : 12,
+                                    fontStyle: FontStyle.italic,
+                                    color: theme.colorScheme.onSurface.withOpacity(0.8),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -270,6 +370,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         context.go('/admin/dashboard');
       }
+    }
+  }
+
+  Future<void> _handleQuickAdminLogin(AuthNotifier authNotifier) async {
+    // Remplir automatiquement les champs avec les identifiants admin
+    _emailController.text = 'admin@techplus-restaurant.com';
+    _passwordController.text = 'admin123';
+    
+    // Se connecter directement
+    await authNotifier.login(
+      email: 'admin@techplus-restaurant.com',
+      password: 'admin123',
+    );
+    
+    if (mounted) {
+      context.go('/admin/dashboard');
     }
   }
 }

@@ -38,9 +38,11 @@ class DashboardState {
 /// Notifier pour la gestion du dashboard
 class DashboardNotifier extends StateNotifier<DashboardState> {
   final DashboardRepository? _repository;
+  final bool _isAuthenticated;
 
-  DashboardNotifier(this._repository) : super(const DashboardState()) {
-    if (_repository != null) {
+  DashboardNotifier(this._repository, this._isAuthenticated) : super(const DashboardState()) {
+    // Ne charger les métriques que si l'utilisateur est authentifié
+    if (_repository != null && _isAuthenticated) {
       loadDashboardMetrics();
     }
   }
@@ -224,7 +226,8 @@ final dashboardRepositoryProvider = Provider<DashboardRepository?>((ref) {
 /// Provider pour le notifier du dashboard
 final dashboardProvider = StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
-  return DashboardNotifier(repository);
+  final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  return DashboardNotifier(repository, isAuthenticated);
 });
 
 /// Provider pour les métriques du dashboard

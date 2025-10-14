@@ -32,9 +32,19 @@ export class TableControllerNew {
         return;
       }
 
-      // Pour l'instant, on utilise le premier restaurant
-      // TODO: Récupérer le restaurantId depuis l'utilisateur ou les paramètres
-      const restaurantId = 'default-restaurant-id'; // À remplacer par la logique réelle
+      // Récupérer le restaurantId depuis la base de données
+      const { PrismaClient } = await import('@prisma/client');
+      const prisma = new PrismaClient();
+      const restaurant = await prisma.restaurant.findFirst();
+      const restaurantId = restaurant?.id;
+      
+      if (!restaurantId) {
+        res.status(404).json({
+          success: false,
+          message: 'No restaurant found',
+        });
+        return;
+      }
 
       const result = await this.getTablesUseCase.execute({
         restaurantId,
@@ -135,9 +145,19 @@ export class TableControllerNew {
 
       const { number, capacity, position, status } = req.body;
 
-      // Pour l'instant, on utilise le premier restaurant
-      // TODO: Récupérer le restaurantId depuis l'utilisateur ou les paramètres
-      const restaurantId = 'default-restaurant-id'; // À remplacer par la logique réelle
+      // Récupérer le restaurantId depuis la base de données
+      const { PrismaClient } = await import('@prisma/client');
+      const prisma = new PrismaClient();
+      const restaurant = await prisma.restaurant.findFirst();
+      const restaurantId = restaurant?.id;
+      
+      if (!restaurantId) {
+        res.status(404).json({
+          success: false,
+          message: 'No restaurant found',
+        });
+        return;
+      }
 
       const result = await this.createTableUseCase.execute({
         number,

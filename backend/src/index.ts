@@ -1,10 +1,17 @@
-import app from './app';
 import { config } from '@/config/environment';
 import { disconnectDatabase, testDatabaseConnection } from '@/config/database';
 import prisma from '@/config/database';
 import { disconnectRedis } from '@/config/redis';
 import { setupDatabaseMonitoring, periodicDatabaseLogging } from '@/middleware/database-monitoring';
 import { periodicUptimeLogging } from '@/middleware/uptime';
+import { Container } from './infrastructure/container/Container';
+
+// Initialize DI Container first
+console.log('🔄 Initializing DI Container...');
+Container.getInstance();
+console.log('✅ DI Container initialized');
+
+import app from './app';
 
 const PORT = config.port || 3000;
 

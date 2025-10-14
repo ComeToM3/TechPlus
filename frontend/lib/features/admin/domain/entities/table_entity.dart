@@ -68,8 +68,8 @@ class TableEntity {
   factory TableEntity.fromJson(Map<String, dynamic> json) {
     return TableEntity(
       id: json['id'] as String,
-      number: json['number'] as int,
-      capacity: json['capacity'] as int,
+      number: int.tryParse(json['number'].toString()) ?? 0,
+      capacity: int.tryParse(json['capacity'].toString()) ?? 0,
       position: json['position'] as String?,
       isActive: json['isActive'] as bool,
       restaurantId: json['restaurantId'] as String,

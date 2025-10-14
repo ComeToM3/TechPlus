@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { TableControllerNew } from '../controllers/tableControllerNew';
 import { Container } from '../infrastructure/container/Container';
+import { authenticateToken, requireAdmin } from '@/middleware/auth';
+import { adminLimiter } from '@/middleware/rateLimit';
 
 const router = Router();
 
@@ -12,7 +14,7 @@ const tableController = Container.getInstance().getTableController();
  * @description Get all tables for the restaurant
  * @access Admin only
  */
-router.get('/', (req, res) => {
+router.get('/', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.getTables(req, res);
 });
 
@@ -21,7 +23,7 @@ router.get('/', (req, res) => {
  * @description Get a specific table by ID
  * @access Admin only
  */
-router.get('/:id', (req, res) => {
+router.get('/:id', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.getTableById(req, res);
 });
 
@@ -30,7 +32,7 @@ router.get('/:id', (req, res) => {
  * @description Create a new table
  * @access Admin only
  */
-router.post('/', (req, res) => {
+router.post('/', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.createTable(req, res);
 });
 
@@ -39,7 +41,7 @@ router.post('/', (req, res) => {
  * @description Update a table
  * @access Admin only
  */
-router.put('/:id', (req, res) => {
+router.put('/:id', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.updateTable(req, res);
 });
 
@@ -48,7 +50,7 @@ router.put('/:id', (req, res) => {
  * @description Delete a table
  * @access Admin only
  */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.deleteTable(req, res);
 });
 
@@ -57,7 +59,7 @@ router.delete('/:id', (req, res) => {
  * @description Get table statistics
  * @access Admin only
  */
-router.get('/statistics', (req, res) => {
+router.get('/statistics', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.getTableStatistics(req, res);
 });
 
@@ -66,7 +68,7 @@ router.get('/statistics', (req, res) => {
  * @description Get tables metadata only (without reservations)
  * @access Admin only
  */
-router.get('/metadata', (req, res) => {
+router.get('/metadata', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.getTableMetadata(req, res);
 });
 
@@ -75,7 +77,7 @@ router.get('/metadata', (req, res) => {
  * @description Batch update multiple tables
  * @access Admin only
  */
-router.patch('/batch', (req, res) => {
+router.patch('/batch', adminLimiter, authenticateToken, requireAdmin, (req, res) => {
   tableController.batchUpdateTables(req, res);
 });
 

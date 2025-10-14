@@ -33,64 +33,63 @@ class UnifiedBottomNavigation extends ConsumerWidget {
           height: 70,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.dashboard,
                 'Accueil',
                 0,
                 currentIndex == 0,
-              ),
-              _buildNavItem(
+              )),
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.restaurant_menu,
                 'Réservations',
                 1,
                 currentIndex == 1,
-              ),
-              _buildNavItem(
+              )),
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.table_restaurant,
                 'Tables',
                 2,
                 currentIndex == 2,
-              ),
-              _buildNavItem(
+              )),
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.schedule,
                 'Horaires',
                 3,
                 currentIndex == 3,
-              ),
-              _buildNavItem(
+              )),
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.menu_book,
                 'Menu',
                 4,
                 currentIndex == 4,
-              ),
-              _buildNavItem(
+              )),
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.analytics,
                 'Analytiques',
                 5,
                 currentIndex == 5,
-              ),
-              _buildNavItem(
+              )),
+              Expanded(child: _buildNavItem(
                 context,
                 theme,
                 Icons.assessment,
                 'Rapports',
                 6,
                 currentIndex == 6,
-              ),
+              )),
             ],
           ),
         ),

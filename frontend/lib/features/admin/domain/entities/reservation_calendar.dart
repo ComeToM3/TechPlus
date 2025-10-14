@@ -128,7 +128,9 @@ class ReservationCalendar {
       tableNumber: tableNumber,
       notes: json['notes'] as String?,
       specialRequests: json['specialRequests'] as String?,
-      estimatedAmount: (json['estimatedAmount'] as num?)?.toDouble(),
+      estimatedAmount: json['estimatedAmount'] != null 
+          ? double.tryParse(json['estimatedAmount'].toString()) 
+          : null,
       paymentStatus: json['paymentStatus'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
